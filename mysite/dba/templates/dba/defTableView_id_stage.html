@@ -1,0 +1,33 @@
+{% extends 'dba/base.html' %}
+
+
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+<div class="container mt-12">
+    <div class="card">
+        <div class="card-body">
+            <p class="card-title">{{ table.schema.base.table_catalog }}/{{ table.schema }}</p>
+            <h2 class="card-title">DDL {{ table.table_name|safe }}</h2>
+            <h3 class="card-title">Описание</h3>
+            <p class="card-text">{{table.table_com|safe }}</p>
+        </div>
+    </div>
+</div>
+<div class="container mt-12">
+    <div class="card">
+        <div class="card-body">
+            <form method="GET">
+                {{ filter.form.stage }}
+                <button type="submit" class="btn btn-primary">Поиск</button>
+            </form>
+            <br>
+            <pre lang="sql"><code class="sql">
+           create table {{ table.table_name|safe }}(
+            {% for elem in person_page_odj %}
+                &nbsp;&nbsp;&nbsp;&nbsp;{{ elem.column.column_name}} &nbsp;{{ elem.column.data_type }}&nbsp;{{ elem.column.is_nullable}}{% if forloop.last %} {% else %},{% endif %}{% endfor %}
+            )
+            </code></pre>
+        </div>
+    </div>
+</div>
+{% endblock%}

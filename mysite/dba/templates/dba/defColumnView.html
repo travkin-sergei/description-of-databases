@@ -1,0 +1,43 @@
+{% extends 'dba/base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+
+
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <form method="GET">
+            <th scope="col">base<br></th>
+            <th scope="col">schema<br>{{ filter.form.schema }}</th>
+            <th scope="col">table<br>{{ filter.form.table }}</th>
+            <th scope="col">column_id</th>
+            <th scope="col">column_name<br>{{ filter.form.column_name }}</th>
+            <th scope="col">data_type</th>
+            <th scope="col">column_com<br>{{ filter.form.column_com }}
+                <button type="submit" class="btn btn-primary">Поиск</button>
+            </th>
+        </form>
+    </tr>
+    </thead>
+    <tbody>
+    {% for elem in object_list %}
+    <tr>
+        <td>{{ elem.table.schema.base|default_if_none:'' }}</td>
+        <td>{{ elem.table.schema|default_if_none:'' }}</td>
+        <td>
+            <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
+                <abbr title='{{ elem.table.table_com|default_if_none:"нет данных" }}'>
+                    {{ elem.table|default_if_none:"" }}
+                </abbr>
+            </a>
+        </td>
+        <td>{{ elem.pk }}</td>
+        <td>{{ elem.column_name|default_if_none:'' }}</td>
+        <td>{{ elem.data_type|default_if_none:'' }}</td>
+        <td>{{ elem.column_com|default_if_none:'' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock%}

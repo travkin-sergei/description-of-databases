@@ -1,0 +1,34 @@
+{% extends 'dba/base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+<div class="container mt-12">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">{{ service }}</h2>
+        </div>
+    </div>
+</div>
+<h2>Состав сервиса</h2>
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th scope="col">№</th>
+        <th scope="col">base</th>
+        <th scope="col">schema</th>
+        <th scope="col">table_name</th>
+        <th scope="col">комментарий</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for elem in table %}
+    <tr>
+        <th scope="row">{{ forloop.counter}}</th>
+        <td><a href="{% url 'dba:table_id' pk=elem.table.pk %}">{{ elem.table.schema.base }}</a></td>
+        <td><a href="{% url 'dba:table_id' pk=elem.table.pk %}">{{ elem.table.schema }}</a></td>
+        <td><a href="{% url 'dba:table_id' pk=elem.table.pk %}">{{ elem.table.table_name }}</a></td>
+        <td><a href="{% url 'dba:table_id' pk=elem.table.pk %}">{{ elem.table.table_com }}</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock%}

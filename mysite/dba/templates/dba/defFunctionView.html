@@ -1,0 +1,31 @@
+{% extends 'dba/base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+{% load myapp_extras %}
+<div class="container-fluid">
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <form method="GET">
+                <th scope="col">base <br> {{ filter.form.base }}</th>
+                <th scope="col">schema <br> {{ filter.form.schema }}</th>
+                <th scope="col">name_fun <br> {{ filter.form.name_fun }}</th>
+                <th scope="col">is_active <br> {{ filter.form.is_active }}
+                    <button type="submit" class="btn btn-primary">Поиск</button>
+                </th>
+            </form>
+        </tr>
+        </thead>
+        <tbody>
+        {% for elem in person_page_odj %}
+        <tr>
+            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.schema.base|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.schema|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.name_fun|default_if_none:"" }}</a></td>
+            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.is_active|default_if_none:"" }}</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock%}

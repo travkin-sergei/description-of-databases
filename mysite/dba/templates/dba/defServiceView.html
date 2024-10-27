@@ -1,0 +1,30 @@
+{% extends 'dba/base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+{% load myapp_extras %}
+<div class="container-fluid">
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <form method="GET">
+                <th scope="col">service<br>
+                    {{ filter.form.service }}
+                </th>
+                <th scope="col">is_active<br>
+                    {{ filter.form.is_active }}
+                    <button type="submit" class="btn btn-primary">Поиск</button>
+                </th>
+            </form>
+        </tr>
+        </thead>
+        <tbody>
+        {% for elem in object_list %}
+        <tr>
+            <td><a href="{% url 'dba:service_id' pk=elem.pk %}">{{ elem.service|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'dba:service_id' pk=elem.pk %}">{{ elem.is_active|default_if_none:'' }}</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock%}

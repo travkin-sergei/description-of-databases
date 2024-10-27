@@ -1,0 +1,35 @@
+{% extends 'dba/base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+{% load myapp_extras %}
+
+<div class="container-fluid">
+    <div class="row">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <form method="GET">
+                    <th scope="col">table_catalog<br>{{ filter.form.table_catalog }}</th>
+                    <th scope="col">is_active<br>
+                        {{ filter.form.is_active }}
+                        <button type="submit" class="btn btn-primary">Поиск</button>
+                    </th>
+                </form>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i_obj in object_list %}
+            <tr>
+                <td><a href="{% url 'dba:base_id' pk=i_obj.pk %}">{{ i_obj.table_catalog|safe }}</a></td>
+                <td><a href="{% url 'dba:base_id' pk=i_obj.pk %}">{{ i_obj.is_active|safe }}</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+{% endblock%}
+
+
+

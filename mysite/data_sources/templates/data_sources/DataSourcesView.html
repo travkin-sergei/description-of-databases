@@ -1,0 +1,42 @@
+{% extends 'dba/base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+{% load myapp_extras %}
+
+<div class="container-fluid">
+    <div class="row">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <form method="GET">
+                    <th scope="col"><br>{{ filter.form.slag }}slag</th>
+                    <th scope="col"><br>link_sources</th>
+                    <th scope="col"><br>doc_regulatory</th>
+                    <th scope="col"><br>{{ filter.form.name_sources }}name_sources</th>
+                    <th scope="col">
+                        <br>{{ filter.form.description }}description
+                    <button type="submit" class="btn btn-primary">Поиск</button>
+                    </th>
+
+                </form>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i_obj in object_list %}
+            <tr>
+                <td><a href="#">{{ i_obj.slag }}</a></td>
+                <td><a href="{{ i_obj.doc_regulatory }}">ссылка на истчоник</a></td>
+                <td><a href="{{ i_obj.doc_regulatory }}">ссылка на документацию</a></td>
+                <td><a href="#">{{ i_obj.name_sources }}</a></td>
+                <td><a href="#">{{ i_obj.description }}</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+{% endblock%}
+
+
+
