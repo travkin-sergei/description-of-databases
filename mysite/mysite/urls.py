@@ -18,7 +18,7 @@ urlpatterns = [
     # Приложения
     path('', include('article.urls')),
     path('dba/', include('dba.urls')),
-    path('myauth/', include('myauth.urls')),
+    path('accounts/', include('myauth.urls')),
     path('data_sources/', include('data_sources.urls')),
 ]
 

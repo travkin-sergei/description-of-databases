@@ -1,8 +1,16 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 
 from ..filters import ArticleFilter
 from ..models import Article
+
+
+def about_me(request):
+    """
+    Отображение информации о текущем приложении из шалона.
+    """
+    return render(request, 'article/about_application.html')
 
 
 class FilteredListView(ListView, LoginRequiredMixin):

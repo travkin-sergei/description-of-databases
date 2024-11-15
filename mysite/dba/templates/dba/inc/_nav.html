@@ -13,21 +13,36 @@
                         О нас
                     </a>
                     <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'article:article_detail' slug='a-bout' %}">
-                                О разделе
-                            </a>
-                        </li>
+                        <li><a class="dropdown-item" href="{% url 'redoc' %}">ReDoc</a></li>
+                        <li><a class="dropdown-item" href="{% url 'swagger' %}">Swagger</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="{% url 'redoc' %}">ReDoc</a></li>
-                        <li><a class="dropdown-item" href="{% url 'swagger' %}">Swagger</a></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'article:about_me' %}">
+                                О разделе
+                            </a>
+                        </li>
                     </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dba:service' %}">Сервисы</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        Сервисы
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="nav-link" href="{% url 'dba:service' %}">Сервисы</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'dba:about_me' %}">
+                                О разделе
+                            </a>
+                        </li>
+                    </ul>
                 </li>
+
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
@@ -35,29 +50,76 @@
                         Базы данных
                     </a>
                     <ul class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'article:article_detail' slug='data-base' %}">
-                                О разделе
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
                         <li><a class="dropdown-item" href="{% url 'dba:base' %}">Список баз</a></li>
                         <li><a class="dropdown-item" href="{% url 'dba:table' %}">Таблицы</a></li>
                         <li><a class="dropdown-item" href="{% url 'dba:function' %}">Список функций</a></li>
                         <li><a class="dropdown-item" href="{% url 'dba:my_update' %}">Обновления</a></li>
                         <li><a class="dropdown-item" href="{% url 'dba:column' %}">Столбцы таблиц</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'dba:about_me' %}">
+                                О разделе
+                            </a>
+                        </li>
                     </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'data_sources:data-sources' %}">Источники данных</a>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        Источники данных
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'data_sources:data-sources' %}"> Источники данных</a>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'data_sources:about_me' %}">
+                                О разделе
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle"
+                       href="#"
+                       role="button"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                       Пользователи
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Пользователи</a>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'myauth:about_me' %}">
+                                О разделе
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
             <ul class="navbar-brand">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'myauth:logout' %}">{{ user.username }}</a>
+                    <form method="post" action="{% url 'myauth:logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                data-mdb-button-init data-mdb-ripple-init
+                                class="btn btn-primary btn-lg">
+                            Logout
+                        </button>
+                    </form>
                 </li>
                 {% else %}
                 <li class="nav-item">

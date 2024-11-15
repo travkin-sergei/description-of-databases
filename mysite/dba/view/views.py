@@ -4,15 +4,22 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-
+from django.db.models import Value
+from django.db.models.functions import Concat
 from ..filters import *
-from ..forms import RegisterForm
+from ..my_function.cron import get_cron
 
 
-# Create your views here.
 def page_note_found(request, exception):
     # обработка 404 ошибки отсутствия страницы
     HttpResponseNotFound("<h1>Страница не найдено 404 ошибка</h1>")
+
+
+def about_me(request):
+    """
+    Отображение информации о текущем приложении из шалона.
+    """
+    return render(request, 'dba/about_application.html')
 
 
 class FilteredListView(ListView):
@@ -24,6 +31,7 @@ class FilteredListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(is_active=True)
         self.filter = self.filter_class(self.request.GET, queryset)
         return self.filter.qs
 
@@ -106,6 +114,14 @@ class TableView(LoginRequiredMixin, FilteredListView):
     model = Table
     filter_class = TableFilter
 
+    def get_queryset(self):
+        # Получаем базовый queryset
+        queryset = super().get_queryset()
+        # Фильтруем только активные записи и те, у которых is_metadata=False
+        queryset = queryset.filter(is_active=True, is_metadata=False)
+        self.filter = self.filter_class(self.request.GET, queryset)
+        return self.filter.qs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Получаем текущие параметры GET
@@ -113,12 +129,14 @@ class TableView(LoginRequiredMixin, FilteredListView):
         # Удаляем параметр 'page'
         query_dict.pop('page', None)
         context['query_params'] = query_dict.urlencode()  # Передаем строку запроса в контекст
+
         return context
 
 
 class TableViewId(LoginRequiredMixin, DetailView):
     """
-    Описание таблиц
+    Описание таблиц.
+    Деактивировнаные строки не оторбражаются.
     """
     model = Table
     template_name = 'dba/defTableView_id.html'
@@ -128,6 +146,7 @@ class TableViewId(LoginRequiredMixin, DetailView):
         table = self.object
         context['column'] = (Column.objects
                              .filter(table=table)
+                             .filter(is_active=True)
                              .order_by('date_create', 'id'))
         context['stage'] = (StageColumn.objects
                             .filter(column_id__in=context['column'])
@@ -176,12 +195,26 @@ class UpdateView(LoginRequiredMixin, FilteredListView):
     model = Update
     filter_class = UpdateFilter
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Применяем get_cron к каждому элементу schedule
+        for update in queryset:
+            if update.schedule:  # Проверяем, что schedule не пустое
+                try:
+                    update.my_schedule = get_cron(update.schedule)
+                except ValueError as e:
+                    # Обработайте ошибку, если cron-выражение некорректно
+                    update.my_schedule = 'Некорректное cron выражение'  # или другое значение по умолчанию
+            else:
+                update.my_schedule = 'Нет расписания'  # или другое значение по умолчанию
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         # Получаем текущие параметры GET
         query_dict = self.request.GET.copy()
-        # Удаляем параметр 'page'
-        query_dict.pop('page', None)
+        query_dict.pop('page', None)  # Удаляем параметр 'page'
         context['query_params'] = query_dict.urlencode()  # Передаем строку запроса в контекст
         return context
 

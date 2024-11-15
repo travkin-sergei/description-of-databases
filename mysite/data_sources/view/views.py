@@ -6,8 +6,14 @@ from ..filters import DataSourcesFilter
 from ..models import DataSources
 
 
+def about_me(request):
+    """
+    Отображение информации о текущем приложении из шалона.
+    """
+    return render(request, 'data_sources/about_application.html')
 
-class DataSourcesView(LoginRequiredMixin,ListView):
+
+class DataSourcesView(LoginRequiredMixin, ListView):
     """
     Отображение списка источников данных
     """
