@@ -112,7 +112,7 @@ class Table(BasesClass):
     TYPE_LIST = [
         ('tabl', 'Таблица'),
         ('ext_tabl', 'Внешняя таблица'),
-        ('view', 'Представление'),
+        ('views', 'Представление'),
     ]
 
     is_metadata = models.BooleanField(default=False, verbose_name='Таблица метаданных')

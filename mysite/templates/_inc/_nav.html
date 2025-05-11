@@ -1,0 +1,56 @@
+<nav class="navbar navbar-expand-lg" style="background-color: black;"> <!-- Черный фон -->
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#" style="color: white;">Home</a> <!-- Белый текст для логотипа -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon" style="background-color: white;"></span> <!-- Белая иконка -->
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false" style="color: white;">
+                        О нас
+                    </a>
+                    <ul class="dropdown-menu" style="background-color: black;"> <!-- Черный фон для выпадающего меню -->
+                        <li><a class="dropdown-item" href="{% url 'redoc' %}" style="color: white;">ReDoc</a></li>
+                        <li><a class="dropdown-item" href="{% url 'swagger' %}" style="color: white;">Swagger</a></li>
+                        <li><a class="dropdown-item" href="admin/doc/" style="color: white;">admin</a></li>
+                        <li>
+                            <hr class="dropdown-divider" style="background-color: white;">
+                            <!-- Белая линия разделителя -->
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" style="color: white;">
+                                О разделе
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {% include 'dba/_nav.html' %}
+                {% include 'my_auth/_nav.html' %}
+                {% include 'my_metla/_nav.html' %}
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <form method="post" action="{% url 'my_auth:logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                data-mdb-button-init data-mdb-ripple-init
+                                class="btn btn-danger" style="background-color: red; color: yellow;">
+                            <!-- Красная кнопка с желтым текстом -->
+                            Logout
+                        </button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'my_auth:login' %}" style="color: white;">login</a>
+                    <!-- Белый текст для ссылки -->
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

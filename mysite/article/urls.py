@@ -9,7 +9,6 @@ from .views.views import (
 app_name = 'article'
 
 urlpatterns = [
-    path('about-me/', about_me, name='about_me'),
-    path('', ArticleView.as_view(), name='home'),  # Список статей
+    path('', ArticleView.as_view(), name='about-app'),  # о приложении
     path('article/<slug:slug>/', ArticleDetailView.as_view(), name='article_detail'),  # Детали статьи
 ]

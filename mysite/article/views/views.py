@@ -10,7 +10,7 @@ def about_me(request):
     """
     Отображение информации о текущем приложении из шалона.
     """
-    return render(request, 'article/about_application.html')
+    return render(request, 'article/about-application.html')
 
 
 class FilteredListView(ListView, LoginRequiredMixin):
@@ -35,7 +35,7 @@ class ArticleView(FilteredListView, LoginRequiredMixin):
     """
     Список Статей
     """
-    template_name = 'article/Article.html'
+    template_name = 'article/article.html'
     model = Article
     filter_class = ArticleFilter
 

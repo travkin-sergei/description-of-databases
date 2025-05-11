@@ -33,7 +33,17 @@ PORT=5432
 cd mysite
 ```
 
-6. запустить runserver
+6. Создать миграцию
+```bash
+
+python manage.py makemigrations
+```
+7. Применить миграцию
+```bash
+
+python manage.py migrate
+```
+8. запустить runserver
 ```bash
 
 python manage.py runserver

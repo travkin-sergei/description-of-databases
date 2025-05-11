@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Список баз данных{% endblock %}
+{% block body %}
+<style>
+    .bg-custom-black {
+        background-color: #000000 !important;
+    }
+    .btn-custom {
+        background-color: #808080 !important;
+        border-color: #808080 !important;
+        color: white !important;
+        transition: all 0.3s ease;
+    }
+    .btn-custom:hover,
+    .btn-custom:active,
+    .btn-custom:focus {
+        background-color: #ff0000 !important;
+        border-color: #ff0000 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 0, 0, 0.25);
+    }
+    .table-striped-custom tbody tr:nth-child(odd) {
+        background-color: #ffffff !important;
+    }
+    .table-striped-custom tbody tr:nth-child(even) {
+        background-color: #ffff99 !important;
+    }
+</style>
+
+<h1 class="text-center my-4">Список баз данных</h1>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-custom-black text-white">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <div class="d-flex flex-wrap align-items-center">
+                            <div class="me-3 mb-2">
+                                {{ filter.form.name.label_tag }}
+                                {{ filter.form.name }}
+                            </div>
+                            <div class="me-3 mb-2">
+                                {{ filter.form.type.label_tag }}
+                                {{ filter.form.type }}
+                            </div>
+                            <div class="me-3 mb-2">
+                                {{ filter.form.is_active.label_tag }}
+                                {{ filter.form.is_active }}
+                            </div>
+                            <div class="ms-auto mb-2">
+                                <button type="submit" class="btn btn-custom me-2">Применить</button>
+                                <a href="?" class="btn btn-custom">Сбросить</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица с данными -->
+    <div class="row">
+        <div class="col-12">
+            {% if filter.qs %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-striped-custom">
+                    <thead class="thead-dark bg-custom-black text-white">
+                    <tr>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Хост</th>
+                        <th>Порт</th>
+                        <th>Версия</th>
+                        <th>Статус</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for database in filter.qs %}
+                    <tr>
+                        <td>{{ database.name|default:"-" }}</td>
+                        <td>{{ database.type|default:"-" }}</td>
+                        <td>{{ database.host }}</td>
+                        <td>{{ database.port }}</td>
+                        <td>{{ database.version|default:"-" }}</td>
+                        <td>
+                            {% if database.is_active %}
+                            <span class="badge bg-success">Активна</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Неактивна</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-warning" role="alert">
+                По вашему запросу ничего не найдено. Попробуйте изменить параметры фильтрации.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock body %}

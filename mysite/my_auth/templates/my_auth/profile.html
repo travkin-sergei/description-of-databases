@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}
+Профиль
+{% endblock %}
+
+{% block body %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>Профиль пользователя</h1>
+        <img src="
+                {% if profile.user.avatar %}
+                    {{ profile.user.avatar.url }}
+                {% else %}
+                    /static/img/default-avatar.jpg
+                {% endif %}"
+             alt="Аватар пользователя"
+             class="profile-avatar">
+    </div>
+    <div class="profile-info">
+        <p><strong>Имя пользователя:</strong> {{ profile.user.username }}</p>
+        <p><strong>Электронная почта:</strong> {{ profile.user.email }}</p>
+        <p><strong>Телефон:</strong> {{ profile.phone }}</p>
+        <p><strong>Дата регистрации:</strong> {{ profile.user.date_joined|date:"d.m.Y" }}</p>
+    </div>
+    <div class="profile-actions">
+        <a href="#" class="btn btn-secondary">Редактировать профиль</a>
+        <a href="{% url 'my_auth:password_change' %}" class="btn btn-secondary">Сменить пароль</a>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .profile-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin-top: 10px;
+    }
+    .profile-info {
+        margin-bottom: 20px;
+    }
+    .profile-actions {
+        display: flex;
+        justify-content: space-between;
+    }
+    .btn {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        color: white;
+        cursor: pointer;
+    }
+    .btn-primary {
+        background-color: #007bff;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+    }
+</style>
+{% endblock %}

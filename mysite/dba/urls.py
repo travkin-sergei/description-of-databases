@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .view.views import (
+from .view.web import (
     about_me,
     page_note_found,
     BasesView, BasesViewId,
@@ -29,7 +29,7 @@ routers.register("schema", SchemaAPIViewSet)
 routers.register("table", TableAPIViewSet)
 
 urlpatterns = [
-    path('about-me/', about_me, name='about_me'),
+    path('about-app/', about_me, name='about-app'),
     # start ------- подключение API
     path("v1/api/", include(routers.urls)),
     path("v1/api/tab_id/<int:pk>/", TableDetailAPIView.as_view()),

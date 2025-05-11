@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.text import slugify
 
+schema = 'my_article'
+
 
 class Article(models.Model):
     """
@@ -24,6 +26,6 @@ class Article(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        db_table = 'doc_article'
+        db_table = f'{schema}\".\"doc_article'
         verbose_name = '01 Статья'
         verbose_name_plural = '01 Статьи'

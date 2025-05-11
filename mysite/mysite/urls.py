@@ -18,8 +18,8 @@ urlpatterns = [
     # Приложения
     path('', include('article.urls')),
     path('dba/', include('dba.urls')),
-    path('accounts/', include('myauth.urls')),
-    path('data_sources/', include('data_sources.urls')),
+    path('accounts/', include('my_auth.urls')),
+    path('metla/', include('my_metla.urls')),
 ]
 
 if settings.DEBUG:
