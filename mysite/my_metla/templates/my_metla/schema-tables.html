@@ -28,7 +28,10 @@
             <form method="get" class="form-inline">
                 <div class="d-flex flex-wrap align-items-center">
                     {% for field in filter.form %}
-                        <div class="me-3 mb-2">{{ field.label_tag }} {{ field }}</div>
+                    <div class="me-3 mb-2">
+                        {{ field.label_tag }}
+                        {{ field }}
+                    </div>
                     {% endfor %}
                     <div class="ms-auto mb-2">
                         <button type="submit" class="btn btn-custom me-2">Применить</button>
@@ -40,64 +43,45 @@
     </div>
 
     <!-- Таблица -->
-    {% if base_schemas %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover table-striped-custom">
-                <thead class="bg-custom-black text-white">
-                    <tr>
-                        <th>Тип базы</th>
-                        <th>База данных</th>
-                        <th>Схема</th>
-                        <th>Таблицы</th>
-                        <th>Тип таблицы</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for base_schema in base_schemas %}
-                        {% for schema_table in base_schema.schematable_set.all %}
-                            {% if not filter.form.table_type.value or schema_table.table_type.id == filter.form.table_type.value|add:0 %}
-                                <tr>
-                                    <td>{{ base_schema.base.type.name }}</td>
-                                    <td>{{ base_schema.base.name }}</td>
-                                    <td>{{ base_schema.schema.name }}</td>
-                                    <td>
-                                        <a href="{% url 'my_metla:table-detail' pk=schema_table.id %}">
-                                            {{ schema_table.table.name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ schema_table.table_type.name }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if schema_table.is_active %}success{% else %}danger{% endif %}">
-                                            {% if schema_table.is_active %}Активна{% else %}Неактивна{% endif %}
-                                        </span>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Пагинация -->
-        {% if is_paginated %}
-            <div class="pagination mt-4">
-                {% if page_obj.has_previous %}
-                    <a href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="btn btn-custom btn-sm">&laquo; первая</a>
-                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="btn btn-custom btn-sm">предыдущая</a>
-                {% endif %}
-
-                <span class="current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="btn btn-custom btn-sm">следующая</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="btn btn-custom btn-sm">последняя &raquo;</a>
-                {% endif %}
-            </div>
-        {% endif %}
+    {% if page_obj %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped-custom">
+            <thead class="bg-custom-black text-white">
+            <tr>
+                <th>#</th>
+                <th>Тип базы</th>
+                <th>База данных</th>
+                <th>Схема</th>
+                <th>Таблица</th>
+                <th>Тип таблицы</th>
+                <th>Статус</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for schema_table in schema_tables %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ schema_table.base_schema.base.type.name }}</td>
+                <td>{{ schema_table.base_schema.base.name }}</td>
+                <td>{{ schema_table.base_schema.schema.name }}</td>
+                <td>
+                    <a href="{% url 'my_metla:table-detail' pk=schema_table.id %}">
+                        {{ schema_table.table.name }}
+                    </a>
+                </td>
+                <td>{{ schema_table.table_type.name }}</td>
+                <td>
+                        <span class="badge bg-{% if schema_table.is_active %}success{% else %}danger{% endif %}">
+                            {% if schema_table.is_active %}Активна{% else %}Неактивна{% endif %}
+                        </span>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-        <div class="alert alert-warning">Нет данных для отображения</div>
+    <div class="alert alert-warning">Нет данных для отображения</div>
     {% endif %}
 </div>
 {% endblock %}

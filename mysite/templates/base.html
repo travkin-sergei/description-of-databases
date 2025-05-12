@@ -23,11 +23,21 @@
             border-color: #ff0000 !important;
         }
 
-        /* Для элементов пагинации */
+        /* Стили для пагинации */
+        .page-link {
+            color: #000000 !important;
+        }
+
         .page-link:hover {
+            color: #ffffff !important;
             background-color: #ff0000 !important;
-            color: white !important;
             border-color: #ff0000 !important;
+        }
+
+        .page-item.active .page-link {
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            color: #ffffff !important;
         }
 
         /* Дополнительно: для любых других элементов с классом .hover-red */
@@ -35,16 +45,32 @@
             background-color: #ff0000 !important;
             color: white !important;
         }
+
+        /* Добавляем отступы для навигации и пагинации */
+        .nav-container {
+            margin-bottom: 2rem; /* или используйте mb-4 из Bootstrap */
+        }
+        .paginator-container {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Опционально: плавные переходы для hover-эффектов */
+        .nav-link, .btn, .page-link, .hover-red {
+            transition: all 0.3s ease;
+        }
     </style>
 
     {% block head %}{% endblock %}
 </head>
 <body>
-
-{% include '_inc/_nav.html' %}
-{% include '_inc/_paginator.html' %}
+<div class="nav-container">
+    {% include '_inc/_nav.html' %}
+</div>
+<div class="paginator-container">
+    {% include '_inc/_paginator.html' %}
+</div>
 {% block body %}{% endblock %}
-
 {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -201,11 +201,11 @@ class BaseSchema(BaseModel):
 class SchemaTable(BaseModel):
     """Свод данных."""
 
-    base_schema       = models.ForeignKey(BaseSchema, on_delete=models.CASCADE, blank=True, null=True)
+    base_schema = models.ForeignKey(BaseSchema, on_delete=models.CASCADE, blank=True, null=True)
     table_is_metadata = models.BooleanField(default=False, verbose_name='Таблица метаданных')
-    table_type        = models.ForeignKey(TableType, on_delete=models.CASCADE, blank=True, null=True)
-    table             = models.ForeignKey(Table, on_delete=models.CASCADE, blank=True, null=True)
-    description       = models.TextField(blank=True, null=True)
+    table_type = models.ForeignKey(TableType, on_delete=models.CASCADE, blank=True, null=True)
+    table = models.ForeignKey(Table, on_delete=models.CASCADE, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     def get_hash_fields(self):
         return [self.base_schema, self.table]
