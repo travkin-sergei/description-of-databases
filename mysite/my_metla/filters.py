@@ -1,10 +1,8 @@
 # filters.py
-import django_filters
 from django_filters import (
     FilterSet,
     CharFilter,
     ChoiceFilter,
-    BooleanFilter,
     ModelChoiceFilter,
 )
 from django import forms
@@ -23,14 +21,20 @@ class BaseFilter(FilterSet):
         field_name='name',
         lookup_expr='icontains',
         label='Название',
-        widget=forms.TextInput(attrs={'placeholder': 'Введите имя базы'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control bg-black text-white',
+            'placeholder': 'Введите имя базы',
+        })
     )
-
     type = ChoiceFilter(
         field_name='type__name',
         label='Тип базы данных',
         choices=[],
-        empty_label='Все типы'
+        empty_label='Все типы',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control bg-black text-white',
+            'placeholder': 'Введите тип базы данных',
+        })
     )
 
     is_active = ChoiceFilter(
@@ -38,7 +42,10 @@ class BaseFilter(FilterSet):
         label='Статус активности',
         choices=[],
         empty_label='Все статусы',
-        widget=forms.Select()
+        widget=forms.Select(attrs={
+            'class': 'form-select bg-black text-white',
+            'placeholder': 'Введите статус',
+        })
     )
 
     def __init__(self, *args, **kwargs):
@@ -64,6 +71,7 @@ class BaseFilter(FilterSet):
         model = Base
         fields = ['name', 'type', 'is_active']
 
+
 class SchemaTableFilter(FilterSet):
     base__name = CharFilter(
         field_name='base_schema__base__name',
@@ -71,7 +79,7 @@ class SchemaTableFilter(FilterSet):
         label='База данных',
         widget=forms.TextInput(attrs={
             'class': 'form-control bg-black text-white',
-            'placeholder': 'Название базы'
+            'placeholder': 'Название базы',
         })
     )
 
@@ -81,7 +89,7 @@ class SchemaTableFilter(FilterSet):
         label='Схема',
         widget=forms.TextInput(attrs={
             'class': 'form-control bg-black text-white',
-            'placeholder': 'Название схемы'
+            'placeholder': 'Название схемы',
         })
     )
 
@@ -91,7 +99,7 @@ class SchemaTableFilter(FilterSet):
         label='Таблица',
         widget=forms.TextInput(attrs={
             'class': 'form-control bg-black text-white',
-            'placeholder': 'Название таблицы'
+            'placeholder': 'Название таблицы',
         })
     )
 
@@ -99,14 +107,18 @@ class SchemaTableFilter(FilterSet):
         field_name='base_schema__base__type',
         queryset=BaseType.objects.all(),
         label='Тип базы',
-        widget=forms.Select(attrs={'class': 'form-select bg-black text-white'})
+        widget=forms.Select(attrs={
+            'class': 'form-select bg-black text-white',
+        })
     )
 
     table_type = ModelChoiceFilter(
         field_name='table_type',
         queryset=TableType.objects.filter(is_active=True),
         label='Тип таблицы',
-        widget=forms.Select(attrs={'class': 'form-select bg-black text-white'})
+        widget=forms.Select(attrs={
+            'class': 'form-select bg-black text-white',
+        })
     )
 
     class Meta:
@@ -114,38 +126,47 @@ class SchemaTableFilter(FilterSet):
         fields = ['base__name', 'schema__name', 'base__type', 'table__name', 'table_type']
 
 
-
 class BaseSchemaFilter(FilterSet):
     base__name = CharFilter(
         lookup_expr='icontains',
         label='База данных',
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-select bg-black text-white',
+        })
     )
 
     schema__name = CharFilter(
         lookup_expr='icontains',
         label='Схема',
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-select bg-black text-white',
+        })
     )
 
     table__name = CharFilter(
         field_name='schematable__table__name',
         lookup_expr='icontains',
         label='Таблица',
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-select bg-black text-white',
+        })
     )
 
     base__type = ModelChoiceFilter(
         queryset=BaseType.objects.all(),
         label='Тип базы',
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={
+            'class': 'form-select bg-black text-white',
+        })
     )
 
     table_type = ModelChoiceFilter(
         method='filter_by_table_type',
         queryset=TableType.objects.all(),
         label='Тип таблицы',
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={
+            'class': 'form-select bg-black text-white',
+        })
     )
 
     def filter_by_table_type(self, queryset, name, value):

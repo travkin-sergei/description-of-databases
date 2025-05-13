@@ -20,11 +20,12 @@ def my_metla_view(request):
 
 
 class BaseListView(ListView):
-    """"""
+    """Список баз данных."""
+
     model = Base
     template_name = 'my_metla/database-list.html'
     context_object_name = 'databases'
-    paginate_by = 2
+    paginate_by = 20
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -51,7 +52,7 @@ class BaseSchemaListView(FilterView):
     filterset_class = BaseSchemaFilter
     template_name = 'my_metla/schema-tables.html'
     context_object_name = 'base_schemas'
-    paginate_by = 2
+    paginate_by = 20
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -79,10 +80,12 @@ class BaseSchemaListView(FilterView):
 
 
 class TableDetailView(DetailView):
+    """Детализация таблицы."""
+
     model = SchemaTable
     template_name = 'my_metla/table-detail.html'
     context_object_name = 'schema_table'
-    paginate_by = 2
+    paginate_by = 20
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -94,12 +97,13 @@ class TableDetailView(DetailView):
 
 
 class SchemaTableListView(FilterView):
+    """Схема таблицы."""
+
     model = SchemaTable
     filterset_class = SchemaTableFilter
     template_name = 'my_metla/schema-tables.html'
     context_object_name = 'schema_tables'
     paginate_by = 20
-
 
     def get_queryset(self):
         queryset = super().get_queryset()

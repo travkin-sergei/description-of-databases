@@ -1,30 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
-<style>
-    .bg-custom-black {
-        background-color: #000000 !important;
-    }
-    .btn-custom {
-        background-color: #808080 !important;
-        border-color: #808080 !important;
-        color: white !important;
-        transition: all 0.3s ease;
-    }
-    .btn-custom:hover,
-    .btn-custom:active,
-    .btn-custom:focus {
-        background-color: #ff0000 !important;
-        border-color: #ff0000 !important;
-        box-shadow: 0 0 0 0.25rem rgba(255, 0, 0, 0.25);
-    }
-    .table-striped-custom tbody tr:nth-child(odd) {
-        background-color: #ffffff !important;
-    }
-    .table-striped-custom tbody tr:nth-child(even) {
-        background-color: #ffff99 !important;
-    }
-</style>
 <h1 class="text-center my-4">{{ title }}</h1>
 <div class="container">
     <div class="container mt-4">

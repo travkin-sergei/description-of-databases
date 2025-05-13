@@ -241,3 +241,4 @@ class TableColumn(BaseModel):
         verbose_name_plural = '3000 таблицы-столбецы.'
         ordering = ['numbers', ]
         unique_together = [['schema_table', 'column', ]]
+

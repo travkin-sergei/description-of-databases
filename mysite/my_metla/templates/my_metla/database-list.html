@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ title }}{% endblock %}
-
 {% block body %}
 <style>
     .bg-custom-black { background-color: #000000 !important; }
@@ -19,11 +17,8 @@
     .table-striped-custom tbody tr:nth-child(odd) { background-color: #ffffff !important; }
     .table-striped-custom tbody tr:nth-child(even) { background-color: #ffff99 !important; }
 </style>
-
 <h1 class="text-center my-4">{{ title }}</h1>
-
 <div class="container">
-    <!-- Фильтры (теперь полностью идентичные исходному шаблону) -->
     <div class="card bg-custom-black text-white mb-4">
         <div class="card-body">
             <form method="get" class="form-inline">
@@ -42,8 +37,6 @@
             </form>
         </div>
     </div>
-
-    <!-- Таблица -->
     {% if page_obj %}
     <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped-custom">
