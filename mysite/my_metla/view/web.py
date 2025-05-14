@@ -80,7 +80,7 @@ class BaseSchemaListView(FilterView):
 
 
 class TableDetailView(DetailView):
-    """Детализация таблицы."""
+    """Детализация таблицы с отображением сред разработки для столбцов."""
 
     model = SchemaTable
     template_name = 'my_metla/table-detail.html'
@@ -89,10 +89,27 @@ class TableDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Получаем все столбцы для этой таблицы
-        context['columns'] = TableColumn.objects.filter(
+
+        # Получаем все столбцы для этой таблицы с предварительной загрузкой связанных данных
+        columns = TableColumn.objects.filter(
             schema_table=self.object
-        ).select_related('column', 'column__type').order_by('numbers')
+        ).select_related(
+            'column',
+            'column__type'
+        ).prefetch_related(
+            'tablecolumnenvironment_set__environment'
+        ).order_by('numbers')
+
+        # Собираем данные о средах разработки для каждого столбца
+        column_data = []
+        for column in columns:
+            environments = [env.environment for env in column.tablecolumnenvironment_set.all()]
+            column_data.append({
+                'column': column,
+                'environments': environments
+            })
+
+        context['column_data'] = column_data
         return context
 
 

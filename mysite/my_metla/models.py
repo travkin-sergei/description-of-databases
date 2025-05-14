@@ -216,7 +216,7 @@ class SchemaTable(BaseModel):
     class Meta:
         db_table = f'{db_schema}\".\"link_schema_table'
         verbose_name = '2000 схема-таблица.'
-        verbose_name_plural = '2000 схемы-таблицы.'
+        verbose_name_plural = '2000 схемы-таблицы'
         ordering = ['table']
         unique_together = [['base_schema', 'table']]
 
@@ -238,7 +238,43 @@ class TableColumn(BaseModel):
     class Meta:
         db_table = f'{db_schema}\".\"link_table_column'
         verbose_name = '3000 таблица-столбец.'
-        verbose_name_plural = '3000 таблицы-столбецы.'
+        verbose_name_plural = '3000 таблицы-столбецы'
         ordering = ['numbers', ]
         unique_together = [['schema_table', 'column', ]]
 
+
+class Environment(BaseModel):
+    """Переменное окружение."""
+
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name='')
+
+    def get_hash_fields(self):
+        return [self.name]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = f'{db_schema}\".\"src_environment'
+        verbose_name = '0500 Среда разработки'
+        verbose_name_plural = '0500 Среды разработки'
+        ordering = ['name']
+
+
+class TableColumnEnvironment(BaseModel):
+    """Связь столбец стенд."""
+
+    environment = models.ForeignKey(Environment, on_delete=models.CASCADE, blank=True, null=True)
+    column = models.ForeignKey(TableColumn, on_delete=models.CASCADE, blank=True, null=True)
+
+    def get_hash_fields(self):
+        return [self.environment, self.column]
+
+    def __str__(self):
+        return f"{self.environment}-{self.column}"
+
+    class Meta:
+        db_table = f'{db_schema}\".\"link_tab_col_env'
+        verbose_name = '3000 Связи столбцы со стендом'
+        verbose_name_plural = '3000 Связи столбцы со стендом'
+        # ordering = ['name']
