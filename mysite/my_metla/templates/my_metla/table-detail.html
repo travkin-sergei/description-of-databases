@@ -70,11 +70,21 @@
                 </td>
                 <td>{{ item.column.description|default:"-" }}</td>
                 <td>
+                    {% if item.environments %}
                     {% for env in item.environments %}
-                    <span class="badge environment-badge bg-secondary">{{ env.name }}</span>
-                    {% empty %}
-                    <span class="text-muted">Не указано</span>
+                    <span class="badge {% if env.exists %}{{ env.color }}{% else %}bg-white text-dark{% endif %}"
+                          title="{{ env.name|default:'Среда отсутствует' }}"
+                          style="margin-right: 2px;">
+                        {% if env.exists %}
+                        {{ env.pk }}
+                        {% else %}
+                        0
+                        {% endif %}
+                    </span>
                     {% endfor %}
+                    {% else %}
+                    <span class="badge bg-white text-dark">0</span>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
