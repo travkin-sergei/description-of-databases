@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<style>
+    .bg-custom-black { background-color: #000000 !important; }
+    .table-striped-custom tbody tr:nth-child(odd) { background-color: #ffffff !important; }
+    .table-striped-custom tbody tr:nth-child(even) { background-color: #ffff99 !important; }
+    .table-details { background-color: #f8f9fa; border-radius: 5px; padding: 20px; margin-bottom: 20px; }
+    .property-name { font-weight: bold; min-width: 200px; }
+</style>
+
+<h1 class="text-center my-4">{{ title }}</h1>
+<div class="container">
+    <div class="table-details">
+        <h2>Основная информация</h2>
+        <table class="table">
+            <tr>
+                <td class="property-name">База данных:</td>
+                <td>{{ schema_table.base_schema.base.name }} ({{ schema_table.base_schema.base.type.name }})</td>
+            </tr>
+            <tr>
+                <td class="property-name">Окружение:</td>
+                <td>{{ schema_table.base_schema.base.env.name }}</td>
+            </tr>
+            <tr>
+                <td class="property-name">Хост:</td>
+                <td>{{ schema_table.base_schema.base.host }}:{{ schema_table.base_schema.base.port }}</td>
+            </tr>
+            <tr>
+                <td class="property-name">Схема:</td>
+                <td>{{ schema_table.base_schema.schema.name }}</td>
+            </tr>
+            <tr>
+                <td class="property-name">Таблица:</td>
+                <td>{{ schema_table.table.name }}</td>
+            </tr>
+            <tr>
+                <td class="property-name">Тип таблицы:</td>
+                <td>{{ schema_table.table_type.name }}</td>
+            </tr>
+            <tr>
+                <td class="property-name">Метаданные:</td>
+                <td>{% if schema_table.table_is_metadata %}Да{% else %}Нет{% endif %}</td>
+            </tr>
+            <tr>
+                <td class="property-name">Описание:</td>
+                <td>{{ schema_table.description|default:"-" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <h2 class="my-4">Столбцы таблицы</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped-custom">
+            <thead class="bg-custom-black text-white">
+                <tr>
+                    <th>#</th>
+                    <th>Имя столбца</th>
+                    <th>Тип данных</th>
+                    <th>NULL</th>
+                    <th>Auto</th>
+                    <th>Описание</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for column in schema_table.tablecolumn_set.all %}
+                <tr>
+                    <td>{{ column.numbers }}</td>
+                    <td>{{ column.column.name }}</td>
+                    <td>{{ column.column.type.name }}</td>
+                    <td>{% if column.column.is_nullable %}Да{% else %}Нет{% endif %}</td>
+                    <td>{% if column.column.is_auto %}Да{% else %}Нет{% endif %}</td>
+                    <td>{{ column.description|default:"-" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

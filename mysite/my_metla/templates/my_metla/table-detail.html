@@ -1,100 +1,204 @@
 {% extends 'base.html' %}
-{% block title %}{{ schema_table }} - Детализация таблицы{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 {% block body %}
 <style>
-    .bg-custom-black { background-color: #000000 !important; }
-    .btn-custom {
-        background-color: #808080 !important;
-        border-color: #808080 !important;
-        color: white !important;
-        transition: all 0.3s ease;
+    .detail-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
     }
-    .btn-custom:hover, .btn-custom:active, .btn-custom:focus {
-        background-color: #ff0000 !important;
-        border-color: #ff0000 !important;
-        box-shadow: 0 0 0 0.25rem rgba(255, 0, 0, 0.25);
+    .detail-card-header {
+        background-color: #343a40;
+        color: white;
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
     }
-    .table-striped-custom tbody tr:nth-child(odd) { background-color: #ffffff !important; }
-    .table-striped-custom tbody tr:nth-child(even) { background-color: #ffff99 !important; }
-    .environment-badge {
-        margin-right: 4px;
-        margin-bottom: 4px;
-        display: inline-block;
+    .detail-card-body {
+        padding: 20px;
+    }
+    .property-grid {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 10px 15px;
+    }
+    .property-name {
+        font-weight: 600;
+        color: #495057;
+    }
+    .property-value {
+        color: #212529;
+    }
+    .env-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: capitalize;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    .env-dev { background-color: #d4edda; color: #155724; }
+    .env-test { background-color: #fff3cd; color: #856404; }
+    .env-prod { background-color: #f8d7da; color: #721c24; }
+    .env-other { background-color: #e2e3e5; color: #383d41; }
+    .table-responsive {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .table-custom {
+        margin-bottom: 0;
+    }
+    .table-custom thead {
+        background-color: #343a40;
+        color: white;
+    }
+    .table-custom th {
+        border-bottom: none;
+        font-weight: 500;
+    }
+    .table-striped-custom tbody tr:nth-child(odd) { background-color: #ffffff; }
+    .table-striped-custom tbody tr:nth-child(even) { background-color: #f8f9fa; }
+    .table-custom tbody tr:hover {
+        background-color: #e9ecef;
+    }
+    .boolean-icon {
+        font-size: 18px;
+    }
+    .boolean-true { color: #28a745; }
+    .boolean-false { color: #dc3545; }
+    .empty-message {
+        padding: 20px;
+        text-align: center;
+        color: #6c757d;
+        background-color: #f8f9fa;
+    }
+    .env-indicator {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 3px;
+    }
+    /* Новые стили для отображения окружений столбцов */
+    .column-environments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    .environments-title {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 5px;
     }
 </style>
-<h1 class="text-center my-4">Детализация таблицы: {{ schema_table.table.name }}</h1>
-<div class="container">
-    <div class="card bg-custom-black text-white mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Информация о таблице</h5>
-            <p class="mb-1"><strong>База данных:</strong> {{ schema_table.base_schema.base.name }}</p>
-            <p class="mb-1"><strong>Тип базы:</strong> {{ schema_table.base_schema.base.type.name }}</p>
-            <p class="mb-1"><strong>Схема:</strong> {{ schema_table.base_schema.schema.name }}</p>
-            <p class="mb-1"><strong>Тип таблицы:</strong> {{ schema_table.table_type.name }}</p>
-            <p class="mb-0">
-                <strong>Статус:</strong>
-                <span class="badge bg-{% if schema_table.is_active %}success{% else %}danger{% endif %}">
-                    {% if schema_table.is_active %}Активна{% else %}Неактивна{% endif %}
-                </span>
-            </p>
+
+<div class="container py-4">
+    <h1 class="mb-4">{{ title }}</h1>
+    <div class="detail-card">
+        <div class="detail-card-header">
+            <h2 class="h5 mb-0">Основная информация</h2>
+        </div>
+        <div class="detail-card-body">
+            <div class="property-grid">
+                <div class="property-name">База данных:</div>
+                <div class="property-value">
+                    {{ schema_table.base_schema.base.name }}
+                    <small class="text-muted">({{ schema_table.base_schema.base.type.name }})</small>  stend - {{ schema_table.base_schema.base.env.name|default:"Не указано" }}
+                </div>
+                <div class="property-name">Схема:</div>
+                <div class="property-value">{{ schema_table.base_schema.schema.name }}</div>
+                <div class="property-name">Таблица:</div>
+                <div class="property-value">{{ schema_table.table.name }}</div>
+                <div class="property-name">Тип таблицы:</div>
+                <div class="property-value">{{ schema_table.table_type.name }}</div>
+                <div class="property-name">Метаданные:</div>
+                <div class="property-value">
+                    <i class="fas fa-{% if schema_table.table_is_metadata %}check boolean-true{% else %}times boolean-false{% endif %} boolean-icon"></i>
+                </div>
+                <div class="property-name">Доступна в окружениях:</div>
+                <div class="property-value">
+                    <div class="column-environments">
+                        {% for env in table_environments %}
+                            <span class="env-badge env-{{ env.name|lower|default:'other' }}">
+                                {{ env.name|default:"Не указано" }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped-custom">
-            <thead class="bg-custom-black text-white">
-            <tr>
-                <th>#</th>
-                <th>Имя столбца</th>
-                <th>Тип столбца</th>
-                <th>Nullable</th>
-                <th>Auto</th>
-                <th>Описание</th>
-                <th>Среды разработки</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for item in column_data %}
-            <tr>
-                <td>{{ item.column.numbers }}</td>
-                <td>{{ item.column.column.name }}</td>
-                <td>{{ item.column.column.type.name }}</td>
-                <td>
-                    <span class="badge bg-{% if item.column.column.is_nullable %}success{% else %}danger{% endif %}">
-                        {% if item.column.column.is_nullable %}Да{% else %}Нет{% endif %}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge bg-{% if item.column.column.is_auto %}success{% else %}danger{% endif %}">
-                        {% if item.column.column.is_auto %}Да{% else %}Нет{% endif %}
-                    </span>
-                </td>
-                <td>{{ item.column.description|default:"-" }}</td>
-                <td>
-                    {% if item.environments %}
-                    {% for env in item.environments %}
-                    <span class="badge {% if env.exists %}{{ env.color }}{% else %}bg-white text-dark{% endif %}"
-                          title="{{ env.name|default:'Среда отсутствует' }}"
-                          style="margin-right: 2px;">
-                        {% if env.exists %}
-                        {{ env.pk }}
-                        {% else %}
-                        0
-                        {% endif %}
-                    </span>
+
+    <!-- Столбцы таблицы -->
+    <div class="detail-card">
+<!--        <div class="detail-card-header d-flex justify-content-between align-items-center">-->
+<!--            <h2 class="h5 mb-0">Столбцы таблицы</h2>-->
+<!--            <div>-->
+<!--                <span class="badge bg-secondary">{{ columns_data|length }} столбцов</span>-->
+<!--                <span class="env-badge env-{{ schema_table.base_schema.base.env.name|lower|default:'other' }} ms-2">-->
+<!--                    {{ schema_table.base_schema.base.env.name|default:"Не указано" }}-->
+<!--                </span>-->
+<!--            </div>-->
+<!--        </div>-->
+
+        {% if columns_data %}
+        <div class="table-responsive">
+            <table class="table table-custom table-striped-custom">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Имя столбца</th>
+                        <th>Тип данных</th>
+                        <th>NULL</th>
+                        <th>Auto</th>
+                        <th>Описание</th>
+                        <th>Доступен в окружениях</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for column_data in columns_data %}
+                    <tr>
+                        <td>{{ column_data.column.numbers }}</td>
+                        <td>
+                            <strong>{{ column_data.column.column.name }}</strong>
+                            {% if column_data.column.is_primary_key %}
+                                <span class="badge bg-primary ms-1">PK</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ column_data.column.column.type.name }}</td>
+                        <td>
+                            <i class="fas fa-{% if column_data.column.column.is_nullable %}check boolean-true{% else %}times boolean-false{% endif %}"></i>
+                        </td>
+                        <td>
+                            <i class="fas fa-{% if column_data.column.column.is_auto %}check boolean-true{% else %}times boolean-false{% endif %}"></i>
+                        </td>
+                        <td>{{ column_data.column.description|default:"-" }}</td>
+                        <td>
+                            <div class="column-environments">
+                                {% for env in column_data.environments %}
+                                    <span class="env-badge env-{{ env.name|lower|default:'other' }}">
+                                        {{ env.name|default:"Не указано" }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
-                    {% else %}
-                    <span class="badge bg-white text-dark">0</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-3">
-        <a href="{% url 'my_metla:schema-tables' %}" class="btn btn-custom">
-            <i class="fas fa-arrow-left"></i> Назад к списку таблиц
-        </a>
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-message">
+            <i class="fas fa-table fa-2x mb-3"></i>
+            <p class="mb-0">Нет информации о столбцах</p>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<!-- Font Awesome для иконок -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 {% endblock %}

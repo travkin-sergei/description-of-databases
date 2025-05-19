@@ -15,6 +15,7 @@
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="{% url 'redoc' %}">ReDoc</a></li>
                         <li><a class="dropdown-item" href="{% url 'swagger' %}">Swagger</a></li>
+                        <li><a class="dropdown-item" href="/admin/doc/">admin</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -42,8 +43,6 @@
                         </li>
                     </ul>
                 </li>
-
-
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                        aria-expanded="false">
@@ -66,6 +65,10 @@
                     </ul>
                 </li>
 
+
+
+
+
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button"
                        data-bs-toggle="dropdown"
@@ -86,33 +89,13 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle"
-                       href="#"
-                       role="button"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="false">
-                       Пользователи
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Пользователи</a>
-                        </li>
 
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'my_auth:about_me' %}">
-                                О разделе
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+
             </ul>
             <ul class="navbar-brand">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <form method="post" action="{% url 'my_auth:logout' %}" class="d-inline">
+                    <form method="post" action="{% url 'myauth:logout' %}" class="d-inline">
                         {% csrf_token %}
                         <button type="submit"
                                 data-mdb-button-init data-mdb-ripple-init

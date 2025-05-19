@@ -16,10 +16,9 @@ urlpatterns = [
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),  # ReDoc
 
     # Приложения
-    path('', include('article.urls')),
+    path('', include('my_metla.urls')),
     path('dba/', include('dba.urls')),
-    path('accounts/', include('my_auth.urls')),
-    path('metla/', include('my_metla.urls')),
+    path('accounts/', include('myauth.urls')),
 ]
 
 if settings.DEBUG:

@@ -5,7 +5,7 @@ from .view.web import (
     AboutAppView, BaseListView, my_metla_view,
     BaseSchemaListView,
     SchemaTableListView,
-    TableDetailView
+    TableDetailView,
 )
 
 app_name = 'my_metla'

@@ -25,9 +25,8 @@ class FunctionFilter(django_filters.FilterSet):
 
 
 class TableFilter(django_filters.FilterSet):
-    """
-    Основной экран фильтрации
-    """
+    """Основной экран фильтрации"""
+
     base = AllValuesFilter(field_name='schema_id__base_id__table_catalog', )
     schema = AllValuesFilter(field_name='schema_id__table_schema', )
     table_name = CharFilter(field_name='table_name', lookup_expr='icontains', )
@@ -43,9 +42,8 @@ class TableFilter(django_filters.FilterSet):
 
 
 class ColumnFilter(django_filters.FilterSet):
-    """
-    Основной экран фильтрация
-    """
+    """Основной экран фильтрация"""
+
     schema = CharFilter(field_name='table_id__schema_id__table_schema', lookup_expr='icontains', )
     table = CharFilter(field_name='table_id__table_name', lookup_expr='icontains', )
     column_name = CharFilter(field_name='column_name', lookup_expr='icontains', )
@@ -60,6 +58,7 @@ class ColumnFilter(django_filters.FilterSet):
 
 class UpdateFilter(django_filters.FilterSet):
     """Описать фильтры сейчас работают не корректно"""
+
     name = CharFilter(field_name='name', lookup_expr='icontains', )
     description = CharFilter(field_name='description', lookup_expr='icontains', )
     schedule = AllValuesFilter(field_name='schedule', )
@@ -81,6 +80,8 @@ class StageColumnFilter(django_filters.FilterSet):
 
 
 class ServiceFilter(django_filters.FilterSet):
+    """Список сервисов"""
+
     service = CharFilter(field_name='service', lookup_expr='icontains', )
 
     class Meta:

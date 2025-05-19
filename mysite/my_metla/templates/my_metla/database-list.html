@@ -16,20 +16,49 @@
     }
     .table-striped-custom tbody tr:nth-child(odd) { background-color: #ffffff !important; }
     .table-striped-custom tbody tr:nth-child(even) { background-color: #ffff99 !important; }
+    .form-select-custom {
+        background-color: #000 !important;
+        color: white !important;
+        border: 1px solid #444 !important;
+    }
+    .form-select-custom:focus {
+        border-color: #ff0000 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 0, 0, 0.25) !important;
+    }
 </style>
 <h1 class="text-center my-4">{{ title }}</h1>
 <div class="container">
     <div class="card bg-custom-black text-white mb-4">
         <div class="card-body">
+
             <form method="get" class="form-inline">
-                <div class="d-flex flex-wrap align-items-center">
-                    {% for field in filter.form %}
-                    <div class="me-3 mb-2">
-                        {{ field.label_tag }}
-                        {{ field }}
+                <div class="row g-3 align-items-end">
+                    <!-- Поле поиска по имени -->
+                    <div class="col-md-3">
+                        {{ filter.form.name.label_tag }}
+                        {{ filter.form.name }}
                     </div>
-                    {% endfor %}
-                    <div class="ms-auto mb-2">
+
+                    <!-- Поле выбора типа -->
+                    <div class="col-md-2">
+                        {{ filter.form.type.label_tag }}
+                        {{ filter.form.type }}
+                    </div>
+
+                    <!-- Поле выбора среды разработки -->
+                    <div class="col-md-2">
+                        {{ filter.form.env.label_tag }}
+                        {{ filter.form.env }}
+                    </div>
+
+                    <!-- Поле выбора статуса -->
+                    <div class="col-md-2">
+                        {{ filter.form.is_active.label_tag }}
+                        {{ filter.form.is_active }}
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="col-md-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-custom me-2">Применить</button>
                         <a href="?" class="btn btn-custom">Сбросить</a>
                     </div>
@@ -37,6 +66,7 @@
             </form>
         </div>
     </div>
+
     {% if page_obj %}
     <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped-custom">
@@ -49,6 +79,7 @@
                 <th>Порт</th>
                 <th>Версия</th>
                 <th>Статус</th>
+                <th>Среда</th>
             </tr>
             </thead>
             <tbody>
@@ -65,11 +96,16 @@
                         {% if database.is_active %}Активна{% else %}Неактивна{% endif %}
                     </span>
                 </td>
+                <td>{{ database.env|default:"-" }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
+    <!-- Пагинация -->
+    {% block pagination %}
+    {% include "inc/_pagination.html" %}
+    {% endblock %}
     {% else %}
     <div class="alert alert-warning">Нет данных для отображения</div>
     {% endif %}

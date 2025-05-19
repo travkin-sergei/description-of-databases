@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock %}
-
 {% block body %}
 <style>
     .bg-custom-black { background-color: #000000 !important; }
@@ -17,12 +16,12 @@
     }
     .table-striped-custom tbody tr:nth-child(odd) { background-color: #ffffff !important; }
     .table-striped-custom tbody tr:nth-child(even) { background-color: #ffff99 !important; }
+    .badge-active { background-color: #28a745; }
+    .badge-inactive { background-color: #dc3545; }
 </style>
 
 <h1 class="text-center my-4">{{ title }}</h1>
-
 <div class="container">
-    <!-- Фильтры -->
     <div class="card bg-custom-black text-white mb-4">
         <div class="card-body">
             <form method="get" class="form-inline">
@@ -42,7 +41,6 @@
         </div>
     </div>
 
-    <!-- Таблица -->
     {% if page_obj %}
     <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped-custom">
@@ -55,31 +53,79 @@
                 <th>Таблица</th>
                 <th>Тип таблицы</th>
                 <th>Статус</th>
+                <th>Окружение</th>
             </tr>
             </thead>
             <tbody>
-            {% for schema_table in schema_tables %}
+            {% for table in page_obj %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ schema_table.base_schema.base.type.name }}</td>
-                <td>{{ schema_table.base_schema.base.name }}</td>
-                <td>{{ schema_table.base_schema.schema.name }}</td>
+                <td>{{ table.base_schema.base.type.name }}</td>
+                <td>{{ table.base_schema.base.name.name }}</td>
+                <td>{{ table.base_schema.schema.name }}</td>
                 <td>
-                    <a href="{% url 'my_metla:table-detail' pk=schema_table.id %}">
-                        {{ schema_table.table.name }}
+                    <a href="{% url 'my_metla:table-detail' pk=table.id %}">
+                        {{ table.table.name }}
                     </a>
                 </td>
-                <td>{{ schema_table.table_type.name }}</td>
+                <td>{{ table.table_type.name }}</td>
                 <td>
-                        <span class="badge bg-{% if schema_table.is_active %}success{% else %}danger{% endif %}">
-                            {% if schema_table.is_active %}Активна{% else %}Неактивна{% endif %}
-                        </span>
+                    <span class="badge {% if table.table_is_metadata %}badge-active{% else %}badge-inactive{% endif %}">
+                        {% if table.table_is_metadata %}Метаданные{% else %}Данные{% endif %}
+                    </span>
+                </td>
+                <td>
+                    {% for env in table.base_schema.base.env.all %}
+                        {{ env.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
                 </td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <!-- Пагинация -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if get_params %}&{{ get_params }}{% endif %}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if get_params %}&{{ get_params }}{% endif %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if get_params %}&{{ get_params }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if get_params %}&{{ get_params }}{% endif %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if get_params %}&{{ get_params }}{% endif %}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
     {% else %}
     <div class="alert alert-warning">Нет данных для отображения</div>
     {% endif %}

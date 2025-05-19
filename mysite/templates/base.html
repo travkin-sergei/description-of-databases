@@ -4,73 +4,12 @@
     <title>{% block title %} нет данных {% endblock %}</title>
     <meta charset="UTF-8">
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css">
-    <link rel="icon" href="{% static 'favicon.jpg' %}" type="image/png">
-    <script type="text/javascript" src="{% static 'js/bootstrap.bundle.js' %}"></script>
-
-    <!-- Стиль для красной подсветки при наведении -->
-    <style>
-        /* Для всех ссылок в навигации */
-        .nav-link:hover {
-            background-color: #ff0000 !important;
-            color: white !important;
-        }
-
-        /* Для кнопок Bootstrap */
-        .btn:hover {
-            background-color: #ff0000 !important;
-            color: white !important;
-            border-color: #ff0000 !important;
-        }
-
-        /* Стили для пагинации */
-        .page-link {
-            color: #000000 !important;
-        }
-
-        .page-link:hover {
-            color: #ffffff !important;
-            background-color: #ff0000 !important;
-            border-color: #ff0000 !important;
-        }
-
-        .page-item.active .page-link {
-            background-color: #000000 !important;
-            border-color: #000000 !important;
-            color: #ffffff !important;
-        }
-
-        /* Дополнительно: для любых других элементов с классом .hover-red */
-        .hover-red:hover {
-            background-color: #ff0000 !important;
-            color: white !important;
-        }
-
-        /* Добавляем отступы для навигации и пагинации */
-        .nav-container {
-            margin-bottom: 2rem; /* или используйте mb-4 из Bootstrap */
-        }
-        .paginator-container {
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Опционально: плавные переходы для hover-эффектов */
-        .nav-link, .btn, .page-link, .hover-red {
-            transition: all 0.3s ease;
-        }
-    </style>
-
+    <link rel="stylesheet" href="{% static 'dba/css/bootstrap.min.css' %}" type="text/css">
+    <script type="text/javascript" src="{% static 'dba/js/bootstrap.bundle.js' %}"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
-<div class="nav-container">
-    {% include '_inc/_nav.html' %}
-</div>
-<div class="paginator-container">
-    {% include '_inc/_paginator.html' %}
-</div>
-{% block body %}{% endblock %}
-{% block scripts %}{% endblock %}
+{% include 'inc/_nav.html' %}
+{% block body %} {% endblock %}
 </body>
 </html>

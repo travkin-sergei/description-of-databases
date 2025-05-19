@@ -39,10 +39,11 @@ INSTALLED_APPS = [
     'django_filters',  # фильтрация
     'django_summernote',  # настройка редактора в админке
     # ----------
-    'article',  # Статьи и документы
-    'my_auth',  # Здесь модель User
+    #'article.apps.ArticleConfig',  # Статьи и документы
+    'myauth',  # Здесь модель User
     'dba',  # Здесь приложение о базах данных
-    'my_metla',  # Здесь приложение my_metla
+    #'data_sources',  # Здесь приложение об источника данных
+    'my_metla',
 ]
 
 MIDDLEWARE = [
@@ -121,9 +122,12 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = [STATIC_DIR]
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    # os.path.join(BASE_DIR, 'mysite/static'),
+    os.path.join(BASE_DIR, 'dba'),
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
@@ -136,8 +140,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = reverse_lazy("dba:table")
-LOGIN_URL = reverse_lazy("my_auth:login")
-LOGOUT_REDIRECT_URL = reverse_lazy("my_auth:login")
+LOGIN_URL = reverse_lazy("myauth:login")
+LOGOUT_REDIRECT_URL = reverse_lazy("myauth:login")
 
 # settings.py
 REST_FRAMEWORK = {

@@ -1,13 +1,16 @@
 from django.contrib import admin
 from .models import (
-    BaseType, Base, Schema, TableType, Table,
-    ColumnType, Column, BaseSchema, SchemaTable, TableColumn, TableColumnEnvironment, Environment
+    Environment, BaseName, SchemaName, ColumnName,
+    BaseType, Base, TableType, Table,
+    ColumnType, BaseSchema, Column, SchemaTable, TableColumn,
+
 )
 
 
 # ------------------------
 # Базовые типы (справочники)
 # ------------------------
+
 
 @admin.register(BaseType)
 class BaseTypeAdmin(admin.ModelAdmin):
@@ -47,8 +50,9 @@ class EnvironmentAdmin(admin.ModelAdmin):
 
 class SchemaToBaseInline(admin.TabularInline):
     """Связь схем с базой"""
+
     model = BaseSchema
-    extra = 1
+    extra = 0
     autocomplete_fields = ['schema']
     fields = ('schema', 'description', 'is_active')
     verbose_name = "Привязанная схема"
@@ -58,7 +62,7 @@ class SchemaToBaseInline(admin.TabularInline):
 class TableToBaseSchemaInline(admin.TabularInline):
     """Связь таблиц с BaseSchema"""
     model = SchemaTable
-    extra = 1
+    extra = 0
     autocomplete_fields = ['table', 'table_type']
     fields = ('table', 'table_type', 'table_is_metadata', 'description', 'is_active')
     verbose_name = "Таблица в схеме"
@@ -67,8 +71,9 @@ class TableToBaseSchemaInline(admin.TabularInline):
 
 class ColumnToSchemaTableInline(admin.TabularInline):
     """Связь столбцов с SchemaTable"""
+
     model = TableColumn
-    extra = 1
+    extra = 0
     autocomplete_fields = ['column']
     fields = ('column', 'numbers', 'description', 'is_active')
     verbose_name = "Столбец таблицы"
@@ -81,7 +86,7 @@ class ColumnToSchemaTableInline(admin.TabularInline):
 
 @admin.register(Base)
 class BaseAdmin(admin.ModelAdmin):
-    inlines = [SchemaToBaseInline]  # Уровень 1: Схемы к базе
+    # inlines = [SchemaToBaseInline]  # Уровень 1: Схемы к базе
     list_display = ('name', 'host', 'port', 'type', 'is_active', 'created_at')
     list_editable = ('is_active',)
     search_fields = ('name', 'host')
@@ -91,7 +96,10 @@ class BaseAdmin(admin.ModelAdmin):
 
 @admin.register(BaseSchema)
 class BaseSchemaAdmin(admin.ModelAdmin):
-    inlines = [TableToBaseSchemaInline]  # Уровень 2: Таблицы к BaseSchema
+    """2000 схема-таблица."""
+
+    inlines = [TableToBaseSchemaInline]
+
     list_display = ('base', 'schema', 'is_active', 'created_at')
     list_editable = ('is_active',)
     autocomplete_fields = ['base', 'schema']
@@ -112,9 +120,16 @@ class SchemaTableAdmin(admin.ModelAdmin):
 # ------------------------
 # Остальные модели
 # ------------------------
-
-@admin.register(Schema)
+@admin.register(BaseName)
 class SchemaAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active', 'created_at', 'updated_at')
+    list_editable = ('is_active',)
+    search_fields = ('name',)
+    list_filter = ('is_active',)
+
+
+@admin.register(SchemaName)
+class SchemaNameAdmin(admin.ModelAdmin):
     list_display = ('name', 'is_active', 'created_at', 'updated_at')
     list_editable = ('is_active',)
     search_fields = ('name',)
@@ -129,6 +144,14 @@ class TableAdmin(admin.ModelAdmin):
     list_filter = ('is_active',)
 
 
+@admin.register(ColumnName)
+class ColumnNameAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active', 'created_at', 'updated_at')
+    list_editable = ('is_active',)
+    search_fields = ('name',)
+    list_filter = ('is_active',)
+
+
 @admin.register(Column)
 class ColumnAdmin(admin.ModelAdmin):
     list_display = ('name', 'type', 'is_nullable', 'is_auto', 'is_active')
@@ -136,28 +159,3 @@ class ColumnAdmin(admin.ModelAdmin):
     autocomplete_fields = ['type']
     search_fields = ('name',)
     list_filter = ('type', 'is_nullable', 'is_auto', 'is_active')
-
-
-class TableColumnEnvironmentInline(admin.TabularInline):
-    model = TableColumnEnvironment
-    extra = 1
-    autocomplete_fields = ['environment']
-    fields = ('environment', 'is_active', 'created_at')
-    readonly_fields = ('created_at',)
-    verbose_name = "Связь со средой"
-    verbose_name_plural = "Связи со средами"
-    show_change_link = True
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.select_related('environment', 'column')
-
-
-@admin.register(TableColumn)
-class TableColumnAdmin(admin.ModelAdmin):
-    inlines = [TableColumnEnvironmentInline]
-
-    list_display = ('schema_table', 'column', 'numbers', 'is_active')
-    list_select_related = ('schema_table', 'column')
-    search_fields = ('column__name', 'schema_table__table__name')
-    autocomplete_fields = ['schema_table', 'column']
