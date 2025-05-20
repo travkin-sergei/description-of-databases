@@ -7,38 +7,28 @@ db_schema = 'my_metla'
 
 
 class BaseModel(models.Model):
-    """Созданы базовые поля, важные для всех таблиц."""
-
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='дата создания')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='дата изменения')
-    hash_address = models.CharField(max_length=64, unique=True)
-    is_active = models.BooleanField(default=True, verbose_name='запись активна')
+    """Созданы базовые поля, важные для всех таблиц"""
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      verbose_name='дата создания')  # , db_comment='Админ поле. Создано')
+    updated_at = models.DateTimeField(auto_now=True,
+                                      verbose_name='дата изменения')  # , db_comment='Админ поле. Обновлено')
+    hash_address = models.CharField(max_length=64, unique=True)  # , db_comment='адрес данных по хеш')
+    is_active = models.BooleanField(default=True,
+                                    verbose_name='запись активна')  # , db_comment='Админ поле. Актуально')
 
     def hash_sum_256(self, args):
-        """
-        Сгенерируйте хэш SHA-256 из предоставленных аргументов.
-
-        Аргументы:
-            args: Список значений, которые необходимо включить в расчет хэша
-
-        Возвращается:
-            str: шестнадцатеричный дайджест хэша
-        """
         list_str = [str(i) for i in args]
         list_union = '+'.join(list_str)
         return hashlib.sha256(list_union.encode()).hexdigest()
 
     def get_hash_fields(self):
-        """
-        Получить список полей для включения в расчет хэша.
-        Должно быть реализовано в дочерних классах.
-        """
+        # переопределить в каждой модели
         raise NotImplementedError
 
     def save(self, *args, **kwargs):
-        """Сохранение с автоматической генерацией хэша."""
+        """для атрибута version"""
         pre_save.send(sender=self.__class__, instance=self, request=kwargs.get('request'))
-        self.hash_address = self.hash_sum_256(self.get_hash_fields())
+        self.hash_address = self.hash_sum_256(self.get_hash_fields())  # recalculate hash on every save
         super().save(*args, **kwargs)
 
     class Meta:
@@ -224,14 +214,14 @@ class Column(BaseModel):
         on_delete=models.CASCADE, blank=True, null=True,
         verbose_name='Название столбца'
     )
-    is_nullable = models.BooleanField(
-        blank=True, null=True,
-        verbose_name='Возможен ли ноль',
-    )
-    is_auto = models.BooleanField(
-        blank=True, null=True,
-        verbose_name='Автоматическое заполнение',
-    )
+    is_nullable = models.BooleanField(default=True,
+                                      blank=True, null=True,
+                                      verbose_name='Возможен ли ноль',
+                                      )
+    is_auto = models.BooleanField(default=False,
+                                  blank=True, null=True,
+                                  verbose_name='Автоматическое заполнение',
+                                  )
 
     def get_hash_fields(self):
         return [self.type, self.name]
@@ -296,19 +286,22 @@ class TableColumn(BaseModel):
     """Свод данных."""
 
     schema_table = models.ForeignKey(SchemaTable, on_delete=models.CASCADE, blank=True, null=True)
-    numbers = models.PositiveIntegerField(blank=True, null=True)
-    column = models.ForeignKey(Column, on_delete=models.CASCADE, blank=True, null=True)
+    name = models.ForeignKey(ColumnName, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Имя')
+    numbers = models.PositiveIntegerField(blank=True, null=True)  # УДАЛИТЬ
+    type = models.ForeignKey(ColumnType, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Тип данных')
+    is_nullable = models.BooleanField(default=True, blank=True, verbose_name='Возможен ли ноль', )
+    is_auto = models.BooleanField(default=False, blank=True, verbose_name='Автоматическое заполнение', )
     description = models.TextField(blank=True, null=True)
 
     def get_hash_fields(self):
-        return [self.schema_table, self.column]
+        return [self.schema_table, self.name]
 
     def __str__(self):
-        return f'{self.schema_table} - {self.column}'
+        return f'{self.schema_table} - {self.name}'
 
     class Meta:
         db_table = f'{db_schema}\".\"link_table_column'
         verbose_name = '3000 таблица-столбец.'
         verbose_name_plural = '3000 таблицы-столбецы'
         ordering = ['numbers', ]
-        unique_together = [['schema_table', 'column', ]]
+        unique_together = [['schema_table', 'name', ]]
