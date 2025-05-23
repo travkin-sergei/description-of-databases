@@ -1,168 +1,222 @@
 from django.contrib import admin
+from django.contrib.admin import ModelAdmin, TabularInline
+from django.db.models import Case, When, IntegerField
+from django.db.models.functions import Lower
+
 from .models import (
-    Environment, BaseName, SchemaName, ColumnName,
-    BaseType, Base, TableType, Table,
-    ColumnType, BaseSchema, Column, SchemaTable, TableColumn,
+    ColumnName, Environment,
+    ColumnType, TableName,
+    TableType, SchemaName, Base, BaseName,
+    BaseSchemeAlias, BaseType,
+    TableColumn, SchemaTable, BaseSchema,
 )
 
 
-# ------------------------
-# Остальные модели
-# ------------------------
+class BaseAdminWithSearch(ModelAdmin):
+    """Базовый класс админки с улучшенным поиском"""
 
-@admin.register(BaseName)
-class BaseNameAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
-    search_fields = ('name',)
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        if not hasattr(self.model, 'name'):
+            return queryset, use_distinct
+
+        try:
+            # Приоритет для имен, начинающихся с search_term (регистронезависимо)
+            queryset = queryset.annotate(
+                search_priority=Case(
+                    When(name__istartswith=search_term, then=0),
+                    When(name__icontains=search_term, then=1),
+                    default=2,
+                    output_field=IntegerField()
+                ),
+                lower_name=Lower('name')
+            ).order_by('search_priority', 'lower_name')
+        except:
+            pass
+
+        return queryset, use_distinct
+
+
+class SchemaTableInline(TabularInline):
+    model = SchemaTable
+    extra = 0
+    autocomplete_fields = 'table_type', 'alias',
+    raw_id_fields = 'table',
+    # classes = 'collapse',
+    show_change_link = True
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        return formset
+
+
+class TableColumnInline(TabularInline):
+    model = TableColumn
+    extra = 0
+    raw_id_fields = ('name', 'type')
+    # classes = ('collapse',)
+
+
+# Основные админки
+@admin.register(Environment)
+class EnvironmentAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'name', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id', 'name')
     list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
-
-
-@admin.register(Column)
-class ColumnAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'type', 'is_nullable', 'is_auto', 'is_active')
-    list_editable = ('is_nullable', 'is_auto', 'is_active')
-    autocomplete_fields = ['type']
     search_fields = ('name',)
-    list_filter = ('type', 'is_nullable', 'is_auto', 'is_active')
-    readonly_fields = 'hash_address',
+    ordering = ('name',)
 
 
-# ------------------------
-# Базовые типы (справочники)
-# ------------------------
+@admin.register(BaseSchemeAlias)
+class BaseSchemeAliasAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'base', 'schema', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id', 'base', 'schema',)
+    list_filter = ('is_active',)
+    search_fields = ('base', 'schema',)
+    ordering = ('base', 'schema',)
+
 
 @admin.register(BaseType)
-class BaseTypeAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
-    search_fields = ('name',)
+class BaseTypeAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'name', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id', 'name')
     list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
+@admin.register(BaseName)
+class BaseNameAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'name', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id', 'name')
+    list_filter = ('is_active',)
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
+@admin.register(SchemaName)
+class SchemaNameAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'name', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id', 'name')
+    list_filter = ('is_active',)
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
+@admin.register(Base)
+class TableTypeAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id',)
+    list_filter = ('is_active',)
+    search_fields = ('is_active',)
+    ordering = ('is_active',)
 
 
 @admin.register(TableType)
-class TableTypeAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
-    search_fields = ('name',)
+class TableTypeAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'name', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id', 'name')
     list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
+@admin.register(TableName)
+class TableNameAdmin(BaseAdminWithSearch):
+    """Список таблиц и отнесение к базе и схеме данных"""
+
+    inlines = [SchemaTableInline]
+
+    list_display = ('id', 'created_at', 'updated_at', 'name', 'is_active')
+    list_display_links = ('id', 'name')
+    list_filter = ('is_active',)
+    search_fields = ('name',)
+    ordering = ('name',)
 
 
 @admin.register(ColumnType)
-class ColumnTypeAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
-    search_fields = ('name',)
+class ColumnTypeAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'name', 'is_active', 'created_at', 'updated_at')
+    list_display_links = ('id', 'name')
     list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
-
-
-@admin.register(Environment)
-class EnvironmentAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
     search_fields = ('name',)
-    list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
-
-
-# ------------------------
-# Модели для автозаполнения
-# ------------------------
-
-@admin.register(SchemaName)
-class SchemaNameAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
-    search_fields = ('name',)
-    list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
-
-
-@admin.register(ColumnName)
-class ColumnNameAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
-    search_fields = ('name',)
-    list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
-
-
-@admin.register(Table)
-class TableAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'is_active', 'created_at', 'updated_at')
-    list_editable = ('is_active',)
-    search_fields = ('name',)
-    list_filter = ('is_active',)
-    readonly_fields = 'hash_address',
-
-
-# ------------------------
-# Inlines для связей
-# ------------------------
-
-class SchemaToBaseInline(admin.TabularInline):
-    model = BaseSchema
-    extra = 0
-    autocomplete_fields = ['schema']
-    fields = ('hash_address','schema', 'description', 'is_active')
-    verbose_name = "Привязанная схема"
-    verbose_name_plural = "Привязанные схемы"
-    readonly_fields = 'hash_address',
-
-
-class TableToBaseSchemaInline(admin.TabularInline):
-    model = SchemaTable
-    extra = 0
-    autocomplete_fields = ['table', 'table_type']
-    fields = ('hash_address','table', 'table_type', 'table_is_metadata', 'description', 'is_active')
-    verbose_name = "Таблица в схеме"
-    verbose_name_plural = "Таблицы в схеме"
-    readonly_fields = 'hash_address',
-
-
-class ColumnToSchemaTableInline(admin.TabularInline):
-    model = TableColumn
-    extra = 0
-    autocomplete_fields = ['name', 'type']
-    fields = ('hash_address','numbers', 'name', 'type', 'is_nullable', 'is_auto', 'description', 'is_active')
-    list_filter = ('is_nullable', 'is_auto')
-    search_fields = ('name__name', 'type__name')
-    readonly_fields = 'hash_address',
-
-
-# ------------------------
-# Основные модели с вложенностью
-# ------------------------
-
-@admin.register(Base)
-class BaseAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','name', 'host', 'port', 'type', 'is_active', 'created_at')
-    list_editable = ('is_active',)
-    search_fields = ('name', 'host')
-    list_filter = ('type', 'is_active')
-    autocomplete_fields = ['type']
-    readonly_fields = 'hash_address',
+    ordering = ('name',)
 
 
 @admin.register(BaseSchema)
-class BaseSchemaAdmin(admin.ModelAdmin):
-    list_display = ('hash_address','base', 'schema', 'is_active')
-    list_editable = ('is_active',)
-    autocomplete_fields = ['base', 'schema']
-    search_fields = ('base__name', 'schema__name')
-    readonly_fields = 'hash_address',
+class BaseSchemaAdmin(BaseAdminWithSearch):
+    list_display = ('base', 'schema', 'alias', 'env',)
+    list_display_links = ('base',)
+    list_filter = ('is_active',)
+    search_fields = ('schema',)
+    ordering = ('schema',)
+
+
+@admin.register(ColumnName)
+class ColumnNameAdmin(BaseAdminWithSearch):
+    list_display = ('id', 'created_at', 'updated_at', 'name', 'is_active',)
+    list_display_links = ('created_at', 'updated_at',)
+    list_filter = ('is_active',)
+    search_fields = ('name',)
+    ordering = ('name',)
 
 
 @admin.register(SchemaTable)
-class SchemaTableAdmin(admin.ModelAdmin):
-    inlines = [ColumnToSchemaTableInline]
-    list_display = ('hash_address','base_schema', 'table', 'table_type', 'table_is_metadata', 'is_active')
-    list_editable = ('table_is_metadata', 'is_active')
-    autocomplete_fields = ['base_schema', 'table', 'table_type']
-    search_fields = ('table__name', 'base_schema__schema__name')
+class SchemaTableAdmin(ModelAdmin):
+    inlines = [TableColumnInline]
+
+    list_display = ('id', 'alias', 'table', 'table_type', 'table_is_metadata', 'is_active')
+    list_display_links = ('id', 'alias')
     list_filter = ('table_type', 'table_is_metadata', 'is_active')
-    readonly_fields = 'hash_address',
+    search_fields = ('alias__name', 'table__name')
+    raw_id_fields = ('alias', 'table', 'table_type')
+    ordering = ('alias', 'table')
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        try:
+            queryset = queryset.annotate(
+                search_priority=Case(
+                    When(alias__name__istartswith=search_term, then=0),
+                    When(alias__name__icontains=search_term, then=1),
+                    When(table__name__istartswith=search_term, then=2),
+                    When(table__name__icontains=search_term, then=3),
+                    default=4,
+                    output_field=IntegerField()
+                ),
+                lower_alias_name=Lower('alias__name'),
+                lower_table_name=Lower('table__name')
+            ).order_by('search_priority', 'lower_alias_name', 'lower_table_name')
+        except:
+            pass
+        return queryset, use_distinct
+
+
+@admin.register(TableColumn)
+class TableColumnAdmin(ModelAdmin):
+    list_display = ('id', 'schema_table', 'name', 'type', 'is_nullable', 'is_auto', 'numbers', 'is_active')
+    list_display_links = ('id', 'schema_table')
+    list_filter = ('type', 'is_nullable', 'is_auto', 'is_active')
+    search_fields = ('schema_table__table__name', 'name__name')
+    raw_id_fields = ('schema_table', 'name', 'type')
+    ordering = ('schema_table', 'numbers')
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        try:
+            queryset = queryset.annotate(
+                search_priority=Case(
+                    When(name__name__istartswith=search_term, then=0),
+                    When(name__name__icontains=search_term, then=1),
+                    When(schema_table__table__name__istartswith=search_term, then=2),
+                    When(schema_table__table__name__icontains=search_term, then=3),
+                    default=4,
+                    output_field=IntegerField()
+                ),
+                lower_name=Lower('name__name'),
+                lower_table_name=Lower('schema_table__table__name')
+            ).order_by('search_priority', 'lower_name', 'lower_table_name')
+        except:
+            pass
+        return queryset, use_distinct

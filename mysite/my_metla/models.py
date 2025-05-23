@@ -12,7 +12,7 @@ class BaseModel(models.Model):
                                       verbose_name='дата создания')  # , db_comment='Админ поле. Создано')
     updated_at = models.DateTimeField(auto_now=True,
                                       verbose_name='дата изменения')  # , db_comment='Админ поле. Обновлено')
-    hash_address = models.CharField(max_length=64, unique=True)  # , db_comment='адрес данных по хеш')
+    # hash_address = models.CharField(max_length=64, unique=True)  # , db_comment='адрес данных по хеш')
     is_active = models.BooleanField(default=True,
                                     verbose_name='запись активна')  # , db_comment='Админ поле. Актуально')
 
@@ -50,7 +50,26 @@ class Environment(BaseModel):
         db_table = f'{db_schema}\".\"dim_environment'
         verbose_name = '0010 Среда разработки'
         verbose_name_plural = '0010 Среды разработки'
-        ordering = ['name']
+        ordering = ['pk']
+
+
+class BaseSchemeAlias(BaseModel):
+    """Псевдоним схемы и базы."""
+
+    base = models.CharField(max_length=255, blank=True, null=True, verbose_name='База')
+    schema = models.CharField(max_length=255, blank=True, null=True, verbose_name='Схема')
+
+    def get_hash_fields(self):
+        return [self.base, self.schema]
+
+    def __str__(self):
+        return f'{self.base}-{self.schema}'
+
+    class Meta:
+        db_table = f'{db_schema}\".\"dim_base_scheme_alias'
+        verbose_name = '0210 Алиас схем БД'
+        verbose_name_plural = '0210 Алиасы схем БД'
+        ordering = ['base', 'schema', ]
 
 
 class BaseType(BaseModel):
@@ -88,11 +107,10 @@ class BaseName(BaseModel):
 
 
 class Base(BaseModel):
-    """База данных."""
+    """Базы данных."""
 
-    type = models.ForeignKey(BaseType, on_delete=models.CASCADE, blank=True, null=True)
-    env = models.ForeignKey(Environment, on_delete=models.CASCADE, blank=True, null=True)
     name = models.ForeignKey(BaseName, on_delete=models.CASCADE, blank=True, null=True)
+    type = models.ForeignKey(BaseType, on_delete=models.CASCADE, blank=True, null=True)
     host_name = models.CharField(max_length=255)
     host = models.CharField(max_length=255)
     port = models.CharField(max_length=255)
@@ -100,17 +118,17 @@ class Base(BaseModel):
     description = models.TextField(blank=True, null=True)
 
     def get_hash_fields(self):
-        return [self.env, self.name, self.host]
+        return [self.name, self.host, self.port]
 
     def __str__(self):
-        return f'{self.env}-{self.type}-{self.name}'
+        return f'{self.host_name}'
 
     class Meta:
         db_table = f'{db_schema}\".\"dim_bases'
         verbose_name = '0101 База'
         verbose_name_plural = '0101 Базы'
-        ordering = ['env', 'name', 'type']
-        unique_together = [['env', 'name', 'type']]
+        ordering = ['name', 'host', 'port']
+        unique_together = [['name', 'host', 'port']]
 
 
 class SchemaName(BaseModel):
@@ -126,8 +144,8 @@ class SchemaName(BaseModel):
 
     class Meta:
         db_table = f'{db_schema}\".\"dim_schema'
-        verbose_name = '0201 Схема'
-        verbose_name_plural = '0201 Схемы'
+        verbose_name = '0201 Схема базы'
+        verbose_name_plural = '0201 Схемы баз'
         ordering = ['name']
 
 
@@ -149,7 +167,7 @@ class TableType(BaseModel):
         ordering = ['name']
 
 
-class Table(BaseModel):
+class TableName(BaseModel):
     """Таблицы базы данных."""
 
     name = models.CharField(max_length=255, verbose_name='Название в БД')
@@ -161,7 +179,7 @@ class Table(BaseModel):
         return self.name
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_tables'
+        db_table = f'{db_schema}\".\"dim_table_name'
         verbose_name = '0301 Список таблиц'
         verbose_name_plural = '0301 Список таблиц'
         ordering = ['name']
@@ -201,47 +219,12 @@ class ColumnName(BaseModel):
         ordering = ['name']
 
 
-class Column(BaseModel):
-    """Колонки таблиц."""
-
-    type = models.ForeignKey(
-        ColumnType,
-        on_delete=models.CASCADE, blank=True, null=True,
-        verbose_name='Тип данных'
-    )
-    name = models.ForeignKey(
-        ColumnName,
-        on_delete=models.CASCADE, blank=True, null=True,
-        verbose_name='Название столбца'
-    )
-    is_nullable = models.BooleanField(default=True,
-                                      blank=True, null=True,
-                                      verbose_name='Возможен ли ноль',
-                                      )
-    is_auto = models.BooleanField(default=False,
-                                  blank=True, null=True,
-                                  verbose_name='Автоматическое заполнение',
-                                  )
-
-    def get_hash_fields(self):
-        return [self.type, self.name]
-
-    def __str__(self):
-        return f'{self.type}-{self.name}'
-
-    class Meta:
-        db_table = f'{db_schema}\".\"dim_columns'
-        verbose_name = '0401 Столбец'
-        verbose_name_plural = '0401 Столбцы'
-        ordering = ['type', 'name']
-        unique_together = [['type', 'name']]
-
-
 class BaseSchema(BaseModel):
     """Список схем базы данных."""
 
     base = models.ForeignKey(Base, on_delete=models.CASCADE, blank=True, null=True)
     schema = models.ForeignKey(SchemaName, on_delete=models.PROTECT, blank=True, null=True)
+    alias = models.ForeignKey(BaseSchemeAlias, on_delete=models.PROTECT, blank=True, null=True)
     env = models.ForeignKey(Environment, on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
@@ -256,30 +239,31 @@ class BaseSchema(BaseModel):
         verbose_name = '1000 База-схема-таблица'
         verbose_name_plural = '1000 База-схема-таблицы'
         ordering = ['base']
-        unique_together = [['base', 'schema']]
+        unique_together = [['base', 'schema', ]]
 
 
 class SchemaTable(BaseModel):
     """Свод данных."""
 
-    base_schema = models.ForeignKey(BaseSchema, on_delete=models.CASCADE, blank=True, null=True)
-    table_is_metadata = models.BooleanField(default=False, verbose_name='Таблица метаданных')
+    alias = models.ForeignKey(BaseSchemeAlias, on_delete=models.CASCADE, blank=True, null=True)
+    table = models.ForeignKey(TableName, on_delete=models.CASCADE, blank=True, null=True)
     table_type = models.ForeignKey(TableType, on_delete=models.CASCADE, blank=True, null=True)
-    table = models.ForeignKey(Table, on_delete=models.CASCADE, blank=True, null=True)
+    table_is_metadata = models.BooleanField(default=False, verbose_name='Таблица метаданных')
     description = models.TextField(blank=True, null=True)
 
     def get_hash_fields(self):
-        return [self.base_schema, self.table]
+        return [self.alias, self.table]
 
     def __str__(self):
-        return f'{self.base_schema}-{self.table_is_metadata}-{self.table_type}-{self.table}'
+        return f'{self.alias
+        }-{self.table_is_metadata}-{self.table_type}-{self.table}'
 
     class Meta:
         db_table = f'{db_schema}\".\"link_schema_table'
         verbose_name = '2000 схема-таблица.'
         verbose_name_plural = '2000 схемы-таблиц'
         ordering = ['table']
-        unique_together = [['base_schema', 'table']]
+        unique_together = [['alias', 'table']]
 
 
 class TableColumn(BaseModel):
@@ -287,7 +271,7 @@ class TableColumn(BaseModel):
 
     schema_table = models.ForeignKey(SchemaTable, on_delete=models.CASCADE, blank=True, null=True)
     name = models.ForeignKey(ColumnName, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Имя')
-    numbers = models.PositiveIntegerField(blank=True, null=True)  # УДАЛИТЬ
+    numbers = models.PositiveIntegerField(blank=True, null=True)
     type = models.ForeignKey(ColumnType, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Тип данных')
     is_nullable = models.BooleanField(default=True, blank=True, verbose_name='Возможен ли ноль', )
     is_auto = models.BooleanField(default=False, blank=True, verbose_name='Автоматическое заполнение', )

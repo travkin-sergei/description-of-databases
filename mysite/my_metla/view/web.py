@@ -1,4 +1,3 @@
-# views.py
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.views.generic import TemplateView, ListView, DetailView
@@ -7,6 +6,17 @@ from django.db.models import Prefetch, Count
 
 from ..filters import BaseFilter, SchemaTableFilter, BaseSchemaFilter
 from ..models import Base, SchemaTable, BaseSchema, TableColumn
+
+
+class BaseViewMixin:
+    """Base mixin for common view functionality."""
+
+    def get_filter_params(self):
+        """Get filter parameters without 'page' for pagination."""
+        get_copy = self.request.GET.copy()
+        if 'page' in get_copy:
+            get_copy.pop('page')
+        return get_copy.urlencode()
 
 
 class AboutAppView(TemplateView):
@@ -19,35 +29,29 @@ def my_metla_view(request):
     return HttpResponse("Простая страница my_metla")
 
 
-class BaseListView(LoginRequiredMixin, ListView):
+class BaseListView(LoginRequiredMixin, BaseViewMixin, ListView):
     """Список баз данных."""
-
     model = Base
     template_name = 'my_metla/database-list.html'
     context_object_name = 'databases'
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related('name', 'type')  # Только допустимые связи
         self.filter = BaseFilter(self.request.GET, queryset=queryset)
-        return self.filter.qs.select_related('type', 'env')
+        return self.filter.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['filter'] = self.filter
-
-        # Сохраняем параметры фильтрации в пагинации
-        get_params = self.request.GET.copy()
-        if 'page' in get_params:
-            del get_params['page']
-        context['get_params'] = get_params.urlencode()
-
+        context.update({
+            'filter': self.filter,
+            'get_params': self.get_filter_params()
+        })
         return context
 
 
-class BaseSchemaListView(LoginRequiredMixin, FilterView):
+class BaseSchemaListView(LoginRequiredMixin, BaseViewMixin, FilterView):
     """Связь баз и схем"""
-
     model = BaseSchema
     filterset_class = BaseSchemaFilter
     template_name = 'my_metla/schema-tables.html'
@@ -56,9 +60,9 @@ class BaseSchemaListView(LoginRequiredMixin, FilterView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.select_related(
-            'base',  # Получаем объект base
-            'base__type',  # Получаем тип базы данных, связанный с base
+        return queryset.select_related(
+            'base',
+            'base__type',
             'schema'
         ).prefetch_related(
             'schematable_set__table',
@@ -67,20 +71,14 @@ class BaseSchemaListView(LoginRequiredMixin, FilterView):
             table_count=Count('schematable')
         ).order_by('base__name', 'schema__name')
 
-        # Сохраняем фильтр в контекст
-        self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
-        return self.filterset.qs.distinct()  # Добавляем distinct() если есть дубли
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = "Список связей База-Схема"
-        # Добавляем фильтр в контекст для формы фильтрации
-        context['filter'] = self.filterset
         return context
 
 
 class SchemaTableListView(LoginRequiredMixin, FilterView):
-    """Список уникальных таблиц"""
+    """Список таблиц с фильтрацией"""
     model = SchemaTable
     filterset_class = SchemaTableFilter
     template_name = 'my_metla/schema-tables.html'
@@ -89,104 +87,80 @@ class SchemaTableListView(LoginRequiredMixin, FilterView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.select_related(
-            'base_schema__base__type',
-            'base_schema__base__name',
-            'base_schema__schema',
-            'table',
-            'table_type',
-        ).prefetch_related(
-            'base_schema__base__env'
-        ).annotate(
-            env_count=Count('base_schema__base__env', distinct=True),
-        ).order_by(
-            'base_schema__base__type__name',
-            'base_schema__base__name__name',
-            'base_schema__schema__name',
-            'table__name'
-        ).distinct()
-
-        self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
-        return self.filterset.qs
+        return queryset.select_related(
+            'alias', 'table', 'table_type'
+        ).order_by('table__name').distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Сохраняем параметры фильтрации для пагинации
-        get_copy = self.request.GET.copy()
-        if 'page' in get_copy:
-            del get_copy['page']
-        context['get_params'] = get_copy.urlencode()
-        context['title'] = "Список таблиц"
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        context['get_params'] = get_params.urlencode()
         return context
 
 
 class TableDetailView(LoginRequiredMixin, DetailView):
-    """Детальная информация о таблице со всеми связанными данными."""
-
+    """Детальная информация о таблице"""
     model = SchemaTable
     template_name = 'my_metla/table-detail.html'
     context_object_name = 'schema_table'
     pk_url_kwarg = 'pk'
-    paginate_by = 20
 
     def get_queryset(self):
         return super().get_queryset().select_related(
-            'base_schema__base',
-            'base_schema__base__type',
-            'base_schema__base__env',
-            'base_schema__schema',
+            'alias',
             'table',
             'table_type',
         ).prefetch_related(
-            Prefetch(
-                'tablecolumn_set',
-                queryset=TableColumn.objects.select_related(
-                    'column',
-                    'column__type'
-                ).order_by('numbers')
-            )
+            'tablecolumn_set',
+            'tablecolumn_set__name',
+            'tablecolumn_set__type',
+            'alias__baseschema_set__env'
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        current_table = self.object
 
-        # Получаем текущую таблицу
-        current_table = self.object.table
-
-        # Находим все SchemaTable, где встречается эта таблица
-        all_schema_tables = SchemaTable.objects.filter(table=current_table).select_related(
-            'base_schema__base__env'
+        # Получаем все связанные записи SchemaTable с той же таблицей
+        related_tables = SchemaTable.objects.filter(
+            table=current_table.table
+        ).select_related(
+            'alias',
+            'table',
+            'table_type'
         ).prefetch_related(
-            'tablecolumn_set__column'
+            'tablecolumn_set',
+            'alias__baseschema_set__env'
         )
 
-        # Собираем все окружения, где есть эта таблица
-        table_environments = list(set(
-            st.base_schema.base.env for st in all_schema_tables
-        ))
-
-        # Собираем информацию о столбцах и их окружениях
+        # Собираем данные об окружениях
+        environments = set()
         columns_data = []
-        for column in self.object.tablecolumn_set.all():
-            # Находим все SchemaTable, где есть этот столбец
-            column_schema_tables = SchemaTable.objects.filter(
-                table=current_table,
-                tablecolumn__column=column.column
-            ).select_related('base_schema__base__env')
 
-            # Получаем уникальные окружения для этого столбца
-            column_environments = list(set(
-                st.base_schema.base.env for st in column_schema_tables
-            ))
+        # Собираем информацию о столбцах
+        for column in current_table.tablecolumn_set.all():
+            column_envs = set()
+            for table in related_tables:
+                if table.alias and hasattr(table.alias, 'baseschema_set'):
+                    for base_schema in table.alias.baseschema_set.all():
+                        if base_schema.env:
+                            column_envs.add(base_schema.env)
 
             columns_data.append({
                 'column': column,
-                'environments': column_environments,
+                'environments': list(column_envs)
             })
 
+            # Добавляем среды в общий список
+            environments.update(column_envs)
+
         context.update({
-            'title': f"Детали таблицы {self.object.table.name}",
-            'table_environments': table_environments,
+            'title': f"Детали таблицы {current_table.table.name}",
+            'table_environments': environments,
             'columns_data': columns_data,
+            'related_tables': related_tables
         })
         return context

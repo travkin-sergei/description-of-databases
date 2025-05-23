@@ -30,7 +30,6 @@
 <div class="container">
     <div class="card bg-custom-black text-white mb-4">
         <div class="card-body">
-
             <form method="get" class="form-inline">
                 <div class="row g-3 align-items-end">
                     <!-- Поле поиска по имени -->
@@ -47,8 +46,8 @@
 
                     <!-- Поле выбора среды разработки -->
                     <div class="col-md-2">
-                        {{ filter.form.env.label_tag }}
-                        {{ filter.form.env }}
+
+
                     </div>
 
                     <!-- Поле выбора статуса -->
@@ -86,8 +85,8 @@
             {% for database in page_obj.object_list %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ database.name|default:"-" }}</td>
-                <td>{{ database.type|default:"-" }}</td>
+                <td>{{ database.name.name|default:"-" }}</td>
+                <td>{{ database.type.name|default:"-" }}</td>
                 <td>{{ database.host }}</td>
                 <td>{{ database.port }}</td>
                 <td>{{ database.version|default:"-" }}</td>
@@ -96,16 +95,54 @@
                         {% if database.is_active %}Активна{% else %}Неактивна{% endif %}
                     </span>
                 </td>
-                <td>{{ database.env|default:"-" }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
+
     <!-- Пагинация -->
-    {% block pagination %}
-    {% include "inc/_pagination.html" %}
-    {% endblock %}
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{{ get_params }}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ get_params }}"
+                   aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{{ get_params }}">{{ num }}</a></li>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ get_params }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ get_params }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
     {% else %}
     <div class="alert alert-warning">Нет данных для отображения</div>
     {% endif %}

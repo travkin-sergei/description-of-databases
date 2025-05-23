@@ -68,7 +68,7 @@
                     <td>{{ column.numbers }}</td>
                     <td>{{ column.column.name }}</td>
                     <td>{{ column.column.type.name }}</td>
-                    <td>{% if column.column.is_nullable %}Да{% else %}Нет{% endif %}</td>
+                    <td>{% if column.column.is_null %}Да{% else %}Нет{% endif %}</td>
                     <td>{% if column.column.is_auto %}Да{% else %}Нет{% endif %}</td>
                     <td>{{ column.description|default:"-" }}</td>
                 </tr>
@@ -76,5 +76,6 @@
             </tbody>
         </table>
     </div>
+    {% include 'inc/_paginator.html' %}
 </div>
 {% endblock %}

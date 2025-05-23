@@ -1,3 +1,4 @@
+import django_filters
 from django_filters import FilterSet, CharFilter, ModelChoiceFilter, BooleanFilter
 from django import forms
 from django.db.models import Q
@@ -6,8 +7,8 @@ from .models import (
     Environment,
     Base,
     SchemaTable,
-    BaseType, 
-    TableType, 
+    BaseType,
+    TableType,
     BaseSchema,
 )
 
@@ -36,7 +37,8 @@ class BaseFilter(FilterSet):
         field_name='env',
         queryset=Environment.objects.all(),
         label='Окружение',
-        widget=forms.Select(attrs={
+        widget=forms.Select(
+            attrs={
             'class': 'form-select bg-black text-white',
         })
     )
@@ -123,10 +125,9 @@ class BaseSchemaFilter(FilterSet):
         model = BaseSchema
         fields = ['base__name', 'schema__name', 'base__type', 'table__name', 'table_type']
 
-
-class SchemaTableFilter(FilterSet):
-    base__name = CharFilter(
-        field_name='base_schema__base__name__name',
+class SchemaTableFilter(django_filters.FilterSet):
+    alias__base = django_filters.CharFilter(
+        field_name='alias__base',
         lookup_expr='icontains',
         label='База данных',
         widget=forms.TextInput(attrs={
@@ -135,8 +136,8 @@ class SchemaTableFilter(FilterSet):
         })
     )
 
-    schema__name = CharFilter(
-        field_name='base_schema__schema__name',
+    alias__schema = django_filters.CharFilter(
+        field_name='alias__schema',
         lookup_expr='icontains',
         label='Схема',
         widget=forms.TextInput(attrs={
@@ -145,7 +146,7 @@ class SchemaTableFilter(FilterSet):
         })
     )
 
-    table__name = CharFilter(
+    table__name = django_filters.CharFilter(
         field_name='table__name',
         lookup_expr='icontains',
         label='Таблица',
@@ -155,39 +156,23 @@ class SchemaTableFilter(FilterSet):
         })
     )
 
-    base__type = ModelChoiceFilter(
-        field_name='base_schema__base__type',
-        queryset=BaseType.objects.all(),
-        label='Тип базы',
-        widget=forms.Select(attrs={
-            'class': 'form-select bg-black text-white',
-        })
-    )
-
-    table_type = ModelChoiceFilter(
+    table_type = django_filters.ModelChoiceFilter(
         field_name='table_type',
-        queryset=TableType.objects.filter(is_active=True),
+        queryset=TableType.objects.all(),
         label='Тип таблицы',
         widget=forms.Select(attrs={
             'class': 'form-select bg-black text-white',
         })
     )
 
-    table_is_metadata = BooleanFilter(
+    table_is_metadata = django_filters.BooleanFilter(
         field_name='table_is_metadata',
         label='Только метаданные',
-        widget=forms.Select(
-            choices=[
-                ('', 'Все таблицы'),
-                ('true', 'Только метаданные'),
-                ('false', 'Только данные')
-            ],
-            attrs={
-                'class': 'form-select bg-black text-white',
-            }
-        )
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input bg-black',
+        })
     )
 
     class Meta:
         model = SchemaTable
-        fields = ['base__name', 'schema__name', 'base__type', 'table__name', 'table_type', 'table_is_metadata']
+        fields = ['alias__base', 'alias__schema', 'table__name', 'table_type', 'table_is_metadata']

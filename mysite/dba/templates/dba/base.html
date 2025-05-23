@@ -10,12 +10,9 @@
 </head>
 <body>
 
-{% include 'dba/inc/_nav.html' %}
-{% block pagination %}
-    {% include "inc/_pagination.html" %}
-{% endblock %}
+{% include 'inc/_nav.html' %}
+{% include 'inc/_paginator.html' %}
 {% block body %}
-
 {% endblock %}
 </body>
 </html>

@@ -3,100 +3,56 @@
 {% block body %}
 <style>
     .detail-card {
-        background-color: #f8f9fa;
+        background-color: white;
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        border: 1px solid #eee;
     }
     .detail-card-header {
-        background-color: #343a40;
+        background-color: #2c3e50;
         color: white;
-        padding: 15px 20px;
-        border-bottom: 1px solid rgba(0,0,0,0.1);
+        padding: 12px 20px;
+        border-radius: 8px 8px 0 0;
     }
     .detail-card-body {
         padding: 20px;
     }
     .property-grid {
         display: grid;
-        grid-template-columns: 200px 1fr;
+        grid-template-columns: 150px 1fr;
         gap: 10px 15px;
     }
     .property-name {
         font-weight: 600;
-        color: #495057;
+        color: #2c3e50;
     }
-    .property-value {
-        color: #212529;
-    }
-    .env-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 13px;
-        font-weight: 500;
-        text-transform: capitalize;
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-    .env-dev { background-color: #d4edda; color: #155724; }
-    .env-test { background-color: #fff3cd; color: #856404; }
-    .env-prod { background-color: #f8d7da; color: #721c24; }
-    .env-other { background-color: #e2e3e5; color: #383d41; }
     .table-responsive {
         border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .table-custom {
-        margin-bottom: 0;
+        border: 1px solid #eee;
     }
     .table-custom thead {
-        background-color: #343a40;
+        background-color: #2c3e50;
         color: white;
     }
-    .table-custom th {
-        border-bottom: none;
-        font-weight: 500;
-    }
-    .table-striped-custom tbody tr:nth-child(odd) { background-color: #ffffff; }
-    .table-striped-custom tbody tr:nth-child(even) { background-color: #f8f9fa; }
-    .table-custom tbody tr:hover {
-        background-color: #e9ecef;
-    }
-    .boolean-icon {
-        font-size: 18px;
-    }
-    .boolean-true { color: #28a745; }
-    .boolean-false { color: #dc3545; }
-    .empty-message {
-        padding: 20px;
-        text-align: center;
-        color: #6c757d;
-        background-color: #f8f9fa;
-    }
-    .env-indicator {
+    .env-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
         font-size: 12px;
-        color: #6c757d;
-        margin-top: 3px;
+        margin-right: 5px;
     }
-    /* Новые стили для отображения окружений столбцов */
-    .column-environments {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-    .environments-title {
-        font-size: 0.9rem;
-        color: #6c757d;
-        margin-bottom: 5px;
-    }
+    .env-dev { background-color: #e6ffed; color: #1b7d3a; }
+    .env-test { background-color: #fff8e6; color: #8a6d3b; }
+    .env-prod { background-color: #ffebee; color: #c62828; }
+    .env-other { background-color: #f5f5f5; color: #424242; }
 </style>
 
 <div class="container py-4">
     <h1 class="mb-4">{{ title }}</h1>
+
+    <!-- Основная информация -->
     <div class="detail-card">
         <div class="detail-card-header">
             <h2 class="h5 mb-0">Основная информация</h2>
@@ -105,28 +61,41 @@
             <div class="property-grid">
                 <div class="property-name">База данных:</div>
                 <div class="property-value">
-                    {{ schema_table.base_schema.base.name }}
-                    <small class="text-muted">({{ schema_table.base_schema.base.type.name }})</small>  stend - {{ schema_table.base_schema.base.env.name|default:"Не указано" }}
+                    {{ schema_table.alias.base|default:"Не указано" }}
                 </div>
+
                 <div class="property-name">Схема:</div>
-                <div class="property-value">{{ schema_table.base_schema.schema.name }}</div>
+                <div class="property-value">
+                    {{ schema_table.alias.schema|default:"Не указано" }}
+                </div>
+
                 <div class="property-name">Таблица:</div>
-                <div class="property-value">{{ schema_table.table.name }}</div>
+                <div class="property-value">
+                    {{ schema_table.table.name|default:"Не указано" }}
+                </div>
+
                 <div class="property-name">Тип таблицы:</div>
-                <div class="property-value">{{ schema_table.table_type.name }}</div>
+                <div class="property-value">
+                    {{ schema_table.table_type.name|default:"Не указано" }}
+                </div>
+
                 <div class="property-name">Метаданные:</div>
                 <div class="property-value">
-                    <i class="fas fa-{% if schema_table.table_is_metadata %}check boolean-true{% else %}times boolean-false{% endif %} boolean-icon"></i>
+                    <span class="badge {% if schema_table.table_is_metadata %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if schema_table.table_is_metadata %}Да{% else %}Нет{% endif %}
+                    </span>
                 </div>
-                <div class="property-name">Доступна в окружениях:</div>
+
+                <!-- Среда разработки -->
+                <div class="property-name">Среда разработки:</div>
                 <div class="property-value">
-                    <div class="column-environments">
-                        {% for env in table_environments %}
-                            <span class="env-badge env-{{ env.name|lower|default:'other' }}">
-                                {{ env.name|default:"Не указано" }}
-                            </span>
-                        {% endfor %}
-                    </div>
+                    {% if schema_table.alias and schema_table.alias.baseschema_set.first and schema_table.alias.baseschema_set.first.env %}
+                        <span class="env-badge env-{{ schema_table.alias.baseschema_set.first.env.name|lower|default:'other' }}">
+                            {{ schema_table.alias.baseschema_set.first.env.name|default:"Не указано" }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">Не указано</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -134,68 +103,57 @@
 
     <!-- Столбцы таблицы -->
     <div class="detail-card">
-<!--        <div class="detail-card-header d-flex justify-content-between align-items-center">-->
-<!--            <h2 class="h5 mb-0">Столбцы таблицы</h2>-->
-<!--            <div>-->
-<!--                <span class="badge bg-secondary">{{ columns_data|length }} столбцов</span>-->
-<!--                <span class="env-badge env-{{ schema_table.base_schema.base.env.name|lower|default:'other' }} ms-2">-->
-<!--                    {{ schema_table.base_schema.base.env.name|default:"Не указано" }}-->
-<!--                </span>-->
-<!--            </div>-->
-<!--        </div>-->
-
-        {% if columns_data %}
-        <div class="table-responsive">
-            <table class="table table-custom table-striped-custom">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Имя столбца</th>
-                        <th>Тип данных</th>
-                        <th>NULL</th>
-                        <th>Auto</th>
-                        <th>Описание</th>
-                        <th>Доступен в окружениях</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for column_data in columns_data %}
-                    <tr>
-                        <td>{{ column_data.column.numbers }}</td>
-                        <td>
-                            <strong>{{ column_data.column.column.name }}</strong>
-                            {% if column_data.column.is_primary_key %}
-                                <span class="badge bg-primary ms-1">PK</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ column_data.column.column.type.name }}</td>
-                        <td>
-                            <i class="fas fa-{% if column_data.column.column.is_nullable %}check boolean-true{% else %}times boolean-false{% endif %}"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-{% if column_data.column.column.is_auto %}check boolean-true{% else %}times boolean-false{% endif %}"></i>
-                        </td>
-                        <td>{{ column_data.column.description|default:"-" }}</td>
-                        <td>
-                            <div class="column-environments">
+        <div class="detail-card-header">
+            <h2 class="h5 mb-0">Столбцы таблицы</h2>
+        </div>
+        <div class="detail-card-body">
+            {% if columns_data %}
+            <div class="table-responsive">
+                <table class="table table-custom">
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Тип данных</th>
+                            <th>NULL</th>
+                            <th>Auto</th>
+                            <th>Описание</th>
+                            <th>Доступно в средах</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for column_data in columns_data %}
+                        <tr>
+                            <td>{{ column_data.column.name.name }}</td>
+                            <td>{{ column_data.column.type.name }}</td>
+                            <td>
+                                <span class="badge {% if column_data.column.is_nullable %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if column_data.column.is_nullable %}Да{% else %}Нет{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if column_data.column.is_auto %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if column_data.column.is_auto %}Да{% else %}Нет{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ column_data.column.description|default:"—" }}</td>
+                            <td>
                                 {% for env in column_data.environments %}
-                                    <span class="env-badge env-{{ env.name|lower|default:'other' }}">
-                                        {{ env.name|default:"Не указано" }}
-                                    </span>
+                                <span class="env-badge env-{{ env.name|lower|default:'other' }}">
+                                    {{ env.name|default:"Не указано" }}
+                                </span>
+                                {% empty %}
+                                <span class="text-muted">—</span>
                                 {% endfor %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">Нет информации о столбцах</div>
+            {% endif %}
         </div>
-        {% else %}
-        <div class="empty-message">
-            <i class="fas fa-table fa-2x mb-3"></i>
-            <p class="mb-0">Нет информации о столбцах</p>
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
