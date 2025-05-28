@@ -29,11 +29,14 @@ routers.register("schema", SchemaAPIViewSet)
 routers.register("table", TableAPIViewSet)
 
 urlpatterns = [
-    path('about-me/', about_me, name='about_me'),
+    path('about-me/', about_me, name='about-app'),
     # start ------- подключение API
     path("v1/api/", include(routers.urls)),
     path("v1/api/tab_id/<int:pk>/", TableDetailAPIView.as_view()),
     # stop  ------- подключение API
+    # базы данных
+    path('base/', BasesView.as_view(), name='base'),
+    path('base/<int:pk>/', BasesViewId.as_view(), name='base_id'),
     # столбцы таблиц
     path('', ColumnView.as_view(), name='column'),
     # Таблица данных
@@ -42,9 +45,6 @@ urlpatterns = [
     # stage
     path('table_stage/', TableViewIdStage.as_view(), name='table_id_stage'),
     path('table_stage/<int:pk>/', TableViewIdStageId.as_view(), name='table_id_stage_id'),
-    # базы данных
-    path('base/', BasesView.as_view(), name='base'),
-    path('base/<int:pk>/', BasesViewId.as_view(), name='base_id'),
     # Функция
     path('function/', FunctionView.as_view(), name='function'),
     path('function/<int:pk>/', FunctionViewId.as_view(), name='function_id'),
@@ -54,8 +54,6 @@ urlpatterns = [
     # ссылки Сервисы
     path('service/', ServiceView.as_view(), name='service'),
     path('service/<int:pk>/', ServiceViewId.as_view(), name='service_id'),
-
     # Регистрация
-
 ]
 handler404 = page_note_found

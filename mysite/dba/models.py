@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.urls import reverse
 
+db_schema = 'my_dba'
 
 class BasesClass(models.Model):
     """Созданы базовые поля, важные для всех таблиц"""
@@ -54,7 +55,7 @@ class Base(BasesClass):
         return self.host_db
 
     class Meta:
-        db_table = 'name_base'
+        db_table = f'{db_schema}\".\"name_base'
         # db_table_comment = 'Список стендов данных.'
         verbose_name = '01 Base'
         verbose_name_plural = '01 Base'
@@ -75,7 +76,7 @@ class BaseGroup(BasesClass):  # хотел назвать Base, но имя за
         return self.table_catalog
 
     class Meta:
-        db_table = 'name_base_group'
+        db_table = f'{db_schema}\".\"name_base_group'
         # db_table_comment = "Список баз данных."
         verbose_name = '02 BaseGroup'
         verbose_name_plural = '02 BaseGroup'
@@ -97,8 +98,7 @@ class Schema(BasesClass):
         return self.table_schema
 
     class Meta:
-        # db_table_comment = "Список схем в базе данных."
-        db_table = 'name_schema'
+        db_table = f'{db_schema}\".\"name_schema'
         verbose_name = '03 Schema'
         verbose_name_plural = '03 Schema'
         ordering = ['base', 'table_schema', ]
@@ -133,7 +133,7 @@ class Table(BasesClass):
         return self.table_name
 
     class Meta:
-        db_table = 'name_table'
+        db_table = f'{db_schema}\".\"name_table'
         # db_table_comment = "Список таблиц в базе данных."
         verbose_name = '04 Table'
         verbose_name_plural = '04 Table'
@@ -157,7 +157,7 @@ class ColumnMDType(models.Model):
         return self.md_type
 
     class Meta:
-        db_table = 'name_column_mdt'
+        db_table = f'{db_schema}\".\"name_column_mdt'
         # db_table_comment = "Группы таблиц - сервисы."
         verbose_name = '11 meta data Type'
         verbose_name_plural = '11 meta data Type'
@@ -187,7 +187,7 @@ class Column(BasesClass):
         return self.column_name
 
     class Meta:
-        db_table = 'name_column'
+        db_table = f'{db_schema}\".\"name_column'
         # db_table_comment = "Список столбцов в базе данных."
         verbose_name = '05 Column'
         verbose_name_plural = '05 Column'
@@ -205,7 +205,7 @@ class StageType(BasesClass):
         return self.name
 
     class Meta:
-        db_table = 'name_stage_type'
+        db_table = f'{db_schema}\".\"name_stage_type'
         # db_table_comment = "Список стендов данных."
         verbose_name = '07 Stage'
         verbose_name_plural = '07 Stage'
@@ -223,7 +223,7 @@ class StageColumn(BasesClass):
         return str(self.stage)
 
     class Meta:
-        db_table = 'link_stage_column'
+        db_table = f'{db_schema}\".\"link_stage_column'
         # db_table_comment = "Связь столбец-схема данных"
         verbose_name = 'L-01 StageColumn'
         verbose_name_plural = 'L-01 StageColumn'
@@ -253,7 +253,7 @@ class ColumnColumn(BasesClass):
         return str(self.main)
 
     class Meta:
-        db_table = 'link_column_column'
+        db_table = f'{db_schema}\".\"link_column_column'
         # db_table_comment = "Связь столбец-столбец"
         verbose_name = 'L-02 LinkColumn'
         verbose_name_plural = 'L-02 LinkColumn'
@@ -271,7 +271,7 @@ class UpdateMethod(BasesClass):
         return self.method
 
     class Meta:
-        db_table = 'link_update_method'
+        db_table = f'{db_schema}\".\"link_update_method'
         # db_table_comment = "Способ обновления."
         verbose_name = '06 method update'
         verbose_name_plural = '06 method update'
@@ -292,7 +292,7 @@ class Update(BasesClass):
         return self.name
 
     class Meta:
-        db_table = 'link_update'
+        db_table = f'{db_schema}\".\"link_update'
         # db_table_comment = "Расписание обновлений."
         verbose_name = '06 update'
         verbose_name_plural = '06 update'
@@ -313,7 +313,7 @@ class Function(BasesClass):
         return self.name_fun
 
     class Meta:
-        db_table = 'name_function'
+        db_table = f'{db_schema}\".\"name_function'
         # db_table_comment = "Список функций базы данных"
         verbose_name = '10 Функции БД'
         verbose_name_plural = '10 Функции БД'
@@ -332,7 +332,7 @@ class StageFunction(BasesClass):
         return str(self.stage)
 
     class Meta:
-        db_table = 'link_stage_function'
+        db_table = f'{db_schema}\".\"link_stage_function'
         # db_table_comment = "Связь база-функция"
         verbose_name = 'L-03 LinkFunction'
         verbose_name_plural = 'L-03 LinkFunction'
@@ -349,7 +349,7 @@ class Service(BasesClass):  # хотел назвать Base, но имя зар
         return self.service
 
     class Meta:
-        db_table = 'name_service'
+        db_table = f'{db_schema}\".\"name_service'
         # db_table_comment = "Список сервисов."
         verbose_name = '08 service'
         verbose_name_plural = '08 service'
@@ -367,7 +367,7 @@ class ServiceTable(BasesClass):  # хотел назвать Base, но имя �
         return str(self.service) + '-' + str(self.table)
 
     class Meta:
-        db_table = 'name_service_table'
+        db_table = f'{db_schema}\".\"name_service_table'
         # db_table_comment = "Группы таблиц - сервисы."
         verbose_name = '09 Service Table'
         verbose_name_plural = '09 Service Table'

@@ -8,6 +8,7 @@
             <thead>
             <tr>
                 <form method="GET">
+                    <th scope="col">№</th>
                     <th scope="col">table_catalog<br>{{ filter.form.table_catalog }}</th>
                     <th scope="col">is_active<br>
                         {{ filter.form.is_active }}
@@ -19,6 +20,7 @@
             <tbody>
             {% for i_obj in object_list %}
             <tr>
+                <td>{{ forloop.counter }}</td>
                 <td><a href="{% url 'dba:base_id' pk=i_obj.pk %}">{{ i_obj.table_catalog|safe }}</a></td>
                 <td><a href="{% url 'dba:base_id' pk=i_obj.pk %}">{{ i_obj.is_active|safe }}</a></td>
             </tr>

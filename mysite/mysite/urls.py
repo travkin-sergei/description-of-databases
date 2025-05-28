@@ -17,8 +17,9 @@ urlpatterns = [
 
     # Приложения
     path('', include('my_metla.urls')),
-    path('dba/', include('dba.urls')),
     path('accounts/', include('myauth.urls')),
+    path('asset/', include('my_data_asset.urls')),
+    path('dba/', include('dba.urls')),
 ]
 
 if settings.DEBUG:

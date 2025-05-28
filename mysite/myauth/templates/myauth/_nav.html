@@ -46,23 +46,14 @@
        data-bs-toggle="dropdown"
        aria-expanded="false"
        style="color: white;"> <!-- Белый текст для ссылки -->
-        MetLa
+        Личный кабинет
     </a>
     <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="background-color: black;">
         <li>
-            <a class="dropdown-item" href="{% url 'my_metla:database-list' %}" style="color: white;">
-                database-list
-            </a>
+            <a class="dropdown-item" href="{% url 'myauth:login' %}" style="color: white;">login</a>
         </li>
         <li>
-            <a class="dropdown-item" href="{% url 'my_metla:schema-tables-list' %}" style="color: white;">
-                schema-tables-list
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="{% url 'my_metla:about-app' %}" style="color: white;">
-                about-app
-            </a>
+            <hr class="dropdown-divider" style="background-color: white;">
         </li>
     </ul>
 </ul>
