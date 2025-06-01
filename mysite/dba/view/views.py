@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from ..filters import *
 from ..my_function.cron import get_cron
 
@@ -113,6 +113,7 @@ class TableView(LoginRequiredMixin, FilteredListView):
     template_name = 'dba/tables.html'
     model = Table
     filter_class = TableFilter
+    context_object_name = 'tables'  # Явно задаем имя переменной в контексте
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -128,7 +129,6 @@ class TableView(LoginRequiredMixin, FilteredListView):
         if schema_query:
             queryset = queryset.filter(schema__table_schema__icontains=schema_query)
         if table_name_query:
-            # Ищем по имени таблицы или по связанным именам из TableName
             queryset = queryset.filter(
                 Q(table_name__icontains=table_name_query) |
                 Q(names__name__icontains=table_name_query)
@@ -136,17 +136,29 @@ class TableView(LoginRequiredMixin, FilteredListView):
         if is_active_query:
             queryset = queryset.filter(is_active=is_active_query == 'true')
 
-        # Оптимизация запросов - prefetch_related для связанных имен
-        queryset = queryset.prefetch_related('names')
+        # Оптимизация запросов - prefetch_related для связанных имен с языком
+        queryset = queryset.select_related('schema__base').prefetch_related(
+            Prefetch('names', queryset=TableName.objects.select_related('language')))
 
         self.filter = self.filter_class(self.request.GET, queryset)
         return self.filter.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Собираем все языки для фильтрации
+        languages = Language.objects.all()
+        context['languages'] = languages
+
+        # Получаем выбранный язык из GET-параметров или используем первый доступный
+        selected_lang = self.request.GET.get('lang', languages.first().code if languages.exists() else '')
+        context['selected_lang'] = selected_lang
+
+        # Добавляем параметры запроса для пагинации
         query_dict = self.request.GET.copy()
         query_dict.pop('page', None)
         context['query_params'] = query_dict.urlencode()
+
         return context
 
 

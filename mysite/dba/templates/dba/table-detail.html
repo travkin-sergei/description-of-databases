@@ -6,102 +6,129 @@
     <div class="card">
         <div class="card-body">
             <p class="card-title">{{ table.schema.base.table_catalog }}/{{ table.schema }}</p>
-            <h2 class="card-title">{{ table.table_name|safe }} - {{ table.table_ru|safe }}</h2>
-            <h3 class="card-title">Описание</h3>
-            <p class="card-text">{{ table.table_com|safe }}</p>
-            <h3 class="card-title">Обновление</h3>
+            <h2 class="card-title">
+                {{ table.table_name|safe }}
+                {% if table.names.all %}
+                    <div class="mt-2">
+                        {% for name in table.names.all %}
+                            <span class="badge bg-secondary me-1">
+                                {{ name.language.code|upper }}: {{ name.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </h2>
+
+            <h3 class="card-title mt-4">Описание</h3>
+            <p class="card-text">{{ table.table_com|safe|default:"Нет описания" }}</p>
+
+            <h3 class="card-title mt-4">Обновление</h3>
             <table class="table table-striped table-hover">
                 <thead>
-                <tr>
-                    <th scope="col">№</th>
-                    <th scope="col">name</th>
-                    <th scope="col">type</th>
-                    <th scope="col">is_active</th>
-                    <th scope="col">schedule</th>
-                </tr>
+                    <tr>
+                        <th scope="col">№</th>
+                        <th scope="col">Название</th>
+                        <th scope="col">Тип</th>
+                        <th scope="col">Активно</th>
+                        <th scope="col">Расписание</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {% for i_obj in object_list %}
-                <tr>
-                    <th scope="row">{{ forloop.counter }}</th>
-                    <td><a href="#">{{ i_obj.name}}</a></td>
-                    <td>{{ i_obj.type }}</td>
-                    <td>{{ i_obj.is_active }}</td>
-                    <td>{{ i_obj.schedule }}</td>
-                </tr>
-                {% endfor %}
+                    {% for update in object_list %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td><a href="#">{{ update.name }}</a></td>
+                        <td>{{ update.type }}</td>
+                        <td>{% if update.is_active %}Да{% else %}Нет{% endif %}</td>
+                        <td>{{ update.schedule }}</td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
-            <h3 class="card-title">DDL</h3>
-            <p><a href="#"> Ссылка на DDL </a></p>
-            <h3 class="card-title">Service</h3>
-            {% for elem in service %}
-            <p><a href="{% url 'dba:service_id' pk=elem.pk %}">{{ elem.service }}</a></p>
-            {% endfor %}
-        </div>
-    </div>
-</div>
 
+            <h3 class="card-title mt-4">DDL</h3>
+            <p><a href="#" class="btn btn-outline-primary">Просмотреть DDL</a></p>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-5 d-flex ">
-            <div class="mx-auto">
-                <h3>Состав таблицы {{ table.schema.base.table_catalog }}→{{ table.schema }}.{{ table.table_name }}</h3>
+            <h3 class="card-title mt-4">Сервисы</h3>
+            <div class="d-flex flex-wrap gap-2">
+                {% for service_item in service %}
+                <a href="{% url 'dba:service_id' pk=service_item.pk %}"
+                   class="btn btn-sm btn-outline-info">
+                    {{ service_item.service }}
+                </a>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
 
-<table class="table table-striped table-hover">
-    <thead>
-    <tr>
-        <th scope="col">№</th>
-        <th scope="col">id</th>
-        <th scope="col" width="6%">date</th>
-        <th scope="col" width="6%">название</th>
-        <th scope="col" width="6%">тип данных</th>
-        <th scope="col" width="20%">комментарий</th>
-        <th scope="col" width="6%">is null</th>
-        <th scope="col">default</th>
-        <th scope="col">is_auto</th>
-        <th scope="col" width="15%">технический комментарий</th>
-        <th scope="col" width="10%">stage</th>
-        <th scope="col" width="2%">Х</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for elem in column %}
-    <tr>
-        <th scope="row">{{ forloop.counter|default_if_none:"" }}</th>
-        <td>{{ elem.pk }}</td>
-        <td>{{ elem.date_create| date:"Y-m-d" }}</td>
-        <td>{{ elem.column_name|default_if_none:"" }}</td>
-        <td>{{ elem.data_type|default_if_none:"" }}</td>
-        <td>{{ elem.column_com|default_if_none:"" }}</td>
-        <td>{{ elem.is_nullable|default_if_none:"" }}</td>
-        <td>{{ elem.column_default|default_if_none:"" }}</td>
-        <td>{{ elem.is_auto|default_if_none:"" }}</td>
-        <td>
-            {% for el in column_column %}
-            {% if elem.pk == el.main.pk and el.sub.table%}
-            <a href="{% url 'dba:table_id'  pk=el.sub.table.pk|default_if_none:''  %}">
-                <br>{{ el.type }}→{{ el.sub.table }}.{{ el.sub }}
-            </a>
-            {% endif %}
-            {% endfor %}
-        </td>
-        <td>
-            {% for el in stage %}
-            {% if elem.pk == el.column_id %}
-            |{{ el.stage.type }}
-            {% endif %}
-            {% endfor %}
-        </td>
-        <td>{{ elem.md_type|default_if_none:"" }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
-
-{% endblock%}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">
+                Состав таблицы: {{ table.schema.base.table_catalog }} →
+                {{ table.schema }}.{{ table.table_name }}
+            </h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th width="5%">№</th>
+                        <th width="5%">ID</th>
+                        <th width="10%">Дата</th>
+                        <th width="10%">Колонка</th>
+                        <th width="10%">Тип</th>
+                        <th width="20%">Описание</th>
+                        <th width="5%">NULL</th>
+                        <th width="10%">По умолчанию</th>
+                        <th width="10%">Auto</th>
+                        <th width="15%">Связи</th>
+                        <th width="10%">Этапы</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col in column %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ col.pk }}</td>
+                        <td>{{ col.date_create|date:"Y-m-d" }}</td>
+                        <td><strong>{{ col.column_name }}</strong></td>
+                        <td>{{ col.data_type }}</td>
+                        <td>{{ col.column_com|default:"-" }}</td>
+                        <td>{{ col.is_nullable }}</td>
+                        <td>{{ col.column_default|default:"-" }}</td>
+                        <td>{{ col.is_auto|default:"-" }}</td>
+                        <td>
+                            {% for rel in column_column %}
+                                {% if col.pk == rel.main.pk and rel.sub.table %}
+                                <div class="mb-1">
+                                    <a href="{% url 'dba:table_id' pk=rel.sub.table.pk %}">
+                                        {{ rel.type }} → {{ rel.sub.table.table_name }}.{{ rel.sub.column_name }}
+                                    </a>
+                                    {% if rel.sub.table.names.all %}
+                                    <div class="text-muted small">
+                                        {% for name in rel.sub.table.names.all %}
+                                        <span>[{{ name.language.code }}: {{ name.name }}]</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for stg in stage %}
+                                {% if col.pk == stg.column_id %}
+                                <span class="badge bg-light text-dark me-1">{{ stg.stage.type }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
