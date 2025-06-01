@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Детали группы источников данных{% endblock title %}
+{% block body %}
+<div class="container">
+    <div class="row">
+        <h1>{{ data_asset_group.name|default:"" }}</h1>
+        <ul class="list-group">
+            {% for i_obj in data_assets %}
+            <li class="list-group-item">
+                <a href="{% url 'my_data_asset:data-asset-detail' i_obj.data_assets.id %}">
+                    Прейти к {{ i_obj.data_assets.name|default:"" }}
+                </a>
+            </li>
+            {% empty %}
+            <li class="list-group-item">Нет источников данных.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

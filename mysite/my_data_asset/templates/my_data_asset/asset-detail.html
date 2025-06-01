@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Детали: {{ asset }}{% endblock %}
+
+{% block body %}
+<style>
+    .table-header {
+        background-color: black;
+        color: white;
+    }
+    .table-row {
+        background-color: yellow;
+    }
+</style>
+
+<div class="container mt-4">
+    <h2>Источник данных</h2>
+    <ul class="list-group mb-4">
+        <li class="list-group-item"><strong>Тип:</strong> {{ asset.type.name }}</li>
+        <li class="list-group-item"><strong>Домен:</strong> {{ asset.domain.name }}</li>
+        <li class="list-group-item"><strong>Детали:</strong> {{ asset.details.name }}</li>
+        <li class="list-group-item"><strong>Версия:</strong> {{ asset.version }}</li>
+        <li class="list-group-item"><strong>Описание:</strong> {{ asset.description|default:"—" }}</li>
+        {% if asset.res_url %}
+        <li class="list-group-item"><strong>Ссылка ресурс:</strong>
+            <a href="{{ asset.res_url }}" target="_blank">{{ asset.res_url }}</a>
+        </li>
+        {% endif %}
+        {% if asset.docs_url %}
+        <li class="list-group-item"><strong>Нормативная документация:</strong>
+            <a href="{{ asset.docs_url }}" target="_blank">{{ asset.docs_url }}</a>
+        </li>
+        {% endif %}
+    </ul>
+
+    <h4>Структура таблицы</h4>
+    {% if asset.columns.all %}
+    <table class="table table-bordered table-hover">
+        <thead class="thead-light">
+        <tr class="table-header">
+            <th width="5%">№ п/п</th>
+            <th>Имя столбца</th>
+            <th>Тип данных</th>
+            <th>Описание</th>
+            <th>Nullable</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for column in asset.columns.all %}
+        <tr>
+            <td>{{ column.number }}</td>
+            <td>{{ column.name }}</td>
+            <td>{{ column.data_type }}</td>
+            <td>{{ column.description|default:"—" }}</td>
+            <td>{{ column.is_nullable|yesno:"Да,Нет" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-warning">
+        Нет описания столбцов для этого источника.
+    </div>
+    {% endif %}
+
+    <a href="{% url 'my_data_asset:data-asset' %}" class="btn btn-secondary mt-4">← Назад</a>
+</div>
+{% endblock %}
