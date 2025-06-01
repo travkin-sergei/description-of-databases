@@ -6,6 +6,7 @@
     <table class="table table-striped table-hover">
         <thead>
         <tr>
+            <th scope="col">№</th>  <!-- Добавлен столбец для нумерации -->
             <form method="GET">
                 <th scope="col">service<br>
                     {{ filter.form.service }}
@@ -20,6 +21,10 @@
         <tbody>
         {% for elem in object_list %}
         <tr>
+            <th scope="row">
+                {# Нумерация с учетом пагинации #}
+                {{ forloop.counter0|add:page_obj.start_index }}
+            </th>
             <td><a href="{% url 'dba:service_id' pk=elem.pk %}">{{ elem.service|default_if_none:'' }}</a></td>
             <td><a href="{% url 'dba:service_id' pk=elem.pk %}">{{ elem.is_active|default_if_none:'' }}</a></td>
         </tr>

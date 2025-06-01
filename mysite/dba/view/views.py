@@ -46,7 +46,7 @@ class BasesView(LoginRequiredMixin, FilteredListView):
     Отображение списка баз данных
     """
     permission_required = "dba.view_basegroup"
-    template_name = 'dba/defBasesView.html'
+    template_name = 'dba/bases.html'
     model = BaseGroup
     filter_class = BaseGroupFilter
 
@@ -55,7 +55,7 @@ class BasesViewId(LoginRequiredMixin, DetailView):
     """Отображение описание базы данных"""
 
     model = BaseGroup
-    template_name = 'dba/defBasesView_id.html'
+    template_name = 'dba/bases-detail.html'
     context_object_name = 'base_group'
 
     def get_context_data(self, **kwargs):
@@ -84,14 +84,14 @@ class FunctionView(LoginRequiredMixin, View):
             'person_page_odj': person_page_odj,
             'filter': filter
         }
-        return render(request, 'dba/defFunctionView.html', context=context)
+        return render(request, 'dba/functions.html', context=context)
 
 
 class FunctionViewId(LoginRequiredMixin, DetailView):
     """
     Отображение  функции базы данных
     """
-    template_name = 'dba/defFunctionView_id.html'
+    template_name = 'dba/functions-detail.html'
     model = Function
     context_object_name = 'function'
 
@@ -103,14 +103,14 @@ class FunctionViewId(LoginRequiredMixin, DetailView):
             'function': function,
             'stage': stage,
         }
-        return render(request, 'dba/defFunctionView_id.html', context=context)
+        return render(request, 'dba/functions-detail.html', context=context)
 
 
 class TableView(LoginRequiredMixin, FilteredListView):
     """
     Список таблиц
     """
-    template_name = 'dba/defTableView.html'
+    template_name = 'dba/tables.html'
     model = Table
     filter_class = TableFilter
 
@@ -138,7 +138,7 @@ class TableViewId(LoginRequiredMixin, DetailView):
     Описание таблиц
     """
     model = Table
-    template_name = 'dba/defTableView_id.html'
+    template_name = 'dba/table-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -172,7 +172,7 @@ class ColumnView(LoginRequiredMixin, FilteredListView):
     """
     Отображение списка столбцов таблиц базы данных
     """
-    template_name = 'dba/defColumnView.html'
+    template_name = 'dba/columns.html'
     model = Column
     filter_class = ColumnFilter
 
@@ -190,7 +190,7 @@ class UpdateView(LoginRequiredMixin, FilteredListView):
     """
     Расписание обновлений.
     """
-    template_name = 'dba/defUpdateView.html'
+    template_name = 'dba/update.html'
     model = Update
     filter_class = UpdateFilter
 
@@ -223,7 +223,7 @@ class UpdateViewId(LoginRequiredMixin, DetailView):
     Расписание обновлений. Список отдельных
     """
     model = Update
-    template_name = 'dba/defUpdateView_id.html'
+    template_name = 'dba/updates-detail.html'
     context_object_name = 'update'
 
     def get_context_data(self, **kwargs):
@@ -248,12 +248,12 @@ class TableViewIdStage(LoginRequiredMixin, View):
             'filter': filter,
             'person_page_odj': person_page_odj
         }
-        return render(request, 'dba/defTableView_id_stage.html', context=context)
+        return render(request, 'dba/tables-detail.html', context=context)
 
 
 class TableViewIdStageId(LoginRequiredMixin, DetailView):
     model = Table
-    template_name = 'dba/defTableView_id_stage.html'
+    template_name = 'dba/tables-detail.html'
     context_object_name = 'table'
 
     def get_context_data(self, **kwargs):
@@ -273,7 +273,7 @@ class ServiceView(LoginRequiredMixin, FilteredListView):
     """
     Список сервисов
     """
-    template_name = 'dba/defServiceView.html'
+    template_name = 'dba/services.html'
     model = Service
     filter_class = ServiceFilter
 
@@ -289,14 +289,15 @@ class ServiceView(LoginRequiredMixin, FilteredListView):
 
 class ServiceViewId(LoginRequiredMixin, DetailView):
     model = Service
-    template_name = 'dba/defServiceView_id.html'
+    template_name = 'dba/services-detail.html'
     context_object_name = 'service'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['table'] = (
-            ServiceTable.objects
-            .filter(service_id=self.object.pk)
-            .filter(is_active=True)
-        )
+        service_tables = ServiceTable.objects.filter(
+            service_id=self.object.pk,
+            is_active=True
+        ).select_related('table_id')
+
+        context['service_tables'] = service_tables
         return context

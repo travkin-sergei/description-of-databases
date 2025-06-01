@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+{% include 'inc/_paginator.html' %}
+<div class="container mt-12">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">{{ service }}</h2>
+        </div>
+    </div>
+</div>
+<h2>Состав сервиса</h2>
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th scope="col">№</th>
+        <th scope="col">base</th>
+        <th scope="col">schema</th>
+        <th scope="col">table_name</th>
+        <th scope="col">комментарий</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for elem in table %}
+    {% if elem.table %}  <!-- Проверка на существование таблицы -->
+    <tr>
+        <th scope="row">{{ forloop.counter}}</th>
+        <td>
+            {% if elem.table.schema and elem.table.schema.base %}
+                <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
+                    {{ elem.table.schema.base }}
+                </a>
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        <td>
+            <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
+                {{ elem.table.schema|default:"-" }}
+            </a>
+        </td>
+        <td>
+            <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
+                {{ elem.table.table_name }}
+            </a>
+        </td>
+        <td>
+            <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
+                {{ elem.table.table_com|default:"-" }}
+            </a>
+        </td>
+    </tr>
+    {% endif %}
+    {% empty %}
+    <tr>
+        <td colspan="5">Нет связанных таблиц для этого сервиса</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock%}

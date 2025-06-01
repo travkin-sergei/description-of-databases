@@ -1,0 +1,22 @@
+<ul class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle"
+       href="#"
+       role="button"
+       id="navbarDropdown"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       style="color: white;">
+        Источники данных
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="background-color: black;">
+        <li>
+            <a class="dropdown-item" href="{% url 'my_data_asset:data-asset' %}" style="color: white;">
+                Источник данных
+            </a>
+        </li>
+        <li>
+            <hr class="dropdown-divider" style="background-color: white;">
+        </li>
+        <li><a class="dropdown-item" href="{% url 'my_data_asset:about-app' %}" style="color: white;">О разделе</a></li>
+    </ul>
+</ul>

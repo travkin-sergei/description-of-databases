@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'myauth',  # Здесь модель User
     'dba',  # Здесь приложение о базах данных
     'my_data_asset',  # Здесь приложение об источника данных
-    'my_metla',
 ]
 
 MIDDLEWARE = [

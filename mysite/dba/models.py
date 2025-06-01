@@ -8,7 +8,6 @@ import hashlib
 
 from django.db import models
 from django.db.models.signals import pre_save
-from django.urls import reverse
 
 db_schema = 'my_dba'
 
@@ -43,10 +42,11 @@ class BasesClass(models.Model):
 
 class Base(BasesClass):
     base = models.ForeignKey('BaseGroup', on_delete=models.PROTECT, blank=True, null=True)
+    type = models.ForeignKey('StageType', on_delete=models.PROTECT, blank=True, null=True)
     host_name = models.CharField(max_length=255, blank=True, null=True)
     host_db = models.CharField(max_length=255)
     version = models.CharField(max_length=255, blank=True, null=True)
-    type = models.ForeignKey('StageType', on_delete=models.PROTECT, blank=True, null=True)
+
 
     def get_hash_fields(self):
         return [self.base, self.type, ]
@@ -373,3 +373,4 @@ class ServiceTable(BasesClass):  # хотел назвать Base, но имя �
         verbose_name_plural = '09 Service Table'
         ordering = ['service', 'table', ]
         unique_together = [['service', 'table', ]]
+
