@@ -1,7 +1,7 @@
 import django_filters
 from django_filters import CharFilter, AllValuesFilter
+from django.db.models import Q
 from .models import *
-
 
 class BaseGroupFilter(django_filters.FilterSet):
     table_catalog = CharFilter(field_name='table_catalog', lookup_expr='icontains', )
@@ -25,20 +25,42 @@ class FunctionFilter(django_filters.FilterSet):
 
 
 class TableFilter(django_filters.FilterSet):
-    """Основной экран фильтрации"""
+    """Фильтр для таблиц с поддержкой поиска по связанным именам"""
 
-    base = AllValuesFilter(field_name='schema_id__base_id__table_catalog', )
-    schema = AllValuesFilter(field_name='schema_id__table_schema', )
-    table_name = CharFilter(field_name='table_name', lookup_expr='icontains', )
-    table_ru = CharFilter(field_name='table_ru', lookup_expr='icontains', )
-    is_active = AllValuesFilter(field_name='is_active', )
+    table_catalog = django_filters.CharFilter(
+        field_name='schema__base__table_catalog',
+        lookup_expr='icontains',
+        label='База данных'
+    )
+
+    schema = django_filters.CharFilter(
+        field_name='schema__table_schema',
+        lookup_expr='icontains',
+        label='Схема'
+    )
+
+    table_name = django_filters.CharFilter(
+        method='filter_by_table_name',
+        label='Имя таблицы'
+    )
+
+    is_active = django_filters.BooleanFilter(
+        field_name='is_active',
+        label='Активна'
+    )
 
     class Meta:
         model = Table
-        fields = '__all__'
+        fields = []
 
-        def filter_queryset(self, queryset):
-            return queryset.filter()
+    def filter_by_table_name(self, queryset, name, value):
+        """
+        Фильтрация по имени таблицы (основному или связанным именам из TableName)
+        """
+        return queryset.filter(
+            Q(table_name__icontains=value) |
+            Q(names__name__icontains=value)
+        ).distinct()
 
 
 class ColumnFilter(django_filters.FilterSet):

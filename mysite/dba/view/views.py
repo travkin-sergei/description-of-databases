@@ -4,8 +4,7 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import Value
-from django.db.models.functions import Concat
+from django.db.models import Q
 from ..filters import *
 from ..my_function.cron import get_cron
 
@@ -19,6 +18,7 @@ def about_me(request):
     """
     Отображение информации о текущем приложении из шалона.
     """
+
     return render(request, 'dba/about_application.html')
 
 
@@ -27,6 +27,7 @@ class FilteredListView(ListView):
     Класс фильтрации данных.
     Необходим для сокращения кода объектов класса ListView т.к. имеется пагинация
     """
+
     paginate_by = 20
 
     def get_queryset(self):
@@ -45,6 +46,7 @@ class BasesView(LoginRequiredMixin, FilteredListView):
     """
     Отображение списка баз данных
     """
+
     permission_required = "dba.view_basegroup"
     template_name = 'dba/bases.html'
     model = BaseGroup
@@ -91,6 +93,7 @@ class FunctionViewId(LoginRequiredMixin, DetailView):
     """
     Отображение  функции базы данных
     """
+
     template_name = 'dba/functions-detail.html'
     model = Function
     context_object_name = 'function'
@@ -107,29 +110,43 @@ class FunctionViewId(LoginRequiredMixin, DetailView):
 
 
 class TableView(LoginRequiredMixin, FilteredListView):
-    """
-    Список таблиц
-    """
     template_name = 'dba/tables.html'
     model = Table
     filter_class = TableFilter
 
     def get_queryset(self):
-        # Получаем базовый queryset
         queryset = super().get_queryset()
-        # Фильтруем только активные записи и те, у которых is_metadata=False
         queryset = queryset.filter(is_active=True, is_metadata=False)
+
+        table_catalog_query = self.request.GET.get('table_catalog', '')
+        schema_query = self.request.GET.get('schema', '')
+        table_name_query = self.request.GET.get('table_name', '')
+        is_active_query = self.request.GET.get('is_active', '')
+
+        if table_catalog_query:
+            queryset = queryset.filter(schema__base__table_catalog__icontains=table_catalog_query)
+        if schema_query:
+            queryset = queryset.filter(schema__table_schema__icontains=schema_query)
+        if table_name_query:
+            # Ищем по имени таблицы или по связанным именам из TableName
+            queryset = queryset.filter(
+                Q(table_name__icontains=table_name_query) |
+                Q(names__name__icontains=table_name_query)
+            ).distinct()
+        if is_active_query:
+            queryset = queryset.filter(is_active=is_active_query == 'true')
+
+        # Оптимизация запросов - prefetch_related для связанных имен
+        queryset = queryset.prefetch_related('names')
+
         self.filter = self.filter_class(self.request.GET, queryset)
         return self.filter.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Получаем текущие параметры GET
         query_dict = self.request.GET.copy()
-        # Удаляем параметр 'page'
         query_dict.pop('page', None)
-        context['query_params'] = query_dict.urlencode()  # Передаем строку запроса в контекст
-
+        context['query_params'] = query_dict.urlencode()
         return context
 
 
@@ -137,6 +154,7 @@ class TableViewId(LoginRequiredMixin, DetailView):
     """
     Описание таблиц
     """
+
     model = Table
     template_name = 'dba/table-detail.html'
 
@@ -172,6 +190,7 @@ class ColumnView(LoginRequiredMixin, FilteredListView):
     """
     Отображение списка столбцов таблиц базы данных
     """
+
     template_name = 'dba/columns.html'
     model = Column
     filter_class = ColumnFilter
@@ -190,6 +209,7 @@ class UpdateView(LoginRequiredMixin, FilteredListView):
     """
     Расписание обновлений.
     """
+
     template_name = 'dba/update.html'
     model = Update
     filter_class = UpdateFilter
@@ -222,6 +242,7 @@ class UpdateViewId(LoginRequiredMixin, DetailView):
     """
     Расписание обновлений. Список отдельных
     """
+
     model = Update
     template_name = 'dba/updates-detail.html'
     context_object_name = 'update'
@@ -252,6 +273,10 @@ class TableViewIdStage(LoginRequiredMixin, View):
 
 
 class TableViewIdStageId(LoginRequiredMixin, DetailView):
+    """
+    Таблица
+    """
+
     model = Table
     template_name = 'dba/tables-detail.html'
     context_object_name = 'table'
@@ -273,6 +298,7 @@ class ServiceView(LoginRequiredMixin, FilteredListView):
     """
     Список сервисов
     """
+
     template_name = 'dba/services.html'
     model = Service
     filter_class = ServiceFilter

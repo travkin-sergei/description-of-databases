@@ -11,6 +11,7 @@ from django.db.models.signals import pre_save
 
 db_schema = 'my_dba'
 
+
 class BasesClass(models.Model):
     """Созданы базовые поля, важные для всех таблиц"""
     created_at = models.DateTimeField(auto_now_add=True,
@@ -40,13 +41,33 @@ class BasesClass(models.Model):
         abstract = True
 
 
+class Language(BasesClass):
+    """Справочник языков."""
+
+    name = models.CharField(max_length=255, blank=True, null=True)
+    code = models.CharField(max_length=255, blank=True, null=True)
+
+    def get_hash_fields(self):
+        return [self.code, ]
+
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        db_table = f'{db_schema}\".\"dim_language'
+        # db_table_comment = 'Список стендов данных.'
+        verbose_name = '01 Language'
+        verbose_name_plural = '01 Languages'
+        ordering = ['code', ]
+        unique_together = [['code', ]]
+
+
 class Base(BasesClass):
     base = models.ForeignKey('BaseGroup', on_delete=models.PROTECT, blank=True, null=True)
     type = models.ForeignKey('StageType', on_delete=models.PROTECT, blank=True, null=True)
     host_name = models.CharField(max_length=255, blank=True, null=True)
     host_db = models.CharField(max_length=255)
     version = models.CharField(max_length=255, blank=True, null=True)
-
 
     def get_hash_fields(self):
         return [self.base, self.type, ]
@@ -84,6 +105,8 @@ class BaseGroup(BasesClass):  # хотел назвать Base, но имя за
 
 
 class Schema(BasesClass):
+    """Схема баз данных."""
+
     base = models.ForeignKey('BaseGroup', on_delete=models.PROTECT, blank=True, null=True)
     table_schema = models.CharField(max_length=150)
     comment = models.CharField(max_length=255, blank=True, null=True)
@@ -109,6 +132,7 @@ class Table(BasesClass):
     """
     Таблицы базы данных
     """
+
     TYPE_LIST = [
         ('tabl', 'Таблица'),
         ('ext_tabl', 'Внешняя таблица'),
@@ -119,9 +143,8 @@ class Table(BasesClass):
     type = models.CharField(max_length=10, choices=TYPE_LIST, default='tabl', verbose_name='Тип таблицы')
     schema = models.ForeignKey('Schema', on_delete=models.PROTECT, blank=True, null=True)
     table_name = models.CharField(max_length=150, verbose_name='название в БД')
-    table_ru = models.TextField(verbose_name='наименование')
     table_com = models.TextField(blank=True, null=True, verbose_name='комментарий')
-
+    tablenames = models.ManyToManyField('TableName', related_name='tables', blank=True)
     def get_hash_fields(self):
         return [
             self.schema.base.table_catalog,
@@ -139,6 +162,30 @@ class Table(BasesClass):
         verbose_name_plural = '04 Table'
         ordering = ['schema', 'table_name', 'id']
         unique_together = [['schema', 'type', 'table_name']]
+
+
+class TableName(BasesClass):
+    """Список имен таблиц."""
+
+    table = models.ForeignKey('Table', on_delete=models.PROTECT, blank=True, null=True, related_name='names')
+    language = models.ForeignKey('Language', on_delete=models.PROTECT, blank=True, null=True)
+    name = models.CharField(max_length=150, verbose_name='название в БД')
+
+    def get_hash_fields(self):
+        return [
+            self.table
+        ]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = f'{db_schema}\".\"table_name'
+        # db_table_comment = "Список таблиц в базе данных."
+        verbose_name = '04 Table Name'
+        verbose_name_plural = '04 Tables Names'
+        ordering = ['table', 'name', ]
+        unique_together = [['table', 'name', ]]
 
 
 class ColumnMDType(models.Model):
@@ -373,4 +420,3 @@ class ServiceTable(BasesClass):  # хотел назвать Base, но имя �
         verbose_name_plural = '09 Service Table'
         ordering = ['service', 'table', ]
         unique_together = [['service', 'table', ]]
-
