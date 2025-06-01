@@ -112,10 +112,14 @@
                                 <div class="d-flex">
                                     <select name="is_active" class="form-control form-control-dark mr-2">
                                         <option value="">Все статусы</option>
-                                        <option value="true" {% if request.GET.is_active==
-                                        'true' %}selected{% endif %}>Активные</option>
-                                        <option value="false" {% if request.GET.is_active==
-                                        'false' %}selected{% endif %}>Неактивные</option>
+                                        <option value="true"
+                                                {% if request.GET.is_active == 'true' %}selected{% endif %}>
+                                            Активные
+                                        </option>
+                                        <option value="false"
+                                                {% if request.GET.is_active == 'false' %}selected{% endif %}>
+                                            Неактивные
+                                        </option>
                                     </select>
                                     <button type="submit" class="btn btn-gold">
                                         <i class="fas fa-search mr-1"></i>Найти
@@ -144,9 +148,9 @@
                                 </a>
                             </td>
                             <td>
-                                    <span class="badge badge-yellow">
-                                        {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
-                                    </span>
+                                <span class="badge badge-yellow">
+                                    {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
+                                </span>
                             </td>
                         </tr>
                         {% empty %}
