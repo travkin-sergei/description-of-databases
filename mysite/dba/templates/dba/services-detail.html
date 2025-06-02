@@ -1,61 +1,171 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock title %}
+{% block title %}{{ title|default:"Детали сервиса" }}{% endblock title %}
 {% block body %}
-{% include 'inc/_paginator.html' %}
-<div class="container mt-12">
-    <div class="card">
-        <div class="card-body">
-            <h2 class="card-title">{{ service }}</h2>
+<style>
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .text-yellow {
+        color: #ffcc00;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+</style>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        {% if is_paginated %}
+            {% include 'inc/_paginator.html' %}
+        {% endif %}
+
+        <!-- Карточка с информацией о сервисе -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0">
+                    <i class="fas fa-server mr-2"></i>
+                    Сервис: {{ service.name }}
+                    <span class="badge badge-yellow float-right">
+                        {% if service.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if service.description %}
+                <p class="card-text">{{ service.description }}</p>
+                {% endif %}
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <small class="text-muted">ID: {{ service.id }}</small>
+                    {% if service_tables %}
+                    <span class="badge badge-yellow">
+                        Таблиц: {{ page_obj.paginator.count }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция с таблицами сервиса -->
+        <div class="card border-yellow">
+            <div class="card-header card-header-black d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-table mr-2"></i>Состав сервиса</h5>
+                {% if page_obj.paginator.num_pages > 1 %}
+                <small class="text-yellow">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                </small>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if service_tables %}
+                <div class="table-responsive">
+                    <table class="table table-black-yellow table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col" width="5%" class="text-center">№</th>
+                                <th scope="col">База данных</th>
+                                <th scope="col">Схема</th>
+                                <th scope="col">Имя таблицы</th>
+                                <th scope="col">Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service_table in service_tables %}
+                            <tr>
+                                <th scope="row" class="text-center">
+                                    {{ page_obj.start_index|add:forloop.counter0 }}
+                                </th>
+                                <td>
+                                    {% if service_table.table.schema.base %}
+                                        <a href="{% url 'dba:table_id' pk=service_table.table.pk %}"
+                                           class="text-decoration-none">
+                                            {{ service_table.table.schema.base.name|default:"-" }}
+                                        </a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'dba:table_id' pk=service_table.table.pk %}"
+                                       class="text-decoration-none">
+                                        {{ service_table.table.schema.name|default:"-" }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url 'dba:table_id' pk=service_table.table.pk %}"
+                                       class="text-decoration-none fw-bold">
+                                        {{ service_table.table.table_name }}
+                                    </a>
+                                </td>
+                                <td class="text-muted">
+                                    {{ service_table.table.comment|default:"-"|truncatechars:50 }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <div class="alert alert-info mb-0" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Нет связанных таблиц для этого сервиса
+                    </div>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
-<h2>Состав сервиса</h2>
-<table class="table table-striped table-hover">
-    <thead>
-    <tr>
-        <th scope="col">№</th>
-        <th scope="col">base</th>
-        <th scope="col">schema</th>
-        <th scope="col">table_name</th>
-        <th scope="col">комментарий</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for elem in table %}
-    {% if elem.table %}  <!-- Проверка на существование таблицы -->
-    <tr>
-        <th scope="row">{{ forloop.counter}}</th>
-        <td>
-            {% if elem.table.schema and elem.table.schema.base %}
-                <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
-                    {{ elem.table.schema.base }}
-                </a>
-            {% else %}
-                -
-            {% endif %}
-        </td>
-        <td>
-            <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
-                {{ elem.table.schema|default:"-" }}
-            </a>
-        </td>
-        <td>
-            <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
-                {{ elem.table.table_name }}
-            </a>
-        </td>
-        <td>
-            <a href="{% url 'dba:table_id' pk=elem.table.pk %}">
-                {{ elem.table.table_com|default:"-" }}
-            </a>
-        </td>
-    </tr>
-    {% endif %}
-    {% empty %}
-    <tr>
-        <td colspan="5">Нет связанных таблиц для этого сервиса</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
-{% endblock%}
+{% endblock %}

@@ -168,7 +168,7 @@ class TableViewId(LoginRequiredMixin, DetailView):
     """
 
     model = Table
-    template_name = 'dba/table-detail.html'
+    template_name = 'dba/tables-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -329,13 +329,20 @@ class ServiceViewId(LoginRequiredMixin, DetailView):
     model = Service
     template_name = 'dba/services-detail.html'
     context_object_name = 'service'
+    paginate_by = 10  # Количество элементов на странице
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         service_tables = ServiceTable.objects.filter(
             service_id=self.object.pk,
             is_active=True
-        ).select_related('table_id')
+        ).select_related('table', 'table__schema', 'table__schema__base')
 
-        context['service_tables'] = service_tables
+        paginator = Paginator(service_tables, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context['service_tables'] = page_obj.object_list  # Изменено на object_list
+        context['page_obj'] = page_obj
+        context['is_paginated'] = page_obj.has_other_pages()  # Добавлен флаг пагинации
         return context

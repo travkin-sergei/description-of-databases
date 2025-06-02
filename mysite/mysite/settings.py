@@ -38,12 +38,10 @@ INSTALLED_APPS = [
     'drf_spectacular',  # swagger
     'django_filters',  # фильтрация
     'django_summernote',  # настройка редактора в админке
-    'import_export',# загрузка данных через админку
+    'import_export',  # загрузка данных через админку
     # ----------
-    #'article.apps.ArticleConfig',  # Статьи и документы
     'myauth',  # Здесь модель User
     'dba',  # Здесь приложение о базах данных
-    'my_data_asset',  # Здесь приложение об источника данных
 ]
 
 MIDDLEWARE = [

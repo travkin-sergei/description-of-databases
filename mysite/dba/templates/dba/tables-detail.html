@@ -1,35 +1,228 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock title %}
 {% block body %}
-{% include 'inc/_paginator.html' %}
-<div class="container mt-4">
-    <div class="card mb-4">
-        <div class="card-body">
-            <p class="card-title">{{ table.schema.base.table_catalog }}/{{ table.schema }}</p>
-            <h2 class="card-title">DDL {{ table.table_name|safe }}</h2>
-            <h3 class="card-title">Описание</h3>
-            <p class="card-text">{{ table.table_com|safe }}</p>
-        </div>
-    </div>
-</div>
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-body">
-            <form method="GET" class="mb-3">
-                <div class="form-group">
-                    <label for="stage">Выберите стадию:</label>
-                    {{ filter.form.stage }}
+<style>
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .text-yellow {
+        color: #ffcc00;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+</style>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        {% include 'inc/_paginator.html' %}
+
+        <!-- Карточка с основной информацией о таблице -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0">
+                    <i class="fas fa-table mr-2"></i>
+                    {{ table.schema.base.table_catalog }}/{{ table.schema }}.{{ table.table_name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if table.names.all %}
+                <div class="mb-3">
+                    {% for name in table.names.all %}
+                    <span class="badge badge-yellow me-1">
+                            {{ name.language.code|upper }}: {{ name.name }}
+                        </span>
+                    {% endfor %}
                 </div>
-                <button type="submit" class="btn btn-primary">Поиск</button>
-            </form>
-            <br>
-            <pre lang="sql"><code class="sql">
-create table {{ table.table_name|safe }}(
-    {% for elem in person_page_odj %}
-        &nbsp;&nbsp;&nbsp;&nbsp;{{ elem.column.column_name }} &nbsp;{{ elem.column.data_type }}&nbsp;{{ elem.column.is_nullable }}{% if not forloop.last %},{% endif %}
-    {% endfor %}
-)
-            </code></pre>
+                {% endif %}
+
+                <h5 class="text mt-3"><i class="fas fa-align-left mr-2"></i>Описание</h5>
+                <p class="card-text border-bottom pb-3">{{ table.table_com|safe|default:"Нет описания" }}</p>
+
+                <h5 class="text mt-4"><i class="fas fa-sync-alt mr-2"></i>Обновление</h5>
+                <div class="table-responsive">
+                    <table class="table table-black-yellow table-hover">
+                        <thead>
+                        <tr>
+                            <th width="5%">№</th>
+                            <th>Название</th>
+                            <th width="15%">Тип</th>
+                            <th width="10%">Активно</th>
+                            <th width="20%">Расписание</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for update in object_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><a href="#" class="text-decoration-none">{{ update.name }}</a></td>
+                            <td>{{ update.type }}</td>
+                            <td>
+                                {% if update.is_active %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-danger">Нет</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ update.schedule }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <h5 class="text mt-4"><i class="fas fa-code mr-2"></i>DDL</h5>
+                <a href="#" class="btn btn-gold mb-4">Просмотреть DDL</a>
+
+                <h5 class="text mt-4"><i class="fas fa-server mr-2"></i>Сервисы</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for service_item in service %}
+                    <a href="{% url 'dba:service_id' pk=service_item.pk %}"
+                       class="btn btn-sm btn-gold">
+                        {{ service_item.service }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточка с колонками таблицы -->
+        <div class="card border-yellow">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0">
+                    <i class="fas fa-columns mr-2"></i>
+                    Состав таблицы: {{ table.schema.base.table_catalog }} →
+                    {{ table.schema }}.{{ table.table_name }}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-black-yellow table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th width="3%">№</th>
+                            <th width="4%">ID</th>
+                            <th width="7%">Дата</th>
+                            <th width="8%">Колонка</th>
+                            <th width="7%">Тип</th>
+                            <th width="20%">Описание</th>
+                            <th width="4%">NULL</th>
+                            <th width="10%">По умолчанию</th>
+                            <th width="5%">Auto</th>
+                            <th width="20%">Связи</th>
+                            <th width="12%">Этапы</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for col in column %}
+                        <tr>
+                            <td class="text-center">{{ forloop.counter }}</td>
+                            <td class="text-center">{{ col.pk }}</td>
+                            <td>{{ col.date_create|date:"Y-m-d" }}</td>
+                            <td><strong class="text-primary">{{ col.column_name }}</strong></td>
+                            <td><code>{{ col.data_type }}</code></td>
+                            <td class="small">{{ col.column_com|default:"-"|truncatechars:50 }}</td>
+                            <td class="text-center">
+                                {% if col.is_nullable %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-danger">Нет</span>
+                                {% endif %}
+                            </td>
+                            <td class="small"><code>{{ col.column_default|default:"-"|truncatechars:20 }}</code></td>
+                            <td class="text-center">
+                                {% if col.is_auto %}
+                                <i class="fas fa-check text-success"></i>
+                                {% else %}
+                                <i class="fas fa-times text-muted"></i>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                {% for rel in column_column %}
+                                {% if col.pk == rel.main.pk and rel.sub.table %}
+                                <div class="mb-1 border-bottom pb-1">
+                                    <a href="{% url 'dba:table_id' pk=rel.sub.table.pk %}" class="text-decoration-none">
+                                        <span class="badge bg-info text-dark me-1">{{ rel.type }}</span>
+                                        {{ rel.sub.table.table_name }}.{{ rel.sub.column_name }}
+                                    </a>
+                                    {% if rel.sub.table.names.all %}
+                                    <div class="text-muted xsmall mt-1">
+                                        {% for name in rel.sub.table.names.all %}
+                                        <span class="me-2">[{{ name.language.code }}: {{ name.name }}]</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for stg in stage %}
+                                    {% if col.pk == stg.column_id %}
+                                    <span class="badge bg-light text-dark">{{ stg.stage.type }}</span>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

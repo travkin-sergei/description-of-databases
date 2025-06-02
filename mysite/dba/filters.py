@@ -1,5 +1,5 @@
 import django_filters
-from django_filters import CharFilter, AllValuesFilter
+from django_filters import CharFilter, AllValuesFilter, BooleanFilter
 from django.db.models import Q
 from .models import *
 
@@ -66,16 +66,16 @@ class TableFilter(django_filters.FilterSet):
 class ColumnFilter(django_filters.FilterSet):
     """Основной экран фильтрация"""
 
-    schema = CharFilter(field_name='table_id__schema_id__table_schema', lookup_expr='icontains', )
-    table = CharFilter(field_name='table_id__table_name', lookup_expr='icontains', )
-    column_name = CharFilter(field_name='column_name', lookup_expr='icontains', )
-    column_com = CharFilter(field_name='column_com', lookup_expr='icontains', )
-    is_active = AllValuesFilter(field_name='is_active', )
+    base = CharFilter(field_name='table__schema__base__table_catalog', lookup_expr='icontains', label='База данных')
+    schema = CharFilter(field_name='table__schema__table_schema', lookup_expr='icontains', label='Схема')
+    table = CharFilter(field_name='table__table_name', lookup_expr='icontains', label='Таблица')
+    column_name = CharFilter(field_name='column_name', lookup_expr='icontains', label='Имя колонки')
+    column_com = CharFilter(field_name='column_com', lookup_expr='icontains', label='Комментарий')
+    is_active = BooleanFilter(field_name='is_active', label='Активен')
 
     class Meta:
         model = Column
-        fields = '__all__'
-        # exclude = ['time_create', 'time_update', 'is_published']
+        fields = ['base', 'schema', 'table', 'column_name', 'column_com', 'is_active']
 
 
 class UpdateFilter(django_filters.FilterSet):
