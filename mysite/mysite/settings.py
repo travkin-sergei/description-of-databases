@@ -40,10 +40,8 @@ INSTALLED_APPS = [
     'django_summernote',  # настройка редактора в админке
     'import_export',  # загрузка данных через админку
     # ----------
-    # 'article.apps.ArticleConfig',  # Статьи и документы
     'my_auth',  # Здесь модель User
     'my_dba',  # Здесь приложение о базах данных
-    # 'my_data_asset',  # Здесь приложение об источника данных
 ]
 
 MIDDLEWARE = [
@@ -140,6 +138,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = reverse_lazy("my_dba:table")
 LOGIN_URL = reverse_lazy("my_auth:login")
 LOGOUT_REDIRECT_URL = reverse_lazy("my_auth:login")
+
+# Убедитесь, что есть этот параметр
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # settings.py
 REST_FRAMEWORK = {

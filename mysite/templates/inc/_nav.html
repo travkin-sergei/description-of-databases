@@ -1,52 +1,88 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1a1a1a;">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Home</a>
+        <a class="navbar-brand text-yellow" href="#" style="color: #ffcc00 !important;">
+            <i class="fas fa-home me-2"></i>Home
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <span class="navbar-toggler-icon" style="color: #ffcc00;"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                       aria-expanded="false" style="color: white;">
-                        О нас
+                    <a class="nav-link dropdown-toggle text-yellow" href="#" role="button" data-bs-toggle="dropdown"
+                       aria-expanded="false" style="color: #ffcc00 !important;">
+                        <i class="fas fa-info-circle me-1"></i>О нас
                     </a>
-                    <ul class="dropdown-menu" style="background-color: black;">
-                        <li><a class="dropdown-item" href="{% url 'redoc' %}" style="color: white;">ReDoc</a></li>
-                        <li><a class="dropdown-item" href="{% url 'swagger' %}" style="color: white;">Swagger</a></li>
-                        <li><a class="dropdown-item" href="admin/doc/" style="color: white;">admin</a></li>
-                        <li>
-                            <hr class="dropdown-divider" style="background-color: white;">
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#" style="color: white;">
-                                О разделе
-                            </a>
-                        </li>
+                    <ul class="dropdown-menu" style="background-color: #1a1a1a; border: 1px solid #ffcc00;">
+                        <li><a class="dropdown-item text-yellow-hover" href="{% url 'redoc' %}" style="color: #ffcc00;"><i class="fas fa-book me-2"></i>ReDoc</a></li>
+                        <li><a class="dropdown-item text-yellow-hover" href="{% url 'swagger' %}" style="color: #ffcc00;"><i class="fas fa-code me-2"></i>Swagger</a></li>
+                        <li><a class="dropdown-item text-yellow-hover" href="admin/doc/" style="color: #ffcc00;"><i class="fas fa-cog me-2"></i>Admin</a></li>
+                        <li><hr class="dropdown-divider" style="border-color: #ffcc00;"></li>
+                        <li><a class="dropdown-item text-yellow-hover" href="#" style="color: #ffcc00;"><i class="fas fa-question-circle me-2"></i>О разделе</a></li>
                     </ul>
                 </li>
                 {% include 'my_dba/_nav.html' %}
                 {% include 'my_auth/_nav.html' %}
             </ul>
-            <ul class="navbar-brand">
+            <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
                     <form method="post" action="{% url 'my_auth:logout' %}" class="d-inline">
                         {% csrf_token %}
-                        <button type="submit"
-                                data-mdb-button-init data-mdb-ripple-init
-                                class="btn btn-primary btn-lg">
-                            Logout
+                        <button type="submit" class="btn btn-gold">
+                            <i class="fas fa-sign-out-alt me-2"></i>Выйти
                         </button>
                     </form>
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'my_auth:login' %}">login</a>
+                    <a class="btn btn-outline-gold" href="{% url 'my_auth:login' %}">
+                        <i class="fas fa-sign-in-alt me-2"></i>Войти
+                    </a>
                 </li>
                 {% endif %}
             </ul>
         </div>
     </div>
 </nav>
+
+<style>
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .btn-outline-gold {
+        border: 1px solid #ffcc00;
+        color: #ffcc00;
+        background-color: transparent;
+        padding: 0.5rem 1rem;
+    }
+    .btn-outline-gold:hover {
+        background-color: rgba(255, 204, 0, 0.1);
+        color: #ffcc00;
+    }
+    .text-yellow {
+        color: #ffcc00 !important;
+    }
+    .text-yellow-hover:hover {
+        background-color: rgba(255, 204, 0, 0.2) !important;
+        color: #ffcc00 !important;
+    }
+    .dropdown-item:focus, .dropdown-item:hover {
+        background-color: transparent;
+    }
+    .navbar-dark .navbar-nav .nav-link {
+        color: rgba(255, 204, 0, 0.8);
+    }
+    .navbar-dark .navbar-nav .nav-link:hover {
+        color: #ffcc00;
+    }
+</style>

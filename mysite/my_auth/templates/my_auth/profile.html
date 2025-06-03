@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block body %}
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        border: 2px solid #ffcc00;
+        border-radius: 10px;
+        background-color: #1a1a1a;
+        box-shadow: 0 4px 20px rgba(255, 204, 0, 0.2);
+    }
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 3px solid #ffcc00;
+        object-fit: cover;
+        margin: 1rem auto;
+    }
+    .profile-info {
+        background-color: #2a2a2a;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    .profile-info p {
+        color: #fff;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+    .profile-info strong {
+        color: #ffcc00;
+        min-width: 160px;
+        display: inline-block;
+    }
+    .profile-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        transition: all 0.3s;
+        flex: 1;
+        min-width: 180px;
+        text-align: center;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        transform: translateY(-2px);
+    }
+    .btn-dark {
+        background-color: #333;
+        color: #ffcc00;
+        border: 1px solid #ffcc00;
+    }
+    .btn-dark:hover {
+        background-color: #444;
+        color: #ffcc00;
+    }
+    .btn-red {
+        background-color: #dc3545;
+        color: white;
+    }
+    .btn-red:hover {
+        background-color: #c82333;
+    }
+    h1 {
+        color: #ffcc00;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<section class="d-flex align-items-center py-5">
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1><i class="fas fa-user-circle me-2"></i>Профиль пользователя</h1>
+                <img src="{% if profile.user.avatar %}{{ profile.user.avatar.url }}{% else %}/static/img/default-avatar.jpg{% endif %}"
+                     alt="Аватар пользователя"
+                     class="profile-avatar">
+            </div>
+
+            <div class="profile-info">
+                <p><strong><i class="fas fa-user me-2"></i>Имя пользователя:</strong> {{ profile.user.username }}</p>
+                <p><strong><i class="fas fa-envelope me-2"></i>Электронная почта:</strong> {{ profile.user.email }}</p>
+                <p><strong><i class="fas fa-phone me-2"></i>Телефон:</strong> {{ profile.phone|default:"не указан" }}</p>
+                <p><strong><i class="fas fa-calendar-alt me-2"></i>Дата регистрации:</strong> {{ profile.user.date_joined|date:"d.m.Y" }}</p>
+            </div>
+
+            <div class="profile-actions">
+                <a href="#" class="btn btn-gold">
+                    <i class="fas fa-edit me-2"></i>Редактировать
+                </a>
+                <a href="{% url 'my_auth:password_change' %}" class="btn btn-dark">
+                    <i class="fas fa-key me-2"></i>Сменить пароль
+                </a>
+                <a href="{% url 'my_auth:logout' %}" class="btn btn-red">
+                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
