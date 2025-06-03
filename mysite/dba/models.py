@@ -14,6 +14,7 @@ db_schema = 'my_dba'
 
 class BasesClass(models.Model):
     """Созданы базовые поля, важные для всех таблиц"""
+
     created_at = models.DateTimeField(auto_now_add=True,
                                       verbose_name='дата создания')  # , db_comment='Админ поле. Создано')
     updated_at = models.DateTimeField(auto_now=True,
@@ -62,28 +63,6 @@ class Language(BasesClass):
         unique_together = [['code', ]]
 
 
-class Base(BasesClass):
-    base = models.ForeignKey('BaseGroup', on_delete=models.PROTECT, blank=True, null=True)
-    type = models.ForeignKey('StageType', on_delete=models.PROTECT, blank=True, null=True)
-    host_name = models.CharField(max_length=255, blank=True, null=True)
-    host_db = models.CharField(max_length=255)
-    version = models.CharField(max_length=255, blank=True, null=True)
-
-    def get_hash_fields(self):
-        return [self.base, self.type, ]
-
-    def __str__(self):
-        return self.host_db
-
-    class Meta:
-        db_table = f'{db_schema}\".\"name_base'
-        # db_table_comment = 'Список стендов данных.'
-        verbose_name = '01 Base'
-        verbose_name_plural = '01 Base'
-        ordering = ['base', 'type']
-        unique_together = [['base', 'type']]
-
-
 class BaseGroup(BasesClass):  # хотел назвать Base, но имя зарезервировано
 
     table_catalog = models.CharField(max_length=150)
@@ -97,11 +76,33 @@ class BaseGroup(BasesClass):  # хотел назвать Base, но имя за
         return self.table_catalog
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_base_group'
+        db_table = f'{db_schema}\".\"dim_base'
         # db_table_comment = "Список баз данных."
         verbose_name = '02 BaseGroup'
         verbose_name_plural = '02 BaseGroup'
         ordering = ['table_catalog', ]
+
+
+class Base(BasesClass):
+    base = models.ForeignKey('BaseGroup', on_delete=models.PROTECT, blank=True, null=True)
+    type = models.ForeignKey('StageType', on_delete=models.PROTECT, blank=True, null=True)
+    host_name = models.CharField(max_length=255, blank=True, null=True)
+    host_db = models.CharField(max_length=255)
+    version = models.CharField(max_length=255, blank=True, null=True)
+
+    def get_hash_fields(self):
+        return [self.base, self.type, ]
+
+    def __str__(self):
+        return f'{self.base}-{self.type}'
+
+    class Meta:
+        db_table = f'{db_schema}\".\"link_base'
+        # db_table_comment = 'Список стендов данных.'
+        verbose_name = '01 Base'
+        verbose_name_plural = '01 Base'
+        ordering = ['base', 'type']
+        unique_together = [['base', 'type']]
 
 
 class Schema(BasesClass):
@@ -118,10 +119,10 @@ class Schema(BasesClass):
         ]
 
     def __str__(self):
-        return self.table_schema
+        return f'{self.base}-{self.table_schema}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_schema'
+        db_table = f'{db_schema}\".\"link_schema'
         verbose_name = '03 Schema'
         verbose_name_plural = '03 Schema'
         ordering = ['base', 'table_schema', ]
@@ -139,12 +140,13 @@ class Table(BasesClass):
         ('view', 'Представление'),
     ]
 
+    tablenames = models.ManyToManyField('TableName', related_name='tables', blank=True)
     is_metadata = models.BooleanField(default=False, verbose_name='Таблица метаданных')
     type = models.CharField(max_length=10, choices=TYPE_LIST, default='tabl', verbose_name='Тип таблицы')
     schema = models.ForeignKey('Schema', on_delete=models.PROTECT, blank=True, null=True)
     table_name = models.CharField(max_length=150, verbose_name='название в БД')
     table_com = models.TextField(blank=True, null=True, verbose_name='комментарий')
-    tablenames = models.ManyToManyField('TableName', related_name='tables', blank=True)
+
     def get_hash_fields(self):
         return [
             self.schema.base.table_catalog,
@@ -153,10 +155,10 @@ class Table(BasesClass):
         ]
 
     def __str__(self):
-        return self.table_name
+        return f'{self.schema.base.table_catalog}-{self.schema.table_schema}-{self.table_name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_table'
+        db_table = f'{db_schema}\".\"link_table'
         # db_table_comment = "Список таблиц в базе данных."
         verbose_name = '04 Table'
         verbose_name_plural = '04 Table'
@@ -165,7 +167,10 @@ class Table(BasesClass):
 
 
 class TableName(BasesClass):
-    """Список имен таблиц."""
+    """
+    Список имен таблиц.
+    У одной таблицы может быть несколько имен.
+    """
 
     table = models.ForeignKey('Table', on_delete=models.PROTECT, blank=True, null=True, related_name='names')
     language = models.ForeignKey('Language', on_delete=models.PROTECT, blank=True, null=True)
@@ -177,10 +182,10 @@ class TableName(BasesClass):
         ]
 
     def __str__(self):
-        return self.name
+        return f'{self.table}-{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"table_name'
+        db_table = f'{db_schema}\".\"dim_table_name'
         # db_table_comment = "Список таблиц в базе данных."
         verbose_name = '04 Table Name'
         verbose_name_plural = '04 Tables Names'
@@ -201,10 +206,10 @@ class ColumnMDType(models.Model):
         return ['md_type', ]
 
     def __str__(self):
-        return self.md_type
+        return f'{self.md_type}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_column_mdt'
+        db_table = f'{db_schema}\".\"dim_column_md_type'
         # db_table_comment = "Группы таблиц - сервисы."
         verbose_name = '11 meta data Type'
         verbose_name_plural = '11 meta data Type'
@@ -214,7 +219,7 @@ class ColumnMDType(models.Model):
 class Column(BasesClass):
     table = models.ForeignKey('Table', on_delete=models.PROTECT, blank=True, null=True)
     date_create = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name='Дата создания')
-    column_name = models.TextField()
+    column_name = models.CharField(blank=True, null=True, max_length=255)
     column_default = models.TextField(blank=True, null=True)
     is_nullable = models.CharField(blank=True, null=True, max_length=255)
     data_type = models.CharField(blank=True, null=True, max_length=255)
@@ -231,10 +236,10 @@ class Column(BasesClass):
         ]
 
     def __str__(self):
-        return self.column_name
+        return f'{self.table}-{self.column_name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_column'
+        db_table = f'{db_schema}\".\"link_column'
         # db_table_comment = "Список столбцов в базе данных."
         verbose_name = '05 Column'
         verbose_name_plural = '05 Column'
@@ -249,10 +254,10 @@ class StageType(BasesClass):
         return [self.name]
 
     def __str__(self):
-        return self.name
+        return f'{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_stage_type'
+        db_table = f'{db_schema}\".\"dim_stage'
         # db_table_comment = "Список стендов данных."
         verbose_name = '07 Stage'
         verbose_name_plural = '07 Stage'
@@ -267,10 +272,10 @@ class StageColumn(BasesClass):
         return [self.stage, self.column]
 
     def __str__(self):
-        return str(self.stage)
+        return f'{self.stage}-{self.column}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_stage_column'
+        db_table = f'{db_schema}\".\"link_column_stage'
         # db_table_comment = "Связь столбец-схема данных"
         verbose_name = 'L-01 StageColumn'
         verbose_name_plural = 'L-01 StageColumn'
@@ -297,7 +302,7 @@ class ColumnColumn(BasesClass):
         return [self.type, self.main, self.sub, self.update]
 
     def __str__(self):
-        return str(self.main)
+        return f'{self.type}-{self.main}-{self.sub}-{self.update}'
 
     class Meta:
         db_table = f'{db_schema}\".\"link_column_column'
@@ -360,7 +365,7 @@ class Function(BasesClass):
         return self.name_fun
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_function'
+        db_table = f'{db_schema}\".\"dim_function'
         # db_table_comment = "Список функций базы данных"
         verbose_name = '10 Функции БД'
         verbose_name_plural = '10 Функции БД'
@@ -396,7 +401,7 @@ class Service(BasesClass):  # хотел назвать Base, но имя зар
         return self.service
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_service'
+        db_table = f'{db_schema}\".\"dim_service'
         # db_table_comment = "Список сервисов."
         verbose_name = '08 service'
         verbose_name_plural = '08 service'
@@ -414,7 +419,7 @@ class ServiceTable(BasesClass):  # хотел назвать Base, но имя �
         return str(self.service) + '-' + str(self.table)
 
     class Meta:
-        db_table = f'{db_schema}\".\"name_service_table'
+        db_table = f'{db_schema}\".\"link_service_table'
         # db_table_comment = "Группы таблиц - сервисы."
         verbose_name = '09 Service Table'
         verbose_name_plural = '09 Service Table'

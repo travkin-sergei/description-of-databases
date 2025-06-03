@@ -64,17 +64,14 @@
         }
     }
 </style>
-
 <div class="container-fluid bg-white py-3">
     <div class="three-quarters-width">
-        {% include 'inc/_paginator.html' %}
-
         <!-- Карточка с основной информацией о таблице -->
         <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
                 <h5 class="mb-0">
                     <i class="fas fa-table mr-2"></i>
-                    {{ table.schema.base.table_catalog }}/{{ table.schema }}.{{ table.table_name }}
+                    {{ table.schema.base.table_catalog }}|{{ table.schema.table_schema|upper }}-{{ table.table_name|upper }}
                 </h5>
             </div>
             <div class="card-body">
@@ -147,81 +144,87 @@
                     {{ table.schema }}.{{ table.table_name }}
                 </h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-black-yellow table-hover mb-0">
-                        <thead>
-                        <tr>
-                            <th width="3%">№</th>
-                            <th width="4%">ID</th>
-                            <th width="7%">Дата</th>
-                            <th width="8%">Колонка</th>
-                            <th width="7%">Тип</th>
-                            <th width="20%">Описание</th>
-                            <th width="4%">NULL</th>
-                            <th width="10%">По умолчанию</th>
-                            <th width="5%">Auto</th>
-                            <th width="20%">Связи</th>
-                            <th width="12%">Этапы</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for col in column %}
-                        <tr>
-                            <td class="text-center">{{ forloop.counter }}</td>
-                            <td class="text-center">{{ col.pk }}</td>
-                            <td>{{ col.date_create|date:"Y-m-d" }}</td>
-                            <td><strong class="text-primary">{{ col.column_name }}</strong></td>
-                            <td><code>{{ col.data_type }}</code></td>
-                            <td class="small">{{ col.column_com|default:"-"|truncatechars:50 }}</td>
-                            <td class="text-center">
-                                {% if col.is_nullable %}
-                                <span class="badge bg-success">Да</span>
-                                {% else %}
-                                <span class="badge bg-danger">Нет</span>
-                                {% endif %}
-                            </td>
-                            <td class="small"><code>{{ col.column_default|default:"-"|truncatechars:20 }}</code></td>
-                            <td class="text-center">
-                                {% if col.is_auto %}
-                                <i class="fas fa-check text-success"></i>
-                                {% else %}
-                                <i class="fas fa-times text-muted"></i>
-                                {% endif %}
-                            </td>
-                            <td class="small">
-                                {% for rel in column_column %}
-                                {% if col.pk == rel.main.pk and rel.sub.table %}
-                                <div class="mb-1 border-bottom pb-1">
-                                    <a href="{% url 'dba:table_id' pk=rel.sub.table.pk %}" class="text-decoration-none">
-                                        <span class="badge bg-info text-dark me-1">{{ rel.type }}</span>
-                                        {{ rel.sub.table.table_name }}.{{ rel.sub.column_name }}
-                                    </a>
-                                    {% if rel.sub.table.names.all %}
-                                    <div class="text-muted xsmall mt-1">
-                                        {% for name in rel.sub.table.names.all %}
-                                        <span class="me-2">[{{ name.language.code }}: {{ name.name }}]</span>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td>
-                                <div class="d-flex flex-wrap gap-1">
-                                    {% for stg in stage %}
-                                    {% if col.pk == stg.column_id %}
-                                    <span class="badge bg-light text-dark">{{ stg.stage.type }}</span>
-                                    {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        {% include 'inc/_paginator.html' %}
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th width="3%">№</th>
+                        <th width="4%">ID</th>
+                        <th width="7%">Дата</th>
+                        <th width="8%">Колонка</th>
+                        <th width="7%">Тип</th>
+                        <th width="20%">Описание</th>
+                        <th width="4%">NULL</th>
+                        <th width="10%">По умолчанию</th>
+                        <th width="5%">Auto</th>
+                        <th width="20%">Связи</th>
+                        <th width="12%">Этапы</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for col in column %}
+                    <tr>
+                        <td class="text-center">{{ forloop.counter }}</td>
+                        <td class="text-center">{{ col.pk }}</td>
+                        <td>{{ col.date_create|date:"Y-m-d" }}</td>
+                        <td><strong class="text-primary">{{ col.column_name }}</strong></td>
+                        <td><code>{{ col.data_type }}</code></td>
+                        <td class="small">{{ col.column_com|default:"-" }}</td>
+                        <td class="text-center">
+                            {% if col.is_nullable %}
+                            <span class="badge bg-success">Да</span>
+                            {% else %}
+                            <span class="badge bg-danger">Нет</span>
+                            {% endif %}
+                        </td>
+                        <td class="small"><code>{{ col.column_default|default:"-"|truncatechars:20 }}</code></td>
+                        <td class="text-center">
+                            {% if col.is_auto %}
+                            <i class="fas fa-check text-success"></i>
+                            {% else %}
+                            <i class="fas fa-times text-muted"></i>
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            {% for rel in column_column %}
+                            {% if col.pk == rel.main.pk and rel.sub.table %}
+                            <div class="mb-1 border-bottom pb-1">
+                                <a href="{% url 'dba:table_id' pk=rel.sub.table.pk %}" class="text-decoration-none">
+                                    <span class="badge bg-info text-dark me-1">{{ rel.type }}</span>
+                                    {{ rel.sub.table.table_name }}.{{ rel.sub.column_name }}
+                                </a>
+                                {% if rel.sub.table.names.all %}
+                                <div class="text-muted xsmall mt-1">
+                                    {% for name in rel.sub.table.names.all %}
+                                    <span class="me-2">[{{ name.language.code }}: {{ name.name }}]</span>
                                     {% endfor %}
                                 </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for stg in stage %}
+                                {% if col.pk == stg.column_id %}
+                                <span class="badge bg-light text-dark">{{ stg.stage.type }}</span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

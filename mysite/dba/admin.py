@@ -109,6 +109,17 @@ class SchemaAdmin(admin.ModelAdmin):
         return queryset, use_distinct
 
 
+class ColumnInline(admin.TabularInline):  # или admin.StackedInline для другого отображения
+    model = Column
+    extra = 0  # не показывать дополнительные пустые формы
+    show_change_link = True  # показывать ссылку на изменение
+    fields = ('column_name', 'column_com', 'data_type', 'is_nullable', 'is_auto', 'is_active')
+    readonly_fields = ('created_at', 'updated_at')
+    autocomplete_fields = ['md_type']
+    verbose_name = 'Column'
+    verbose_name_plural = 'Columns'
+
+
 @admin.register(Table)
 class TableAdmin(admin.ModelAdmin):
     list_display = ('id', 'table_name', 'schema', 'type', 'is_metadata', 'is_active')
@@ -116,6 +127,7 @@ class TableAdmin(admin.ModelAdmin):
     search_fields = ('table_name', 'table_com')
     filter_horizontal = ('tablenames',)
     autocomplete_fields = ['schema', 'tablenames']
+    inlines = [ColumnInline]  # Добавляем инлайн для столбцов
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)

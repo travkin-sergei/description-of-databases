@@ -18,6 +18,7 @@ urlpatterns = [
     # Приложения
     path('', include('dba.urls')),
     path('accounts/', include('myauth.urls')),
+    #path('asset/', include('my_data_asset.urls')),
 
 ]
 
