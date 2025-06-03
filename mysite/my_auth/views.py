@@ -49,7 +49,7 @@ class MyLoginView(LoginView):
 
     template_name = 'my_auth/login.html'
     redirect_authenticated_user = True
-    next_page = reverse_lazy('my_auth:profile')
+    next_page = reverse_lazy('my_dba:table')  # После входа в аккаунт перенаправление в приложение my_dba
 
     def form_invalid(self, form):
         messages.error(self.request, 'Неверное имя пользователя или пароль')

@@ -137,7 +137,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = reverse_lazy("my_dba:table")
 LOGIN_URL = reverse_lazy("my_auth:login")
-LOGOUT_REDIRECT_URL = reverse_lazy("my_auth:login")
+LOGOUT_REDIRECT_URL = reverse_lazy("my_dba:login")
 
 # Убедитесь, что есть этот параметр
 AUTHENTICATION_BACKENDS = [
