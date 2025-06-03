@@ -16,8 +16,8 @@ urlpatterns = [
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),  # ReDoc
 
     # Приложения
-    path('', include('dba.urls')),
-    path('accounts/', include('myauth.urls')),
+    path('', include('my_dba.urls')),
+    path('accounts/', include('my_auth.urls')),
     #path('asset/', include('my_data_asset.urls')),
 
 ]

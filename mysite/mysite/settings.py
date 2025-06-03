@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     'import_export',  # загрузка данных через админку
     # ----------
     # 'article.apps.ArticleConfig',  # Статьи и документы
-    'myauth',  # Здесь модель User
-    'dba',  # Здесь приложение о базах данных
+    'my_auth',  # Здесь модель User
+    'my_dba',  # Здесь приложение о базах данных
     # 'my_data_asset',  # Здесь приложение об источника данных
 ]
 
@@ -137,9 +137,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = reverse_lazy("dba:table")
-LOGIN_URL = reverse_lazy("myauth:login")
-LOGOUT_REDIRECT_URL = reverse_lazy("myauth:login")
+LOGIN_REDIRECT_URL = reverse_lazy("my_dba:table")
+LOGIN_URL = reverse_lazy("my_auth:login")
+LOGOUT_REDIRECT_URL = reverse_lazy("my_auth:login")
 
 # settings.py
 REST_FRAMEWORK = {

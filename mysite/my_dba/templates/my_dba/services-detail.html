@@ -128,7 +128,7 @@
                                 </th>
                                 <td>
                                     {% if service_table.table.schema.base %}
-                                        <a href="{% url 'dba:table_id' pk=service_table.table.pk %}"
+                                        <a href="{% url 'my_dba:table_id' pk=service_table.table.pk %}"
                                            class="text-decoration-none">
                                             {{ service_table.table.schema.base.name|default:"-" }}
                                         </a>
@@ -137,13 +137,13 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'dba:table_id' pk=service_table.table.pk %}"
+                                    <a href="{% url 'my_dba:table_id' pk=service_table.table.pk %}"
                                        class="text-decoration-none">
                                         {{ service_table.table.schema.name|default:"-" }}
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="{% url 'dba:table_id' pk=service_table.table.pk %}"
+                                    <a href="{% url 'my_dba:table_id' pk=service_table.table.pk %}"
                                        class="text-decoration-none fw-bold">
                                         {{ service_table.table.table_name }}
                                     </a>

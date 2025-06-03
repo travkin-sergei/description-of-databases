@@ -62,7 +62,7 @@
         <th scope="row">{{ forloop.counter|default_if_none:"" }}</th>
         <td>{{ el.main.table.schema.base.table_catalog }}</td>
         <td>{{ el.main.table.schema }}</td>
-        <td><a href="{% url 'dba:table_id' pk=el.main.table.pk %}">{{ el.main.table|safe }}</a></td>
+        <td><a href="{% url 'my_dba:table_id' pk=el.main.table.pk %}">{{ el.main.table|safe }}</a></td>
         <td>{{ el.main }}</td>
         <td>{{ el.main.data_type }}</td>
         <td>|</td>
@@ -70,7 +70,7 @@
         <td>{{ el.sub }}</td>
         <td>
             {% if el.sub.table %}
-        <td><a href="{% url 'dba:table_id' pk=el.sub.table.pk %}">{{ el.sub.table|safe }}</a></td>
+        <td><a href="{% url 'my_dba:table_id' pk=el.sub.table.pk %}">{{ el.sub.table|safe }}</a></td>
         {% else %}
         <td>No table</td>
         {% endif %}

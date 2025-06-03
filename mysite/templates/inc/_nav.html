@@ -26,13 +26,13 @@
                         </li>
                     </ul>
                 </li>
-                {% include 'dba/_nav.html' %}
-                {% include 'myauth/_nav.html' %}
+                {% include 'my_dba/_nav.html' %}
+                {% include 'my_auth/_nav.html' %}
             </ul>
             <ul class="navbar-brand">
                 {% if user.is_authenticated %}
                 <li class="nav-item">
-                    <form method="post" action="{% url 'myauth:logout' %}" class="d-inline">
+                    <form method="post" action="{% url 'my_auth:logout' %}" class="d-inline">
                         {% csrf_token %}
                         <button type="submit"
                                 data-mdb-button-init data-mdb-ripple-init
@@ -43,7 +43,7 @@
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'myauth:login' %}">login</a>
+                    <a class="nav-link" href="{% url 'my_auth:login' %}">login</a>
                 </li>
                 {% endif %}
             </ul>

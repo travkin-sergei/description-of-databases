@@ -19,10 +19,10 @@
         <tbody>
         {% for elem in person_page_odj %}
         <tr>
-            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.schema.base|default_if_none:'' }}</a></td>
-            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.schema|default_if_none:'' }}</a></td>
-            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.name_fun|default_if_none:"" }}</a></td>
-            <td><a href="{% url 'dba:function_id' pk=elem.pk %}">{{ elem.is_active|default_if_none:"" }}</a></td>
+            <td><a href="{% url 'my_dba:function_id' pk=elem.pk %}">{{ elem.schema.base|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'my_dba:function_id' pk=elem.pk %}">{{ elem.schema|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'my_dba:function_id' pk=elem.pk %}">{{ elem.name_fun|default_if_none:"" }}</a></td>
+            <td><a href="{% url 'my_dba:function_id' pk=elem.pk %}">{{ elem.is_active|default_if_none:"" }}</a></td>
         </tr>
         {% endfor %}
         </tbody>

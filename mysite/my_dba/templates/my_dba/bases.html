@@ -110,7 +110,7 @@
                         <tr>
                             <th scope="row" class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                             <td>
-                                <a href="{% url 'dba:base_id' pk=elem.pk %}" class="text-dark font-weight-bold">
+                                <a href="{% url 'my_dba:base_id' pk=elem.pk %}" class="text-dark font-weight-bold">
                                     <i class="fas fa-cog text-yellow mr-2"></i>
                                     {{ elem.table_catalog|default_if_none:'Не указано' }}
                                 </a>

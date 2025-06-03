@@ -126,7 +126,7 @@
                 <h5 class="text mt-4"><i class="fas fa-server mr-2"></i>Сервисы</h5>
                 <div class="d-flex flex-wrap gap-2">
                     {% for service_item in service %}
-                    <a href="{% url 'dba:service_id' pk=service_item.pk %}"
+                    <a href="{% url 'my_dba:service_id' pk=service_item.pk %}"
                        class="btn btn-sm btn-gold">
                         {{ service_item.service }}
                     </a>
@@ -197,7 +197,7 @@
                             {% for rel in column_column %}
                             {% if col.pk == rel.main.pk and rel.sub.table %}
                             <div class="mb-1 border-bottom pb-1">
-                                <a href="{% url 'dba:table_id' pk=rel.sub.table.pk %}" class="text-decoration-none">
+                                <a href="{% url 'my_dba:table_id' pk=rel.sub.table.pk %}" class="text-decoration-none">
                                     <span class="badge bg-info text-dark me-1">{{ rel.type }}</span>
                                     {{ rel.sub.table.table_name }}.{{ rel.sub.column_name }}
                                 </a>

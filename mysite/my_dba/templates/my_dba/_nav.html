@@ -41,6 +41,7 @@
 <ul class="nav-item dropdown">
     <a class="nav-link dropdown-toggle"
        href="#"
+       href="#"
        role="button"
        id="navbarDropdown"
        data-bs-toggle="dropdown"
@@ -50,19 +51,19 @@
     </a>
     <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="background-color: black;">
         <li>
-            <a class="dropdown-item" href="{% url 'dba:service' %}" style="color: white;">service</a>
+            <a class="dropdown-item" href="{% url 'my_dba:service' %}" style="color: white;">service</a>
         </li>
         <li>
-            <a class="dropdown-item" href="{% url 'dba:base' %}" style="color: white;">base</a>
+            <a class="dropdown-item" href="{% url 'my_dba:base' %}" style="color: white;">base</a>
         </li>
         <li>
-            <a class="dropdown-item" href="{% url 'dba:table' %}" style="color: white;">table</a>
+            <a class="dropdown-item" href="{% url 'my_dba:table' %}" style="color: white;">table</a>
         </li>
         <li>
-            <a class="dropdown-item" href="{% url 'dba:column' %}" style="color: white;">column</a>
+            <a class="dropdown-item" href="{% url 'my_dba:column' %}" style="color: white;">column</a>
         </li>
         <li>
-            <a class="dropdown-item" href="{% url 'dba:about-app' %}" style="color: white;">about-app</a>
+            <a class="dropdown-item" href="{% url 'my_dba:about-app' %}" style="color: white;">about-app</a>
         </li>
     </ul>
 </ul>

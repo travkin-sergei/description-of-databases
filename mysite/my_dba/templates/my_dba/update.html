@@ -23,18 +23,18 @@
         <tbody>
         {% for elem in object_list %}
         <tr>
-            <td><a href="{% url 'dba:link_id' pk=elem.pk %}">{{ elem.pk|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'my_dba:link_id' pk=elem.pk %}">{{ elem.pk|default_if_none:'' }}</a></td>
             <td>
-                <a href="{% url 'dba:link_id' pk=elem.pk %}">
+                <a href="{% url 'my_dba:link_id' pk=elem.pk %}">
                     ({{ elem.columncolumn_set.all|length }}) {{ elem.name|default_if_none:'' }}
                 </a>
             </td>
-            <td><a href="{% url 'dba:link_id' pk=elem.pk %}">{{ elem.description|default_if_none:'' }}</a></td>
-            <td><a href="{% url 'dba:link_id' pk=elem.pk %}">{{ elem.type|default_if_none:"" }}</a></td>
-            <td><a href="{% url 'dba:link_id' pk=elem.pk %}">{{ elem.schedule|default_if_none:'' }}</a></td>
-            <td><a href="{% url 'dba:link_id' pk=elem.pk %}">{{ elem.my_schedule|default_if_none:'' }}</a></td>
-            <td><a href="{% url 'dba:link_id' pk=elem.pk %}">{{ elem.method|default_if_none:'' }}</a></td>
-            <td><a href="{% url 'dba:link_id' pk=elem.pk %}">{{ elem.is_active|default_if_none:'' }} </a></td>
+            <td><a href="{% url 'my_dba:link_id' pk=elem.pk %}">{{ elem.description|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'my_dba:link_id' pk=elem.pk %}">{{ elem.type|default_if_none:"" }}</a></td>
+            <td><a href="{% url 'my_dba:link_id' pk=elem.pk %}">{{ elem.schedule|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'my_dba:link_id' pk=elem.pk %}">{{ elem.my_schedule|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'my_dba:link_id' pk=elem.pk %}">{{ elem.method|default_if_none:'' }}</a></td>
+            <td><a href="{% url 'my_dba:link_id' pk=elem.pk %}">{{ elem.is_active|default_if_none:'' }} </a></td>
         </tr>
         {% endfor %}
         </tbody>

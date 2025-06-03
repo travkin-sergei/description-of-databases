@@ -21,7 +21,8 @@ from .view.v1 import (
     TableDetailAPIView,
 )
 
-app_name = "dba"
+app_name = "my_dba"
+
 routers = DefaultRouter()
 routers.register("base_group", BaseGroupAPIViewSet)
 routers.register("base", BaseAPIViewSet)

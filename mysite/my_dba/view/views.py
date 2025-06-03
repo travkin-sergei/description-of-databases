@@ -19,7 +19,7 @@ def about_me(request):
     Отображение информации о текущем приложении из шалона.
     """
 
-    return render(request, 'dba/about_application.html')
+    return render(request, 'my_dba/about-application.html')
 
 
 class FilteredListView(ListView):
@@ -47,8 +47,8 @@ class BasesView(LoginRequiredMixin, FilteredListView):
     Отображение списка баз данных
     """
 
-    permission_required = "dba.view_basegroup"
-    template_name = 'dba/bases.html'
+    permission_required = "my_dba.view_basegroup"
+    template_name = 'my_dba/bases.html'
     model = BaseGroup
     filter_class = BaseGroupFilter
 
@@ -57,7 +57,7 @@ class BasesViewId(LoginRequiredMixin, DetailView):
     """Отображение описание базы данных"""
 
     model = BaseGroup
-    template_name = 'dba/bases-detail.html'
+    template_name = 'my_dba/bases-detail.html'
     context_object_name = 'base_group'
 
     def get_context_data(self, **kwargs):
@@ -86,7 +86,7 @@ class FunctionView(LoginRequiredMixin, View):
             'person_page_odj': person_page_odj,
             'filter': filter
         }
-        return render(request, 'dba/functions.html', context=context)
+        return render(request, 'my_dba/functions.html', context=context)
 
 
 class FunctionViewId(LoginRequiredMixin, DetailView):
@@ -94,7 +94,7 @@ class FunctionViewId(LoginRequiredMixin, DetailView):
     Отображение  функции базы данных
     """
 
-    template_name = 'dba/functions-detail.html'
+    template_name = 'my_dba/functions-detail.html'
     model = Function
     context_object_name = 'function'
 
@@ -106,11 +106,11 @@ class FunctionViewId(LoginRequiredMixin, DetailView):
             'function': function,
             'stage': stage,
         }
-        return render(request, 'dba/functions-detail.html', context=context)
+        return render(request, 'my_dba/functions-detail.html', context=context)
 
 
 class TableView(LoginRequiredMixin, FilteredListView):
-    template_name = 'dba/tables.html'
+    template_name = 'my_dba/tables.html'
     model = Table
     filter_class = TableFilter
     context_object_name = 'tables'  # Явно задаем имя переменной в контексте
@@ -168,7 +168,7 @@ class TableViewId(LoginRequiredMixin, DetailView):
     """
 
     model = Table
-    template_name = 'dba/tables-detail.html'
+    template_name = 'my_dba/tables-detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -203,7 +203,7 @@ class ColumnView(LoginRequiredMixin, FilteredListView):
     Отображение списка столбцов таблиц базы данных
     """
 
-    template_name = 'dba/columns.html'
+    template_name = 'my_dba/columns.html'
     model = Column
     filter_class = ColumnFilter
 
@@ -222,7 +222,7 @@ class UpdateView(LoginRequiredMixin, FilteredListView):
     Расписание обновлений.
     """
 
-    template_name = 'dba/update.html'
+    template_name = 'my_dba/update.html'
     model = Update
     filter_class = UpdateFilter
 
@@ -256,7 +256,7 @@ class UpdateViewId(LoginRequiredMixin, DetailView):
     """
 
     model = Update
-    template_name = 'dba/updates-detail.html'
+    template_name = 'my_dba/updates-detail.html'
     context_object_name = 'update'
 
     def get_context_data(self, **kwargs):
@@ -281,7 +281,7 @@ class TableViewIdStage(LoginRequiredMixin, View):
             'filter': filter,
             'person_page_odj': person_page_odj
         }
-        return render(request, 'dba/tables-detail.html', context=context)
+        return render(request, 'my_dba/tables-detail.html', context=context)
 
 
 class TableViewIdStageId(LoginRequiredMixin, DetailView):
@@ -290,7 +290,7 @@ class TableViewIdStageId(LoginRequiredMixin, DetailView):
     """
 
     model = Table
-    template_name = 'dba/tables-detail.html'
+    template_name = 'my_dba/tables-detail.html'
     context_object_name = 'table'
 
     def get_context_data(self, **kwargs):
@@ -311,7 +311,7 @@ class ServiceView(LoginRequiredMixin, FilteredListView):
     Список сервисов
     """
 
-    template_name = 'dba/services.html'
+    template_name = 'my_dba/services.html'
     model = Service
     filter_class = ServiceFilter
 
@@ -327,7 +327,7 @@ class ServiceView(LoginRequiredMixin, FilteredListView):
 
 class ServiceViewId(LoginRequiredMixin, DetailView):
     model = Service
-    template_name = 'dba/services-detail.html'
+    template_name = 'my_dba/services-detail.html'
     context_object_name = 'service'
     paginate_by = 10  # Количество элементов на странице
 
