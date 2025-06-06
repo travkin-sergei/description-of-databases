@@ -162,10 +162,8 @@ class TableView(LoginRequiredMixin, FilteredListView):
         return context
 
 
-class TableViewId(LoginRequiredMixin, DetailView):
-    """
-    Описание таблиц
-    """
+class TableDetailView(LoginRequiredMixin, DetailView):
+    """Детализация таблиц баз данных."""
 
     model = Table
     template_name = 'my_dba/tables-detail.html'
@@ -173,28 +171,42 @@ class TableViewId(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         table = self.object
-        context['column'] = (Column.objects
-                             .filter(table=table)
-                             .filter(is_active=True)
-                             .order_by('date_create', 'id'))
-        context['stage'] = (StageColumn.objects
-                            .filter(column_id__in=context['column'])
-                            .filter(is_active=True))
-        context['column_column'] = (ColumnColumn.objects
-                                    .filter(main_id__in=context['column'])
-                                    .filter(is_active=True))
-        context['update_column'] = (Update.objects
-                                    .filter(pk__in=ColumnColumn.objects
-                                            .filter(main_id__in=context['column'])
-                                            .exclude(update_id__isnull=True)
-                                            .values('update_id')
-                                            .distinct()))
-        context['service'] = (Service.objects
-                              .filter(pk__in=ServiceTable.objects
-                                      .filter(table_id=table.id)
-                                      .filter(is_active=True)
-                                      .values('service_id')
-                                      .distinct()))
+
+        # Получаем параметр сортировки из URL
+        sort_by = self.request.GET.get('sort', 'date')  # По умолчанию сортируем по дате
+
+        # Базовый запрос для колонок
+        columns = Column.objects.filter(table=table, is_active=True)
+
+        # Оптимизированные запросы с использованием select_related/prefetch_related
+        column_ids = columns.values_list('id', flat=True).order_by('created_at', 'pk')
+
+        # Формируем контекст
+        context.update({
+            'current_sort': sort_by,  # Передаем текущий тип сортировки в шаблон
+            'column': columns,
+            'stage': StageColumn.objects.filter(
+                column_id__in=column_ids,
+                is_active=True
+            ),
+            'column_column': ColumnColumn.objects.filter(
+                main_id__in=column_ids,
+                is_active=True
+            ),
+            'update_column': Update.objects.filter(
+                pk__in=ColumnColumn.objects.filter(
+                    main_id__in=column_ids
+                ).exclude(
+                    update_id__isnull=True
+                ).values_list('update_id', flat=True).distinct()
+            ),
+            'service': Service.objects.filter(
+                pk__in=ServiceTable.objects.filter(
+                    table_id=table.id,
+                    is_active=True
+                ).values_list('service_id', flat=True).distinct()
+            )
+        })
         return context
 
 
@@ -329,7 +341,7 @@ class ServiceViewId(LoginRequiredMixin, DetailView):
     model = Service
     template_name = 'my_dba/services-detail.html'
     context_object_name = 'service'
-    paginate_by = 10  # Количество элементов на странице
+    paginate_by = 30  # Количество элементов на странице
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -6,7 +6,7 @@ from .view.views import (
     page_note_found,
     BasesView, BasesViewId,
     FunctionView, FunctionViewId,
-    TableView, TableViewId,
+    TableView, TableDetailView,
     TableViewIdStage, TableViewIdStageId,
     ColumnView,
     ServiceView,
@@ -42,7 +42,7 @@ urlpatterns = [
     path('', ColumnView.as_view(), name='column'),
     # Таблица данных
     path('table/', TableView.as_view(), name='table'),
-    path('table/<int:pk>/', TableViewId.as_view(), name='table_id'),
+    path('table/<int:pk>/', TableDetailView.as_view(), name='table_id'),
     # stage
     path('table_stage/', TableViewIdStage.as_view(), name='table_id_stage'),
     path('table_stage/<int:pk>/', TableViewIdStageId.as_view(), name='table_id_stage_id'),

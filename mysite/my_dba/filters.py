@@ -66,15 +66,30 @@ class TableFilter(django_filters.FilterSet):
 class ColumnFilter(django_filters.FilterSet):
     """Основной экран фильтрация"""
 
-    schema = CharFilter(field_name='table_id__schema_id__table_schema', lookup_expr='icontains', )
-    table = CharFilter(field_name='table_id__table_name', lookup_expr='icontains', )
-    column_name = CharFilter(field_name='column_name', lookup_expr='icontains', )
-    column_com = CharFilter(field_name='column_com', lookup_expr='icontains', )
-    is_active = AllValuesFilter(field_name='is_active', )
+    base = CharFilter(field_name='table__schema__base__table_catalog', lookup_expr='icontains', label='База данных')
+    schema = CharFilter(field_name='table__schema__table_schema', lookup_expr='icontains')
+    table = CharFilter(field_name='table__table_name', lookup_expr='icontains')
+    column_name = CharFilter(field_name='column_name', lookup_expr='icontains')
+    column_com = CharFilter(field_name='column_com', lookup_expr='icontains')
+    is_active = AllValuesFilter(field_name='is_active')
+
+    # Добавляем фильтр по базе данных
+
+    # Дополнительный фильтр для точного совпадения базы данных
+    base_exact = CharFilter(
+        field_name='table__schema__base__table_catalog',
+        lookup_expr='exact',
+        label='Точное название базы'
+    )
 
     class Meta:
         model = Column
-        fields = '__all__'
+        fields = {
+            'data_type': ['exact', 'icontains'],
+            'is_nullable': ['exact'],
+            'is_auto': ['exact'],
+            'md_type': ['exact'],
+        }
         # exclude = ['time_create', 'time_update', 'is_published']
 
 

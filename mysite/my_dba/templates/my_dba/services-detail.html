@@ -114,9 +114,9 @@
                         <thead>
                             <tr>
                                 <th scope="col" width="5%" class="text-center">№</th>
-                                <th scope="col">База данных</th>
+                                <th scope="col">База</th>
                                 <th scope="col">Схема</th>
-                                <th scope="col">Имя таблицы</th>
+                                <th scope="col">Таблица</th>
                                 <th scope="col">Описание</th>
                             </tr>
                         </thead>
@@ -130,7 +130,7 @@
                                     {% if service_table.table.schema.base %}
                                         <a href="{% url 'my_dba:table_id' pk=service_table.table.pk %}"
                                            class="text-decoration-none">
-                                            {{ service_table.table.schema.base.name|default:"-" }}
+                                            {{ service_table.table.schema.base.table_catalog|default:"-" }}
                                         </a>
                                     {% else %}
                                         -
@@ -139,7 +139,7 @@
                                 <td>
                                     <a href="{% url 'my_dba:table_id' pk=service_table.table.pk %}"
                                        class="text-decoration-none">
-                                        {{ service_table.table.schema.name|default:"-" }}
+                                        {{ service_table.table.schema.table_schema|default:"-" }}
                                     </a>
                                 </td>
                                 <td>
@@ -149,7 +149,7 @@
                                     </a>
                                 </td>
                                 <td class="text-muted">
-                                    {{ service_table.table.comment|default:"-"|truncatechars:50 }}
+                                    {{ service_table.table.table_com|default:"-" }}
                                 </td>
                             </tr>
                             {% endfor %}

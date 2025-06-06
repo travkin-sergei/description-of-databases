@@ -61,7 +61,8 @@ class LanguageAdmin(admin.ModelAdmin):
 
 @admin.register(BaseGroup)
 class BaseGroupAdmin(admin.ModelAdmin):
-    list_display = ('id', 'table_catalog', 'is_active', 'created_at', 'updated_at')
+    list_display = ('hash_address', 'id', 'table_catalog', 'is_active', 'created_at', 'updated_at')
+    list_display_links = 'hash_address',
     search_fields = ('table_catalog',)
 
     def get_search_results(self, request, queryset, search_term):

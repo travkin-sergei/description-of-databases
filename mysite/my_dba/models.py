@@ -46,7 +46,7 @@ class Language(BasesClass):
     """Справочник языков."""
 
     name = models.CharField(max_length=255, blank=True, null=True)
-    code = models.CharField(max_length=255, blank=True, null=True)
+    code = models.CharField(max_length=255, blank=True, null=True,unique=True)
 
     def get_hash_fields(self):
         return [self.code, ]
@@ -65,7 +65,7 @@ class Language(BasesClass):
 
 class BaseGroup(BasesClass):  # хотел назвать Base, но имя зарезервировано
 
-    table_catalog = models.CharField(max_length=150)
+    table_catalog = models.CharField(max_length=150, unique=True)
 
     def get_hash_fields(self):
         return [
@@ -221,7 +221,7 @@ class Column(BasesClass):
     date_create = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name='Дата создания')
     column_name = models.CharField(blank=True, null=True, max_length=255)
     column_default = models.TextField(blank=True, null=True)
-    is_nullable = models.CharField(blank=True, null=True, max_length=255)
+    is_nullable = models.BooleanField(null=True, blank=True)
     data_type = models.CharField(blank=True, null=True, max_length=255)
     is_auto = models.CharField(blank=True, null=True, max_length=255)
     column_com = models.TextField(blank=True, null=True)

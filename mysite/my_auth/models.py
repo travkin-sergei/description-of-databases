@@ -1,5 +1,7 @@
-from django.contrib.auth.models import User
+# models.py
 from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class MyProfile(models.Model):
@@ -23,6 +25,21 @@ class MyProfile(models.Model):
         return f"Профиль {self.user.username}"  # Исправленный метод
 
     class Meta:
-        db_table = 'my_auth\".\"profile'  # Для PostgreSQL схемы
+        db_table = 'my_auth\".\"profile'
         verbose_name = 'Профиль'
         verbose_name_plural = 'Профили'
+
+
+class UserLoginStats(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    login_date = models.DateField(default=timezone.now)
+    login_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = 'my_auth\".\"stat_login'
+        unique_together = ('user', 'login_date')
+        verbose_name = 'User Login Statistic'
+        verbose_name_plural = 'User Login Statistics'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.login_date}: {self.login_count}"
