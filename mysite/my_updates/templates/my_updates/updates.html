@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block body %}
+<style>
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .text-yellow {
+        color: #ffcc00;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+</style>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Список таблиц</h5>
+            </div>
+            <div class="card-body p-0">
+                <form method="GET">
+                    <table class="table table-black-yellow table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th width="5%" class="text-center">№</th>
+                            <th>update</th>
+                            <th>main</th>
+                            <th>sub</th>
+                            <th>is_active</th>
+                        </tr>
+                        <tr style="background-color: #f8f9fa;">
+                            <td></td>
+                            <td>
+                                <input type="text"
+                                       name="table_catalog"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск баз данных..."
+                                       value="{{ request.GET.update }}">
+                            </td>
+                            <td>
+                                <input type="text"
+                                       name="table_catalog"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск баз данных..."
+                                       value="{{ request.GET.main }}">
+                            </td>
+                            <td>
+                                <input type="text"
+                                       name="table_catalog"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск баз данных..."
+                                       value="{{ request.GET.sub }}">
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <select name="is_active" class="form-control form-control-dark mr-2">
+                                        <option value="">Все статусы</option>
+                                        <option value="true"  {% if request.GET.is_active == 'true' %}selected{% endif %}>
+                                        Активные
+                                        </option>
+                                        <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
+                                        Неактивные
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-gold">
+                                        <i class="fas fa-search mr-1"></i>Найти
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for i_update in updates %}
+                        <tr>
+                            <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
+                            <td>
+                                <a href="#">
+                                    {{ i_update.update.method.name }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#">
+                                    {{ i_update.main.table.schema.base.name }}
+                                    .{{ i_update.main.table.schema.schema }}
+                                    .{{ i_update.main.table.name }}
+                                    .{{ i_update.main.columns }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#">
+                                    {{ i_update.main.table.schema.base.name}}
+                                    .{{ i_update.main.table.schema.schema }}
+                                    .{{ i_update.main.table.name }}
+                                    .{{ i_update.sub.columns }}
+                                </a>
+                                <span class="float-end"></span>
+                            </td>
+                            <td class="text-center">
+                                    <span class="badge badge-yellow">
+                                        0
+                                    </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Нет доступных таблиц</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock body %}

@@ -5,7 +5,7 @@
 {% block body %}
 <style>
     .profile-container {
-        max-width: 600px;
+        max-width: 75%; /* Изменено на 75% ширины */
         margin: 2rem auto;
         padding: 2rem;
         border: 2px solid #ffcc00;
@@ -96,21 +96,22 @@
             </div>
 
             <div class="profile-info">
-                <p><strong><i class="fas fa-user me-2"></i>Имя пользователя:</strong> {{ profile.user.username }}</p>
-                <p><strong><i class="fas fa-envelope me-2"></i>Электронная почта:</strong> {{ profile.user.email }}</p>
-                <p><strong><i class="fas fa-phone me-2"></i>Телефон:</strong> {{ profile.phone|default:"не указан" }}</p>
-                <p><strong><i class="fas fa-calendar-alt me-2"></i>Дата регистрации:</strong> {{ profile.user.date_joined|date:"d.m.Y" }}</p>
+                <p><strong><i class="fas fa-user me-2"></i>Имя пользователя:</strong>
+                    {{ profile.user.username }}</p>
+                <p><strong><i class="fas fa-envelope me-2"></i>Электронная почта:</strong>
+                    {{ profile.user.email }}</p>
+                <p><strong><i class="fas fa-phone me-2"></i>Телефон:</strong>
+                    {{ profile.phone|default:"не указан" }}</p>
+                <p><strong><i class="fas fa-calendar-alt me-2"></i>Дата регистрации:</strong>
+                    {{ profile.user.date_joined|date:"d.m.Y" }}</p>
             </div>
 
             <div class="profile-actions">
-                <a href="#" class="btn btn-gold">
-                    <i class="fas fa-edit me-2"></i>Редактировать
+                <a href="#" class="btn btn-dark">
+                    <i class="fas fa-key me-2"></i>Редактировать
                 </a>
                 <a href="{% url 'my_auth:password_change' %}" class="btn btn-dark">
                     <i class="fas fa-key me-2"></i>Сменить пароль
-                </a>
-                <a href="{% url 'my_auth:logout' %}" class="btn btn-red">
-                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
                 </a>
             </div>
         </div>

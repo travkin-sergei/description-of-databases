@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+<style>
+    :root {
+        --primary-dark: #1a1a1a;
+        --primary-yellow: #ffcc00;
+        --yellow-light: #fff9e6;
+        --yellow-dark: #e6b800;
+        --text-dark: #333;
+        --text-light: #f8f9fa;
+    }
+
+    .data-container {
+        width: 90%;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Карточки */
+    .data-card {
+        border: 2px solid var(--primary-yellow);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .data-card-header {
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
+        padding: 1rem 1.5rem;
+        border-bottom: 2px solid var(--primary-yellow);
+    }
+
+    .data-card-body {
+        padding: 1.5rem;
+        background-color: white;
+    }
+
+    /* Таблицы */
+    .data-table {
+        width: 100%;
+        background-color: white;
+        color: var(--text-dark);
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .data-table thead th {
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
+        padding: 12px 15px;
+        border-bottom: 2px solid var(--primary-yellow);
+        position: sticky;
+        top: 0;
+    }
+
+    .data-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .data-table tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+        background-color: var(--yellow-light);
+    }
+
+    .data-table tbody tr:hover {
+        background-color: #fff5cc !important;
+        transform: translateX(2px);
+    }
+
+    .data-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: top;
+    }
+
+    /* Элементы интерфейса */
+    .badge-yellow {
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-yellow {
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        border: none;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-yellow:hover {
+        background-color: var(--yellow-dark);
+        color: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .accordion-yellow .accordion-button {
+        background-color: white;
+        color: var(--primary-dark);
+        font-weight: 600;
+    }
+
+    .accordion-yellow .accordion-button:not(.collapsed) {
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
+    }
+
+    .accordion-yellow .accordion-button:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+
+    .accordion-yellow .accordion-item {
+        border: 1px solid var(--primary-yellow);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+
+    /* Дополнительные элементы */
+    .divider-yellow {
+        height: 2px;
+        background-color: var(--primary-yellow);
+        opacity: 0.3;
+        margin: 1.5rem 0;
+    }
+
+    .table-title {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .table-responsive {
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .stage-badge {
+        background-color: #f0f0f0;
+        color: #333;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        margin: 2px;
+    }
+
+    /* Иконки */
+    .icon-sm {
+        font-size: 0.9rem;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .data-container {
+            width: 95%;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        .data-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            margin-right: 1rem;
+            color: var(--primary-dark);
+        }
+    }
+</style>
+<div class="container-fluid bg-white py-4">
+    <div class="data-container">
+        <!-- Основная информация о таблице -->
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="fas fa-table me-2"></i>
+                    {{ tables.schema.base.name }} | {{ tables.schema|upper }}-{{ tables.name|upper }}
+                </h5>
+            </div>
+            <div class="data-card-body">
+                <!-- Языковые названия -->
+                {% if tables.linkcolumnname_set.all %}
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% for name in tables.linkcolumnname_set.all %}
+                    <span class="badge-yellow">
+                        <i class="fas fa-language icon-sm"></i>
+                        {{ name.language.code|upper }}: {{ name.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Описание таблицы -->
+                <div class="mb-4">
+                    <h5 class="table-title">
+                        <i class="fas fa-align-left"></i>
+                        Описание
+                    </h5>
+                    <div class="ps-3">
+                        {{ tables.description|safe|default:"Нет описания" }}
+                    </div>
+                </div>
+
+                <div class="divider-yellow"></div>
+
+                <!-- Обновления таблицы -->
+                {% if updates %}
+                <div class="mb-4">
+                    <h5 class="table-title">
+                        <i class="fas fa-sync-alt"></i>
+                        Обновление данных
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th width="5%">№</th>
+                                <th>Название</th>
+                                <th width="15%">Тип</th>
+                                <th width="10%">Активно</th>
+                                <th width="20%">Расписание</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for update in updates %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <a href="#" class="text-decoration-none text-dark fw-bold">
+                                        {{ update.name }}
+                                    </a>
+                                </td>
+                                <td>{{ update.type }}</td>
+                                <td>
+                                    {% if update.is_active %}
+                                    <span class="badge bg-success">Да</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Нет</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ update.schedule }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- Связанные сервисы -->
+                {% if services_count > 0 %}
+                <div class="accordion accordion-yellow" id="servicesAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="servicesHeading">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#servicesCollapse"
+                                    aria-expanded="false" aria-controls="servicesCollapse">
+                                <i class="fas fa-server me-2"></i>
+                                Связанные сервисы ({{ services_count }})
+                            </button>
+                        </h2>
+                        <div id="servicesCollapse" class="accordion-collapse collapse"
+                             aria-labelledby="servicesHeading" data-bs-parent="#servicesAccordion">
+                            <div class="accordion-body p-3">
+                                {% for service in services_list %}
+                                    <i>{{ forloop.counter }})</i> {{ service }}<br>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Колонки таблицы -->
+        <div class="data-card">
+            <div class="data-card-header">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="fas fa-columns me-2"></i>
+                    Состав таблицы: {{ tables.schema.base.table_catalog }} → {{ tables.schema }}.{{ tables.name }}
+                </h5>
+            </div>
+            <div class="data-card-body p-0">
+                {% include 'inc/_paginator.html' %}
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th width="3%">№</th>
+                            <th width="4%">ID</th>
+                            <th width="7%">Дата</th>
+                            <th width="8%">Колонка</th>
+                            <th width="7%">Тип</th>
+                            <th width="4%">NULL</th>
+                            <th width="20%">Описание</th>
+                            <th width="20%">Связи</th>
+                            <th width="12%">Этапы</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for col in tables.linkcolumn_set.all %}
+                        <tr>
+                            <td data-label="№">{{ forloop.counter }}</td>
+                            <td data-label="ID">{{ col.pk }}</td>
+                            <td data-label="Дата">{{ col.created_at|date:"Y-m-d" }}</td>
+                            <td data-label="Колонка">
+                                <strong class="text-primary">{{ col.columns }}</strong>
+                            </td>
+                            <td data-label="Тип">
+                                <code>{{ col.type.name }}</code>
+                            </td>
+                            <td data-label="NULL" class="text-center">
+                                {% if col.is_nullable %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-danger">Нет</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Описание" class="small">
+                                <div>
+                                    {% if col.description %}
+                                    {% for key, value in col.description.items %}
+                                    <strong>{{ key }}:</strong> {{ value }}<br>
+                                    {% endfor %}
+                                    {% else %}
+                                    Нет описания
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td data-label="Связи" class="small">
+                                {% for relation in column_relations %}
+                                {% if relation.main == col %}
+                                <div class="mb-1 border-bottom pb-1">
+                                    <a href="{% url 'my_dbm:tables-detail' pk=relation.sub.table.pk %}"
+                                       class="text-decoration-none d-block">
+                                        <span class="badge bg-warning text-dark me-1">{{ relation.type }}</span>
+                                        {{ relation.sub.table.name }}.{{ relation.sub.name }}
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td data-label="Этапы" class="small">
+                                {% with stages=col.linkcolumnstage_set.all %}
+                                {% if stages %}
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for stage_rel in stages %}
+                                    <span class="stage-badge">
+                                        <i class="fas fa-layer-group me-1"></i>
+                                        {{ stage_rel.stage.name }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted small">Нет этапов</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include 'inc/_paginator.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

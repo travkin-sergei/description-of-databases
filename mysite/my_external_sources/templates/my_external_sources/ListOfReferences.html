@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Список ссылок{% endblock title %}
+{% block body %}
+<style>
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .text-yellow {
+        color: #ffcc00;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+    .synonyms {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    a.text-link {
+        color: #1a1a1a;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    a.text-link:hover {
+        color: #ffcc00;
+        text-decoration: underline;
+    }
+</style>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-list mr-2"></i>Список данных</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th scope="col" width="5%" class="text-center">№</th>
+                        <th scope="col">Категория</th>
+                        <th scope="col">Переменная</th>
+                        <th scope="col">Описание</th>
+                        <th scope="col">URI файла</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in results %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.category|default_if_none:"Не указано" }}</td>
+                        <td>{{ item.variable|default_if_none:"Не указано" }}</td>
+                        <td>{{ item.description|default_if_none:"Нет описания" }}</td>
+                        <td>
+                            {% if item.fileuri %}
+                            <a href="{{ item.fileuri }}" class="text-link" target="_blank">
+                                <i class="fas fa-external-link-alt text-yellow mr-1"></i>
+                                {{ item.fileuri|truncatechars:30 }}
+                            </a>
+                            {% else %}
+                            Не указано
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">Нет данных для отображения</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
