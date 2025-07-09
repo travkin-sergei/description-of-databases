@@ -129,7 +129,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <!-- Аккордеон для сервисов -->
                 <div class="accordion mt-4" id="servicesAccordion">
                     <div class="accordion-item">
@@ -159,7 +158,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Карточка с колонками таблицы -->
         <div class="card border-yellow">
             <div class="card-header card-header-black">
@@ -172,7 +170,6 @@
         </div>
     </div>
 </div>
-
 <div class="container-fluid bg-white py-3">
     <div class="three-quarters-width">
         {% include 'inc/_paginator.html' %}
@@ -224,7 +221,7 @@
                             <div class="mb-1 border-bottom pb-1">
                                 <a href="{% url 'my_dba:table_id' pk=rel.sub.table.pk %}" class="text-decoration-none">
                                     <span class="badge bg-info text-dark me-1">{{ rel.type }}</span>
-                                    {{ rel.sub.table.table_name }}.{{ rel.sub.column_name }}
+                                    {{ rel.sub.table.table_name }}.={{ rel.sub.column_name }}
                                 </a>
                             </div>
                             {% endif %}

@@ -103,7 +103,7 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         table = self.object
 
         # Все колонки таблицы
-        columns = table.linkcolumn_set.all()
+        columns = table.linkcolumn_set.filter(is_active=True).order_by('unique_together')
 
         for column in columns:
             column.stages = [cs.stage for cs in column.linkcolumnstage_set.all()]

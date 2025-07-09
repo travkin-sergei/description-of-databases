@@ -295,7 +295,7 @@
                              aria-labelledby="servicesHeading" data-bs-parent="#servicesAccordion">
                             <div class="accordion-body p-3">
                                 {% for service in services_list %}
-                                    <i>{{ forloop.counter }})</i> {{ service }}<br>
+                                <i>{{ forloop.counter }})</i> {{ service }}<br>
                                 {% endfor %}
                             </div>
                         </div>
@@ -325,7 +325,7 @@
                             <th width="8%">Колонка</th>
                             <th width="7%">Тип</th>
                             <th width="4%">NULL</th>
-                            <th width="20%">Описание</th>
+                            <th>Описание</th>
                             <th width="20%">Связи</th>
                             <th width="12%">Этапы</th>
                         </tr>
@@ -335,12 +335,12 @@
                         <tr>
                             <td data-label="№">{{ forloop.counter }}</td>
                             <td data-label="ID">{{ col.pk }}</td>
-                            <td data-label="Дата">{{ col.created_at|date:"Y-m-d" }}</td>
+                            <td data-label="Дата">{{ col.date_create|date:"Y-m-d" }}</td>
                             <td data-label="Колонка">
                                 <strong class="text-primary">{{ col.columns }}</strong>
                             </td>
                             <td data-label="Тип">
-                                <code>{{ col.type.name }}</code>
+                                <code>{{ col.type }}</code>
                             </td>
                             <td data-label="NULL" class="text-center">
                                 {% if col.is_nullable %}
@@ -351,6 +351,9 @@
                             </td>
                             <td data-label="Описание" class="small">
                                 <div>
+                                    {% if col.unique_together %}
+                                    Задает уникальность записи:<span class="badge bg-success">да</span><br>
+                                    {% endif %}
                                     {% if col.description %}
                                     {% for key, value in col.description.items %}
                                     <strong>{{ key }}:</strong> {{ value }}<br>
@@ -367,7 +370,7 @@
                                     <a href="{% url 'my_dbm:tables-detail' pk=relation.sub.table.pk %}"
                                        class="text-decoration-none d-block">
                                         <span class="badge bg-warning text-dark me-1">{{ relation.type }}</span>
-                                        {{ relation.sub.table.name }}.{{ relation.sub.name }}
+                                        {{ relation.sub.table.name }}.{{ relation.sub.columns }}
                                     </a>
                                 </div>
                                 {% endif %}

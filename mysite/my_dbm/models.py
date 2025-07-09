@@ -1,5 +1,6 @@
-from django.db import models
 import datetime
+
+from django.db import models
 
 db_schema = 'my_dbmatch'
 
@@ -166,9 +167,10 @@ class LinkColumn(BaseClass):
     date_create = models.DateTimeField(default=datetime.datetime.now)
     type = models.CharField(max_length=255, null=True, )
     columns = models.CharField(max_length=255, )
-    is_null = models.BooleanField(blank=True, null=True, )
-    is_key = models.BooleanField(blank=True, null=True, )
-    default = models.TextField( blank=True, null=True, )
+    is_null = models.BooleanField(blank=True, null=True, db_default=True, )
+    is_key = models.BooleanField(blank=True, null=True, db_default=False, )
+    unique_together = models.BooleanField(blank=True, null=True, db_default=False, )
+    default = models.TextField(blank=True, null=True, )
     description = models.JSONField(blank=True, null=True)
 
     def __str__(self):

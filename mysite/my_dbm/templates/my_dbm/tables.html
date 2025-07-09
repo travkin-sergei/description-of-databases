@@ -84,6 +84,7 @@
                             <th>schema</th>
                             <th>table_name</th>
                             <th>is_active</th>
+                            <th>is_metadata</th>
                         </tr>
                         <tr style="background-color: #f8f9fa;">
                             <td></td>
@@ -111,7 +112,7 @@
                             <td>
                                 <div class="d-flex">
                                     <select name="is_active" class="form-control form-control-dark mr-2">
-                                        <option value="">Все статусы</option>
+                                        <option value="">is_active</option>
                                         <option value="true"
                                                 {% if request.GET.is_active == 'true' %}selected{% endif %}>
                                         Активные
@@ -126,40 +127,63 @@
                                     </button>
                                 </div>
                             </td>
+                            <td>
+                                <div class="d-flex">
+                                    <select name="is_metadata" class="form-control form-control-dark mr-2">
+                                        <option value="">is_metadata</option>
+                                        <option value="true"
+                                                {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
+                                        Активные
+                                        </option>
+                                        <option value="false"
+                                                {% if request.GET.is_metadata == 'false' %}selected{% endif %}>
+                                        Неактивные
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-gold">
+                                        <i class="fas fa-search mr-1"></i>Найти
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                         </thead>
                         <tbody>
                         {% for elem in tables %}
-                            {% with detail_url='my_dbm:tables-detail' pk=elem.pk %}
-                            <tr>
-                                <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
-                                <td>
-                                    <a href="{% url detail_url pk=pk %}">
-                                        {{ elem.schema.base.name|default_if_none:"—" }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="{% url detail_url pk=pk %}">
-                                        {{ elem.schema.schema|default_if_none:"—" }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <a href="{% url detail_url pk=pk %}">
-                                        {{ elem.name|default_if_none:"—" }}
-                                    </a>
-                                    <span class="float-end">{{ elem.type|default_if_none:"—" }}</span>
-                                </td>
-                                <td class="text-center">
+                        {% with detail_url='my_dbm:tables-detail' pk=elem.pk %}
+                        <tr>
+                            <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
+                            <td>
+                                <a href="{% url detail_url pk=pk %}">
+                                    {{ elem.schema.base.name|default_if_none:"—" }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url detail_url pk=pk %}">
+                                    {{ elem.schema.schema|default_if_none:"—" }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url detail_url pk=pk %}">
+                                    {{ elem.name|default_if_none:"—" }}
+                                </a>
+                                <span class="float-end">{{ elem.type|default_if_none:"—" }}</span>
+                            </td>
+                            <td class="text-center">
                                     <span class="badge badge-yellow">
                                         {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
                                     </span>
-                                </td>
-                            </tr>
-                            {% endwith %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-yellow">
+                                    {% if elem.is_metadata %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endwith %}
                         {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-4">Нет доступных таблиц</td>
-                            </tr>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Нет доступных таблиц</td>
+                        </tr>
                         {% endfor %}
                         </tbody>
                     </table>

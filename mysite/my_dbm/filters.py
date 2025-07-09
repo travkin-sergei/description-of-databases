@@ -40,20 +40,18 @@ class LinkDBTableFilter(django_filters.FilterSet):
         lookup_expr='icontains',
         label='Каталог'
     )
-
     schema = django_filters.CharFilter(
         field_name='schema__schema',
         lookup_expr='icontains',
         label='Схема'
     )
-
     table_name = django_filters.CharFilter(method='filter_table_name')
-
     is_active = django_filters.BooleanFilter()
+    is_metadata = django_filters.BooleanFilter()
 
     class Meta:
         model = LinkDBTable
-        fields = ['table_catalog', 'schema', 'table_name', 'is_active']
+        fields = ['table_catalog', 'schema', 'table_name', 'is_active', 'is_metadata']
 
     def filter_table_name(self, queryset, name, value):
         return queryset.filter(
