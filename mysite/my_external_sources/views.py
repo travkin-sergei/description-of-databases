@@ -1,8 +1,8 @@
 import json
 import os
+from msilib.schema import Patch
 
 import environ
-import requests
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
@@ -14,14 +14,14 @@ env = environ.Env()
 environ.Env.read_env('.env')
 
 
-class PageNotFoundView(LoginRequiredMixin,View):
+class PageNotFoundView(LoginRequiredMixin, View):
     """Обработка 404 ошибки отсутствия страницы"""
 
     def get(self, request, *args, **kwargs):
         return HttpResponseNotFound("<h1>Страница не найдена 404 ошибка</h1>")
 
 
-class AboutView(LoginRequiredMixin,TemplateView):
+class AboutView(LoginRequiredMixin, TemplateView):
     """Страница о приложении."""
 
     template_name = 'my_external_sources/about-application.html'
@@ -33,13 +33,11 @@ class AboutView(LoginRequiredMixin,TemplateView):
         return context
 
 
-class ListOfReferencesView(LoginRequiredMixin,View):
+class ListOfReferencesView(LoginRequiredMixin, View):
     """Представление для отображения списка ссылок из локального JSON-файла"""
 
     def get(self, request):
-        file_path = os.path.join(
-            os.path.dirname(__file__), 'jsonExSources', 'ListofReferences.f.json'
-        )
+        file_path = os.path.join(os.path.dirname(__file__), 'jsonExSources', 'ListOfReferences.json')
 
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
@@ -52,47 +50,4 @@ class ListOfReferencesView(LoginRequiredMixin,View):
             request,
             'my_external_sources/ListOfReferences.html',
             {'results': results}
-        )
-
-
-
-class EcomruEntities(LoginRequiredMixin,View):
-    def get(self, request):
-        params = {
-            "accept": "application/f.json",
-            "Authorization": f"Bearer {env('ECOMRU_KEY')}"  # Используем settings
-        }
-        url = "https://appche3.ecomru.ru:4448/api/v1/entities"
-
-        try:
-            # Устанавливаем таймауты (соединение и чтение в секундах)
-            response = requests.get(url, headers=params, timeout=(5, 10))
-            response.raise_for_status()  # Вызовет исключение для 4XX/5XX статусов
-
-            try:
-                results = response.json()
-            except ValueError:
-                results = []
-                print("Ошибка: не удалось декодировать JSON ответ")
-
-        except Timeout:
-            results = []
-            print("Ошибка: время ожидания соединения истекло")
-        except ConnectionError:
-            results = []
-            print("Ошибка: не удалось установить соединение")
-        except HTTPError as http_err:
-            results = []
-            print(f"HTTP ошибка: {http_err}")
-        except RequestException as req_err:
-            results = []
-            print(f"Ошибка запроса: {req_err}")
-        except Exception as e:
-            results = []
-            print(f"Неожиданная ошибка: {e}")
-
-        return render(
-            request,
-            'my_external_sources/EcomruEntities.html',
-            {'results': results, 'error': bool(not results)}
         )

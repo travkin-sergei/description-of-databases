@@ -108,7 +108,7 @@ class Base(BasesClass):
 class Schema(BasesClass):
     """Схема баз данных."""
 
-    base = models.ForeignKey('BaseGroup', on_delete=models.PROTECT, blank=True, null=True)
+    base = models.ForeignKey(BaseGroup, on_delete=models.PROTECT, blank=True, null=True)
     table_schema = models.CharField(max_length=150)
     comment = models.CharField(max_length=255, blank=True, null=True)
 
@@ -143,7 +143,7 @@ class Table(BasesClass):
     tablenames = models.ManyToManyField('TableName', related_name='tables', blank=True)
     is_metadata = models.BooleanField(default=False, verbose_name='Таблица метаданных')
     type = models.CharField(max_length=10, choices=TYPE_LIST, default='tabl', verbose_name='Тип таблицы')
-    schema = models.ForeignKey('Schema', on_delete=models.PROTECT, blank=True, null=True)
+    schema = models.ForeignKey(Schema, on_delete=models.PROTECT, blank=True, null=True)
     table_name = models.CharField(max_length=150, verbose_name='название в БД')
     table_com = models.TextField(blank=True, null=True, verbose_name='комментарий')
 
@@ -217,7 +217,7 @@ class ColumnMDType(models.Model):
 
 
 class Column(BasesClass):
-    table = models.ForeignKey('Table', on_delete=models.PROTECT, blank=True, null=True)
+    table = models.ForeignKey(Table, on_delete=models.PROTECT, blank=True, null=True)
     date_create = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name='Дата создания')
     column_name = models.CharField(blank=True, null=True, max_length=255)
     column_default = models.TextField(blank=True, null=True)

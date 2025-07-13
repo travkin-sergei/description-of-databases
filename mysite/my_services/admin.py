@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
-    DimTechStack, LinkGit, Swagger
+    DimTechStack, LinkGit, Swagger, LinkServicesServices
 )
 
 
@@ -137,3 +137,30 @@ class SwaggerAdmin(admin.ModelAdmin):
     ordering = ('service',)
     autocomplete_fields = ('service',)
     list_select_related = ('service',)
+
+
+@admin.register(LinkServicesServices)
+class LinkServicesServicesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'main', 'sub', 'created_at', 'updated_at')
+    search_fields = (
+        'main__alias',                    # Поиск по алиасу основного сервиса
+        'main__dimservicesname__name',    # Поиск по имени основного сервиса
+        'main__description',              # Поиск по описанию основного сервиса
+        'sub__alias',                     # Поиск по алиасу подсервиса
+        'sub__dimservicesname__name',     # Поиск по имени подсервиса
+        'sub__description',               # Поиск по описанию подсервиса
+    )
+    list_filter = ('created_at', 'updated_at')
+    raw_id_fields = ('main', 'sub')  # Полезно, если много сервисов
+    autocomplete_fields = ('main', 'sub')  # Требует настройки search_fields в DimServicesAdmin
+
+    # Для оптимизации запросов
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'main', 'main__type',
+            'sub', 'sub__type'
+        ).prefetch_related(
+            'main__dimservicesname_set',
+            'sub__dimservicesname_set'
+        )
+

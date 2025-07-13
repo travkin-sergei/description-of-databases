@@ -199,10 +199,21 @@
             color: var(--primary-dark);
         }
     }
+    .accordion-header button {
+        font-weight: 600;
+    }
+
+    .accordion-body {
+        padding: 1rem 1.5rem;
+    }
+
+    .accordion-item {
+        margin-bottom: 1rem;
+    }
 </style>
 <div class="container-fluid bg-white py-4">
     <div class="data-container">
-        <!-- Основная информация о таблице -->
+        <!-- Основная карточка с аккордеонами -->
         <div class="data-card">
             <div class="data-card-header">
                 <h5 class="mb-0 d-flex align-items-center">
@@ -211,7 +222,6 @@
                 </h5>
             </div>
             <div class="data-card-body">
-                <!-- Языковые названия -->
                 {% if tables.linkcolumnname_set.all %}
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     {% for name in tables.linkcolumnname_set.all %}
@@ -222,66 +232,81 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-
-                <!-- Описание таблицы -->
-                <div class="mb-4">
-                    <h5 class="table-title">
-                        <i class="fas fa-align-left"></i>
-                        Описание
-                    </h5>
-                    <div class="ps-3">
-                        {{ tables.description|safe|default:"Нет описания" }}
+                <!-- Аккордеон с описанием -->
+                <div class="accordion accordion-yellow mb-3" id="descriptionAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="descriptionHeading">
+                            <button class="accordion-button" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#descriptionCollapse"
+                                    aria-expanded="true" aria-controls="descriptionCollapse">
+                                <i class="fas fa-align-left me-2"></i>
+                                Описание таблицы
+                            </button>
+                        </h2>
+                        <div id="descriptionCollapse" class="accordion-collapse collapse show"
+                             aria-labelledby="descriptionHeading" data-bs-parent="#descriptionAccordion">
+                            <div class="accordion-body">
+                                {{ tables.description|safe|default:"Нет описания" }}
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="divider-yellow"></div>
-
-                <!-- Обновления таблицы -->
-                {% if updates %}
-                <div class="mb-4">
-                    <h5 class="table-title">
-                        <i class="fas fa-sync-alt"></i>
-                        Обновление данных
-                    </h5>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                            <tr>
-                                <th width="5%">№</th>
-                                <th>Название</th>
-                                <th width="15%">Тип</th>
-                                <th width="10%">Активно</th>
-                                <th width="20%">Расписание</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for update in updates %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td>
-                                    <a href="#" class="text-decoration-none text-dark fw-bold">
-                                        {{ update.name }}
-                                    </a>
-                                </td>
-                                <td>{{ update.type }}</td>
-                                <td>
-                                    {% if update.is_active %}
-                                    <span class="badge bg-success">Да</span>
-                                    {% else %}
-                                    <span class="badge bg-danger">Нет</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ update.schedule }}</td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
+                <!-- Аккордеон с расписанием обновлений -->
+                {% if schedules %}
+                <div class="accordion accordion-yellow mb-3" id="schedulesAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="schedulesHeading">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#schedulesCollapse"
+                                    aria-expanded="false" aria-controls="schedulesCollapse">
+                                <i class="fas fa-clock me-2"></i>
+                                Расписание обновлений ({{ schedules|length }})
+                            </button>
+                        </h2>
+                        <div id="schedulesCollapse" class="accordion-collapse collapse"
+                             aria-labelledby="schedulesHeading" data-bs-parent="#schedulesAccordion">
+                            <div class="accordion-body p-0">
+                                <div class="table-responsive">
+                                    <table class="data-table">
+                                        <thead>
+                                        <tr>
+                                            <th width="5%">№</th>
+                                            <th>Метод обновления</th>
+                                            <th width="20%">Расписание</th>
+                                            <th width="10%">Активно</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for schedule in schedules %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                <a href="{% url 'my_updates:updates-detail' pk=schedule.name__id %}">
+                                                    {{ schedule.name__name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ schedule.name__schedule|default:"Не указано" }}</td>
+                                            <td>
+                                                {% if schedule.name__is_active %}
+                                                <span class="badge bg-success">Да</span>
+                                                {% else %}
+                                                <span class="badge bg-danger">Нет</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endif %}
-                <!-- Связанные сервисы -->
+
+                <!-- Аккордеон со связанными сервисами -->
                 {% if services_count > 0 %}
-                <div class="accordion accordion-yellow" id="servicesAccordion">
+                <div class="accordion accordion-yellow mb-3" id="servicesAccordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="servicesHeading">
                             <button class="accordion-button collapsed" type="button"
@@ -293,10 +318,18 @@
                         </h2>
                         <div id="servicesCollapse" class="accordion-collapse collapse"
                              aria-labelledby="servicesHeading" data-bs-parent="#servicesAccordion">
-                            <div class="accordion-body p-3">
-                                {% for service in services_list %}
-                                <i>{{ forloop.counter }})</i> {{ service }}<br>
-                                {% endfor %}
+                            <div class="accordion-body">
+                                <ul class="list-unstyled">
+                                    {% for service in services_list %}
+                                    <li class="mb-2">
+                                        {{ forloop.counter }}.
+                                        <a href="{% url 'my_services:services-detail' pk=service.service.pk %}"
+                                           class="text-decoration-none">
+                                            {{ service.service.alias }} ({{ service.service.type.name }})
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -304,8 +337,7 @@
                 {% endif %}
             </div>
         </div>
-
-        <!-- Колонки таблицы -->
+        <!-- Карточка с колонками таблицы (остается без изменений) -->
         <div class="data-card">
             <div class="data-card-header">
                 <h5 class="mb-0 d-flex align-items-center">
@@ -318,83 +350,88 @@
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
-                        <tr>
-                            <th width="3%">№</th>
-                            <th width="4%">ID</th>
-                            <th width="7%">Дата</th>
-                            <th width="8%">Колонка</th>
-                            <th width="7%">Тип</th>
-                            <th width="4%">NULL</th>
-                            <th>Описание</th>
-                            <th width="20%">Связи</th>
-                            <th width="12%">Этапы</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for col in tables.linkcolumn_set.all %}
-                        <tr>
-                            <td data-label="№">{{ forloop.counter }}</td>
-                            <td data-label="ID">{{ col.pk }}</td>
-                            <td data-label="Дата">{{ col.date_create|date:"Y-m-d" }}</td>
-                            <td data-label="Колонка">
-                                <strong class="text-primary">{{ col.columns }}</strong>
-                            </td>
-                            <td data-label="Тип">
-                                <code>{{ col.type }}</code>
-                            </td>
-                            <td data-label="NULL" class="text-center">
-                                {% if col.is_nullable %}
-                                <span class="badge bg-success">Да</span>
-                                {% else %}
-                                <span class="badge bg-danger">Нет</span>
+                            <tr>
+                                <th width="3%">№</th>
+                                {% if request.user.is_staff %}
+                                <th width="4%">ID</th>
                                 {% endif %}
-                            </td>
-                            <td data-label="Описание" class="small">
-                                <div>
-                                    {% if col.unique_together %}
-                                    Задает уникальность записи:<span class="badge bg-success">да</span><br>
-                                    {% endif %}
-                                    {% if col.description %}
-                                    {% for key, value in col.description.items %}
-                                    <strong>{{ key }}:</strong> {{ value }}<br>
-                                    {% endfor %}
+                                <th width="7%">Дата</th>
+                                <th>Колонка</th>
+                                <th width="7%">Тип</th>
+                                <th width="4%">NULL</th>
+                                <th>Описание</th>
+                                <th>Связи</th>
+                                <th>Стенды</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for col in columns %}
+                            <tr>
+                                <td data-label="№">{{ forloop.counter }}</td>
+                                {% if request.user.is_staff %}
+                                <td data-label="ID">{{ col.pk }}</td>
+                                {% endif %}
+                                <td data-label="Дата">{{ col.date_create|date:"Y-m-d" }}</td>
+                                <td data-label="Колонка">
+                                    <strong class="text-primary">{{ col.columns }}</strong>
+                                </td>
+                                <td data-label="Тип">
+                                    <code>{{ col.type }}</code>
+                                </td>
+                                <td data-label="NULL" class="text-center">
+                                    {% if col.is_null %}
+                                    <span class="badge bg-success">NULL</span>
                                     {% else %}
-                                    Нет описания
+                                    <span class="badge bg-danger">NOT NULL</span>
                                     {% endif %}
-                                </div>
-                            </td>
-                            <td data-label="Связи" class="small">
-                                {% for relation in column_relations %}
-                                {% if relation.main == col %}
-                                <div class="mb-1 border-bottom pb-1">
-                                    <a href="{% url 'my_dbm:tables-detail' pk=relation.sub.table.pk %}"
-                                       class="text-decoration-none d-block">
-                                        <span class="badge bg-warning text-dark me-1">{{ relation.type }}</span>
-                                        {{ relation.sub.table.name }}.{{ relation.sub.columns }}
-                                    </a>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td data-label="Этапы" class="small">
-                                {% with stages=col.linkcolumnstage_set.all %}
-                                {% if stages %}
-                                <div class="d-flex flex-wrap gap-1">
-                                    {% for stage_rel in stages %}
-                                    <span class="stage-badge">
-                                        <i class="fas fa-layer-group me-1"></i>
-                                        {{ stage_rel.stage.name }}
-                                    </span>
+                                </td>
+                                <td data-label="Описание" class="small">
+                                    <div>
+                                        {% if col.unique_together %}
+                                        Задает уникальность записи:<span class="badge bg-success">да</span><br>
+                                        {% endif %}
+                                        {% if col.description %}
+                                        {% for key, value in col.description.items %}
+                                        <strong>{{ key }}:</strong> {{ value }}<br>
+                                        {% endfor %}
+                                        {% else %}
+                                        Нет описания
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td data-label="Связи" class="small">
+                                    {% for relation in column_relations %}
+                                    {% if relation.main == col and relation.sub.table.pk %}
+                                    <div class="mb-1 border-bottom pb-1">
+                                        <a href="{% url 'my_dbm:tables-detail' pk=relation.sub.table.pk %}"
+                                           class="text-decoration-none d-block">
+                                            <span class="badge bg-warning text-dark me-1">{{ relation.type }}</span>
+                                            {{ relation.sub.table.name }}.{{ relation.sub.columns }}
+                                        </a>
+                                    </div>
+                                    {% endif %}
                                     {% endfor %}
-                                </div>
-                                {% else %}
-                                <span class="text-muted small">Нет этапов</span>
-                                {% endif %}
-                                {% endwith %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
+                                </td>
+                                <td data-label="Стенды" class="small">
+                                    {% with stages=col.linkcolumnstage_set.all|dictsort:"stage.id" %}
+                                    {% if stages %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for stage_rel in stages %}
+                                        <span class="stage-badge">
+                                            <i class="fas fa-layer-group me-1"></i>
+                                            {{ stage_rel.stage.name }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted small">Нет стендов</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+
                     </table>
                 </div>
                 {% include 'inc/_paginator.html' %}

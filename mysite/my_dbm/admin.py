@@ -66,7 +66,7 @@ class LinkDBTableNameInline(admin.TabularInline):
 class LinkColumnInline(admin.TabularInline):
     model = LinkColumn
     extra = 0
-    fields = ('columns', 'type', 'is_null', 'is_key', 'is_active')
+    fields = ('columns', 'type', 'is_null', 'is_key', 'is_active', 'unique_together')
     verbose_name = 'Колонка'
     verbose_name_plural = 'Колонки'
 
@@ -152,7 +152,6 @@ class LinkDBTableNameAdmin(BaseAdmin):
     list_display = ('table', 'name', 'is_active')
     search_fields = ('table__name', 'name')
     raw_id_fields = ('table',)
-
 
 
 @admin.register(LinkDB)

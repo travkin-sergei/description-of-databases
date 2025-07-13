@@ -52,6 +52,23 @@ class DimServices(BaseClass):
         verbose_name_plural = '08 Список сервисов.'
 
 
+class LinkServicesServices(BaseClass):
+    """"""
+    main = models.ForeignKey(DimServices, on_delete=models.PROTECT, related_name='my_main')
+    sub = models.ForeignKey(DimServices, on_delete=models.PROTECT, related_name='my_sub')
+
+    def __str__(self):
+        return f'{self.main}-{self.sub}'
+
+    class Meta:
+        db_table = f'{db_schema}\".\"link_services_services'
+        unique_together = [
+            ['main', 'sub', ]
+        ]
+        verbose_name = '04 Группировки сервисов.'
+        verbose_name_plural = '04 Группировки сервисов.'
+
+
 class DimServicesName(BaseClass):
     """Синонимы для сервиса."""
 
@@ -144,7 +161,6 @@ class Swagger(BaseClass):
     service = models.ForeignKey(DimServices, on_delete=models.PROTECT)
     stage = models.ForeignKey(DimStage, on_delete=models.PROTECT)
     swagger = models.URLField()
-
 
     def __str__(self):
         return f'{self.service}-{self.swagger}'

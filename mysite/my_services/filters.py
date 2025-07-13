@@ -10,7 +10,7 @@ class DimServicesFilter(django_filters.FilterSet):
     """Список сервисов с фильтрацией по синонимам"""
 
     search = CharFilter(method='filter_search', label='Поиск')
-    type = CharFilter(method='filter_search', label='Тип')
+    type = CharFilter(field_name='type__name', lookup_expr='icontains', label='Тип')
     is_active = BooleanFilter(field_name='is_active', label='Активен')
 
     class Meta:

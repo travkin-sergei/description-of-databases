@@ -7,7 +7,7 @@ from .models import (
     DimDB
 , LinkDB
 , DimStage
-, LinkDBTable
+, LinkDBTable, LinkColumn
 )
 
 
@@ -58,3 +58,42 @@ class LinkDBTableFilter(django_filters.FilterSet):
             Q(name__icontains=value) |
             Q(linkdbtablename__name__icontains=value)
         ).distinct()
+
+
+class LinkColumnFilter(django_filters.FilterSet):
+    table__schema__base__name = django_filters.CharFilter(
+        field_name='table__schema__base__name',
+        lookup_expr='icontains',
+        label='База данных'
+    )
+    table__schema__schema = django_filters.CharFilter(
+        field_name='table__schema__schema',
+        lookup_expr='icontains',
+        label='Схема'
+    )
+    table__name = django_filters.CharFilter(
+        field_name='table__name',
+        lookup_expr='icontains',
+        label='Таблица'
+    )
+    columns = django_filters.CharFilter(
+        field_name='columns',
+        lookup_expr='icontains',
+        label='Колонка'
+    )
+    description = django_filters.CharFilter(
+        field_name='description',
+        lookup_expr='icontains',
+        label='Описание'
+    )
+
+    class Meta:
+        model = LinkColumn
+        fields = [
+            'table__schema__base__name',
+            'table__schema__schema',
+            'table__name',
+            'columns',
+            'description'
+        ]
+

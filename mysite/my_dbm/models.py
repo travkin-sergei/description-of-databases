@@ -58,6 +58,8 @@ class DimDB(BaseClass):
 class LinkDB(BaseClass):
     """ Справочник баз данных."""
 
+    data_base = models.ForeignKey(DimDB, on_delete=models.PROTECT)
+    version = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     alias = models.CharField(max_length=255)
     host = models.CharField(max_length=255)
@@ -65,7 +67,7 @@ class LinkDB(BaseClass):
     stage = models.ForeignKey(DimStage, on_delete=models.PROTECT)
 
     def __str__(self):
-        return f"{self.name.name} ({self.alias})"
+        return f"{self.name} ({self.host})"
 
     class Meta:
         db_table = f'{db_schema}\".\"link_db'
@@ -168,8 +170,8 @@ class LinkColumn(BaseClass):
     type = models.CharField(max_length=255, null=True, )
     columns = models.CharField(max_length=255, )
     is_null = models.BooleanField(blank=True, null=True, db_default=True, )
-    is_key = models.BooleanField(blank=True, null=True, db_default=False, )
-    unique_together = models.BooleanField(blank=True, null=True, db_default=False, )
+    is_key = models.BooleanField(db_default=False, )
+    unique_together = models.IntegerField(blank=True, null=True, )
     default = models.TextField(blank=True, null=True, )
     description = models.JSONField(blank=True, null=True)
 
@@ -201,14 +203,14 @@ class LinkColumnColumn(BaseClass):
 
     type = models.ForeignKey(DimTypeLink, on_delete=models.PROTECT, )
     main = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, related_name='main')
-    sub = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, related_name='sub')
+    sub = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, related_name='sub', blank=True, null=True, )
 
     def __str__(self):
         return f'{self.main}-{self.sub}'
 
     class Meta:
         db_table = f'{db_schema}\".\"link_columns_columns'
-        unique_together = [['main', 'sub', ]]
+        unique_together = [['main', 'sub', 'type', ]]
         verbose_name = '13 Связи столбцов.'
         verbose_name_plural = '13 Связи столбцов.'
 

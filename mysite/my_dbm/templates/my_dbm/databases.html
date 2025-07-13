@@ -81,8 +81,10 @@
                         <th scope="col" width="5%" class="text-center">№</th>
                         <th scope="col">Базы данных</th>
                         <th scope="col">Псевдоним</th>
+                        {% if user.is_staff or user.is_superuser %}
                         <th scope="col">Хост</th>
                         <th scope="col">Порт</th>
+                        {% endif %}
                         <th scope="col">Среда</th>
                         <th scope="col" width="20%">Статус</th>
                     </tr>
@@ -91,13 +93,14 @@
                             <td></td>
                             <td>
                                 <input type="text"
-                                   name="db_name"
-                                   class="form-control form-control-dark"
-                                   placeholder="Поиск по названию..."
-                                   value="{{ filter.form.db_name.value|default_if_none:'' }}">
+                                       name="db_name"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск по названию..."
+                                       value="{{ filter.form.db_name.value|default_if_none:'' }}">
 
                             </td>
                             <td>Псевдоним</td>
+                            {% if user.is_staff or user.is_superuser %}
                             <td>
                                 <input type="text"
                                        name="host"
@@ -106,12 +109,13 @@
                                        value="{{ filter.form.host.value|default_if_none:'' }}">
                             </td>
                             <td>Порт</td>
+                            {% endif %}
                             <td>
                                 <select name="stage" class="form-control form-control-dark">
                                     <option value="">{{ filter.form.stage.field.empty_label }}</option>
                                     {% for stage in filter.form.stage.field.queryset %}
                                     <option value="{{ stage.id }}"
-                                    {% if filter.form.stage.value|stringformat:"s" == stage.id|stringformat:"s" %}
+                                            {% if filter.form.stage.value|stringformat:"s" == stage.id|stringformat:"s" %}
                                     selected
                                     {% endif %}>
                                     {{ stage.name }}
@@ -141,41 +145,39 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for elem in object_list %}
+                    {% for elem in databases %}
                     <tr>
                         <th scope="row" class="text-center">
-                            {{ page_obj.start_index|add:forloop.counter0 }}
+                            {{ start_index|add:forloop.counter0 }}
                         </th>
                         <td>
-                            <a href="{% url 'my_dbm:databases-detail' pk=elem.pk %}"
+                            <a href="#"
                                class="text-dark font-weight-bold">
                                 <i class="fas fa-cog text-yellow mr-2"></i>
-                                {{ elem.name|default_if_none:'Не указано' }}
-                            </a>
+                            </a> {{ elem.name|default_if_none:'Не указано' }}
                         </td>
                         <td>
                             <a href="#" class="text-dark font-weight-bold">
                                 <i class="fas fa-cog text-yellow mr-2"></i>
-                                {{ elem.name|default_if_none:'Не указано' }}
-                            </a>
+                            </a>{{ elem.alias|default_if_none:'Не указано' }}
+                        </td>
+                        {% if user.is_staff or user.is_superuser %}
+                        <td>
+                            <a href="#" class="text-dark font-weight-bold">
+                                <i class="fas fa-cog text-yellow mr-2"></i>
+
+                            </a>{{ elem.host|default_if_none:'Не указано' }}
                         </td>
                         <td>
                             <a href="#" class="text-dark font-weight-bold">
                                 <i class="fas fa-cog text-yellow mr-2"></i>
-                                {{ elem.host|default_if_none:'Не указано' }}
-                            </a>
+                            </a>{{ elem.port|default_if_none:'Не указано' }}
                         </td>
+                        {% endif %}
                         <td>
                             <a href="#" class="text-dark font-weight-bold">
                                 <i class="fas fa-cog text-yellow mr-2"></i>
-                                {{ elem.port|default_if_none:'Не указано' }}
-                            </a>
-                        </td>
-                        <td>
-                            <a href="#" class="text-dark font-weight-bold">
-                                <i class="fas fa-cog text-yellow mr-2"></i>
-                                {{ elem.stage|default_if_none:'Не указано' }}
-                            </a>
+                            </a>{{ elem.stage|default_if_none:'Не указано' }}
                         </td>
                         <td>
                             <span class="badge badge-yellow">

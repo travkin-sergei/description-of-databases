@@ -9,16 +9,18 @@ from django_filters.views import FilterView
 
 from ..filters import (
     LinkDBFilter,
-    LinkDBTableFilter,
+    LinkDBTableFilter, LinkColumnFilter,
 )
 from ..models import (
     DimDB,
     LinkDB,
     LinkDBTable,
-    LinkColumnColumn,
+    LinkColumnColumn, LinkColumn, LinkColumnName, LinkColumnStage,
 )
 from my_services.models import LinkServicesTable
 from django.contrib.auth.mixins import LoginRequiredMixin
+
+from my_updates.models import LinkUpdate
 
 
 class PageNotFoundView(LoginRequiredMixin, View):
@@ -51,21 +53,29 @@ class DatabasesView(LoginRequiredMixin, FilterView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        # Правильный select_related только для связанных моделей
         return queryset.select_related('stage').order_by('alias')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_count'] = LinkDB.objects.count()  # Исправлено с DimDB на LinkDB
+        context['total_count'] = LinkDB.objects.count()
+
+        # Параметры фильтрации для пагинации
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        if get_params:
+            context['query_string'] = get_params.urlencode()
+
         return context
 
 
-class DatabaseDetailView(LoginRequiredMixin, DetailView):
-    """Детализация базы данных."""
-
-    model = DimDB
-    template_name = 'my_dbm/databases-detail.html'
-    context_object_name = 'database'
+# не вижу смысла в детализации
+# class DatabaseDetailView(LoginRequiredMixin, DetailView):
+#     """Детализация базы данных."""
+#
+#     model = DimDB
+#     template_name = 'my_dbm/databases-detail.html'
+#     context_object_name = 'database'
 
 
 class TablesView(LoginRequiredMixin, FilterView):
@@ -82,6 +92,18 @@ class TablesView(LoginRequiredMixin, FilterView):
             'type'
         ).all()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Сохраняем параметры фильтрации для пагинации
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        if get_params:
+            context['query_string'] = get_params.urlencode()
+
+        return context
+
 
 class TableDetailView(LoginRequiredMixin, DetailView):
     """Детализация таблицы."""
@@ -94,7 +116,6 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         return LinkDBTable.objects.select_related(
             'schema', 'schema__base', 'type'
         ).prefetch_related(
-            # 'linkcolumn_set__type', # неработает потом востановим
             'linkcolumn_set__linkcolumnstage_set__stage'
         )
 
@@ -102,20 +123,113 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         table = self.object
 
-        # Все колонки таблицы
-        columns = table.linkcolumn_set.filter(is_active=True).order_by('unique_together')
-
-        for column in columns:
-            column.stages = [cs.stage for cs in column.linkcolumnstage_set.all()]
+        # Существующая логика без изменений
+        columns = table.linkcolumn_set.filter(is_active=True).order_by('unique_together', 'date_create', 'id')
 
         context['column_relations'] = LinkColumnColumn.objects.filter(
             Q(main__in=columns) | Q(sub__in=columns)
         ).select_related('main', 'sub', 'type')
 
-        # Добавляем сервисы этой таблицы
         services = LinkServicesTable.objects.filter(table=table).select_related('service')
+        context['services_list'] = services
+        context['services_count'] = services.count()
+        context['columns'] = columns
 
-        # Список сервисов (с их alias и type для наглядности)
-        context['services_list'] = [f"{s.service.alias} ({s.service.type.name})" for s in services]
-        context['services_count'] = services.count()  # Количество сервисов
+        # Запрос для получения только расписаний обновлений
+        schedules = LinkUpdate.objects.filter(
+            column__main__table=table
+        ).values(
+            'name__id',
+            'name__name',
+            'name__schedule',
+            'name__is_active'
+        ).distinct().order_by('name__name')
+
+        context['schedules'] = schedules
+
+        return context
+
+
+class ColumnListView(LoginRequiredMixin, FilterView):
+    """Список столбцов с фильтрацией и пагинацией."""
+
+    model = LinkColumn
+    filterset_class = LinkColumnFilter
+    template_name = 'my_dbm/columns.html'
+    context_object_name = 'columns'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return (
+            LinkColumn.objects
+            .filter(is_active=True)
+            .select_related(
+                'table',
+                'table__schema',
+                'table__schema__base',
+                'table__type',
+            ).order_by('table__name', 'columns')
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Для пагинации с сохранением параметров фильтрации
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        if get_params:
+            context['query_string'] = get_params.urlencode()
+
+        return context
+
+
+class ColumnDetailView(LoginRequiredMixin, DetailView):
+    """
+    Детализация столбца.
+    """
+    model = LinkColumn
+    template_name = 'my_dbm/columns-detail.html'
+    context_object_name = 'column'
+
+    def get_queryset(self):
+        return LinkColumn.objects.select_related(
+            'table',
+            'table__schema',
+            'table__schema__base',
+            'table__type'
+        ).prefetch_related(
+            'linkcolumnname_set__name',
+            'linkcolumnstage_set__stage'
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        column = self.object
+
+        # Получить связи столбца (главный или подчинённый)
+        column_relations = LinkColumnColumn.objects.filter(
+            Q(main=column) | Q(sub=column)
+        ).select_related('main', 'sub', 'type')
+        context['column_relations'] = column_relations
+
+        # Синонимы названий столбцов
+        column_names = LinkColumnName.objects.filter(column=column).select_related('name')
+        context['column_names'] = column_names
+
+        # Стадии стендов
+        stages = LinkColumnStage.objects.filter(column=column).select_related('stage')
+        context['stages'] = stages
+
+        # Обновления
+        schedules = LinkUpdate.objects.filter(
+            column__main=column
+        ).values(
+            'name__id',
+            'name__name',
+            'name__schedule',
+            'name__is_active'
+        ).distinct().order_by('name__name')
+        context['schedules'] = schedules
+
         return context

@@ -184,20 +184,20 @@
                         </div>
                     </div>
                     <div class="product-price-xl">
-                        <span class="price-xl">host:</span>
-                        <span>{{ database.host|default_if_none:"—" }}</span>
+                        <span class="price-xl">databases:</span>
+                        <span>{{ database.databases|default_if_none:"—" }}</span>
                     </div>
                     <div class="product-price-xl">
-                        <span class="price-xl">host:</span>
-                        <span>{{ database.host|default_if_none:"—" }}</span>
+                        <span class="price-xl">version:</span>
+                        <span>{{ database.version|default_if_none:"—" }}</span>
                     </div>
                     <div class="product-price-xl">
-                        <span class="price-xl">host:</span>
-                        <span>{{ database.host|default_if_none:"—" }}</span>
+                        <span class="price-xl">name:</span>
+                        <span>{{ database.name|default_if_none:"—" }}</span>
                     </div>
                     <div class="product-price-xl">
-                        <span class="price-xl">port:</span>
-                        <span>{{ database.port|default_if_none:"—" }}</span>
+                        <span class="price-xl">alias:</span>
+                        <span>{{ database.alias|default_if_none:"—" }}</span>
                     </div>
                     <a href="{% url 'my_dbm:databases'  %}" class="btn-back">
                         <i class="fas fa-arrow-left"></i> Назад

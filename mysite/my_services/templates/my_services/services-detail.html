@@ -35,21 +35,22 @@
                 </div>
                 <!-- Swagger -->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                    <div class="card-header"
+                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h5 class="mb-0">Swagger</h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex flex-wrap align-items-center gap-3">
                             {% for i_link in service.swagger_set.all %}
-                                <a href="{{ i_link.swagger }}"
-                                   target="_blank"
-                                   class="text-decoration-none d-inline-flex align-items-center"
-                                   style="color: #1a1a1a; background-color: #f8f9fa; padding: 0.5rem 1rem; border-radius: 4px;">
-                                    <i class="fab fa-github me-2"></i>
-                                    {{ i_link.stage }}
-                                </a>
+                            <a href="{{ i_link.swagger }}"
+                               target="_blank"
+                               class="text-decoration-none d-inline-flex align-items-center"
+                               style="color: #1a1a1a; background-color: #f8f9fa; padding: 0.5rem 1rem; border-radius: 4px;">
+                                <i class="fab fa-github me-2"></i>
+                                {{ i_link.stage }}
+                            </a>
                             {% empty %}
-                                <span style="color: #1a1a1a;">Swagger отсутствует.</span>
+                            <span style="color: #1a1a1a;">Swagger отсутствует.</span>
                             {% endfor %}
                         </div>
                     </div>
@@ -113,6 +114,46 @@
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
                     <div class="card-header"
                          style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                        <h5 class="mb-0">Подчиненные сервисы</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for relation in as_main %}
+                            <li class="list-group-item">
+                                <a href="{% url 'my_services:services-detail' pk=relation.sub.id %}">
+                                    {{ relation.sub.alias }} ({{ relation.sub.type.name }})
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item">Нет подчиненных сервисов</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Parent services (where current service is a child) -->
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header"
+                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                        <h5 class="mb-0">Родительские сервисы</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for relation in as_sub %}
+                            <li class="list-group-item">
+                                <a href="{% url 'my_services:services-detail' pk=relation.main.id %}">
+                                    {{ relation.main.alias }} ({{ relation.main.type.name }})
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item">Нет родительских сервисов</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header"
+                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h5 class="mb-0">Синонимы сервиса</h5>
                     </div>
                     <div class="card-body">
@@ -163,12 +204,12 @@
                                 {% for table_link in tables_page_obj %}
                                 <tr>
                                     <td>
-                                        <strong style="color: #1a1a1a;">
+                                        <a href="{% url 'my_dbm:tables-detail' pk=table_link.table.pk %}">
                                             {% if table_link.table.schema %}
                                             {{ table_link.table.schema }}.
                                             {% endif %}
                                             {{ table_link.table.name }}
-                                        </strong>
+                                        </a>
                                     </td>
                                     <td style="color: #1a1a1a;">
                                         {{ table_link.table.description|default:"Нет описания" }}
@@ -182,12 +223,13 @@
                                 </tbody>
                             </table>
                         </div>
-
                         <!-- Back Button -->
                         <div class="col-12 mb-3 text-end">
                             <a href="{% url 'my_services:services' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Назад
                             </a>
+
+
                         </div>
                     </div>
                 </div>

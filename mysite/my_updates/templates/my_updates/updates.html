@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ title }}{% endblock title %}
-
 {% block body %}
 <style>
     .table-black-yellow {
@@ -45,17 +43,6 @@
         border-color: #ffcc00;
         box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
     }
-    .text-yellow {
-        color: #ffcc00;
-    }
-    .card-header-black {
-        background-color: #1a1a1a;
-        color: #ffcc00;
-        border-bottom: 2px solid #ffcc00;
-    }
-    .border-yellow {
-        border: 1px solid #ffcc00;
-    }
     .three-quarters-width {
         width: 75%;
         margin: 0 auto;
@@ -69,105 +56,93 @@
 
 <div class="container-fluid bg-white py-3">
     <div class="three-quarters-width">
-
         <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
-                <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Список таблиц</h5>
+                <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Методы обновления</h5>
             </div>
             <div class="card-body p-0">
-                <form method="GET">
+                <form method="get">
                     <table class="table table-black-yellow table-hover mb-0">
                         <thead>
                         <tr>
                             <th width="5%" class="text-center">№</th>
-                            <th>update</th>
-                            <th>main</th>
-                            <th>sub</th>
-                            <th>is_active</th>
+                            <th>Название метода</th>
+                            <th>Расписание</th>
+                            <th>Ссылка</th>
+                            <th>Активен</th>
                         </tr>
                         <tr style="background-color: #f8f9fa;">
                             <td></td>
                             <td>
                                 <input type="text"
-                                       name="table_catalog"
+                                       name="name"
                                        class="form-control form-control-dark"
-                                       placeholder="Поиск баз данных..."
-                                       value="{{ request.GET.update }}">
+                                       placeholder="Поиск по названию..."
+                                       value="{{ request.GET.name }}">
                             </td>
                             <td>
                                 <input type="text"
-                                       name="table_catalog"
+                                       name="schedule"
                                        class="form-control form-control-dark"
-                                       placeholder="Поиск баз данных..."
-                                       value="{{ request.GET.main }}">
+                                       placeholder="Поиск по расписанию..."
+                                       value="{{ request.GET.schedule }}">
                             </td>
                             <td>
                                 <input type="text"
-                                       name="table_catalog"
+                                       name="link_code"
                                        class="form-control form-control-dark"
-                                       placeholder="Поиск баз данных..."
-                                       value="{{ request.GET.sub }}">
+                                       placeholder="Поиск по ссылке..."
+                                       value="{{ request.GET.link_code }}">
                             </td>
                             <td>
                                 <div class="d-flex">
                                     <select name="is_active" class="form-control form-control-dark mr-2">
                                         <option value="">Все статусы</option>
-                                        <option value="true"  {% if request.GET.is_active == 'true' %}selected{% endif %}>
-                                        Активные
-                                        </option>
-                                        <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
-                                        Неактивные
-                                        </option>
+                                        <option value="true" {% if request.GET.is_active == 'true' %} selected {% endif %}>Активные</option>
+                                        <option value="false" {% if request.GET.is_active == 'false' %} selected {% endif %}>Неактивные</option>
                                     </select>
                                     <button type="submit" class="btn btn-gold">
-                                        <i class="fas fa-search mr-1"></i>Найти
+                                        <i class="fas fa-search mr-1"></i> Найти
                                     </button>
                                 </div>
                             </td>
                         </tr>
                         </thead>
                         <tbody>
-                        {% for i_update in updates %}
+                        {% if updates %}
+                        {% for update in updates %}
                         <tr>
-                            <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
+                            <th class="text-center">{{ forloop.counter }}</th>
                             <td>
-                                <a href="#">
-                                    {{ i_update.update.method.name }}
-                                </a>
+                                <a href="{% url 'my_updates:updates-detail' pk=update.pk %}">{{ update.name }}</a>
                             </td>
                             <td>
-                                <a href="#">
-                                    {{ i_update.main.table.schema.base.name }}
-                                    .{{ i_update.main.table.schema.schema }}
-                                    .{{ i_update.main.table.name }}
-                                    .{{ i_update.main.columns }}
-                                </a>
+                                {{ update.schedule|default:"-" }}
                             </td>
                             <td>
-                                <a href="#">
-                                    {{ i_update.main.table.schema.base.name}}
-                                    .{{ i_update.main.table.schema.schema }}
-                                    .{{ i_update.main.table.name }}
-                                    .{{ i_update.sub.columns }}
-                                </a>
-                                <span class="float-end"></span>
+                                {% if update.link_code %}
+                                <a href="{% url 'my_updates:updates-detail' pk=update.pk %}" target="_blank">Ссылка</a>
+                                {% else %}
+                                -
+                                {% endif %}
                             </td>
                             <td class="text-center">
-                                    <span class="badge badge-yellow">
-                                        0
-                                    </span>
+                                <span class="badge badge-yellow">
+                                    {% if update.is_active %}Да{% else %}Нет{% endif %}
+                                </span>
                             </td>
                         </tr>
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Нет доступных таблиц</td>
-                        </tr>
                         {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Нет доступных методов обновления</td>
+                        </tr>
+                        {% endif %}
                         </tbody>
                     </table>
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 {% endblock body %}

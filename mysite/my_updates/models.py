@@ -1,7 +1,8 @@
 from django.db import models
 from my_dbm.models import (
     BaseClass,
-    LinkColumn,
+    LinkColumnColumn,
+    DimTypeLink,
 )
 
 db_schema = 'my_update'
@@ -11,9 +12,11 @@ class DimUpdateMethod(BaseClass):
     """Методы обновления."""
 
     name = models.CharField(max_length=255, blank=True, null=True)
+    schedule = models.CharField(max_length=50, blank=True, null=True)
+    link_code = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name}"
 
     class Meta:
         db_table = f'{db_schema}\".\"dim_update_method'
@@ -22,43 +25,21 @@ class DimUpdateMethod(BaseClass):
 
 
 class LinkUpdate(BaseClass):
-    """Обновления."""
+    """Детали обновления для связи столбцов."""
 
-    method = models.ForeignKey(
-        DimUpdateMethod, on_delete=models.PROTECT,
-        blank=True, null=True,
-        verbose_name="Метод обновления",
+    name = models.ForeignKey(
+        DimUpdateMethod, on_delete=models.PROTECT, blank=True, null=True, verbose_name="Метод обновления"
     )
-    schedule = models.CharField(
-        max_length=50,
-        blank=True, null=True
-    )
-    link_code = models.URLField(
-        blank=True, null=True
+
+    column = models.ForeignKey(
+        LinkColumnColumn, on_delete=models.CASCADE, verbose_name='Связь столбцов'
     )
 
     def __str__(self):
-        return f'{self.method}-{self.schedule}-{self.link_code}'
+        return f'{self.name}-{self.column}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_update'
-        unique_together = [['method', 'link_code', ]]
-        verbose_name = '02 update'
-        verbose_name_plural = '02 update'
-
-
-class LinkColumnUpdate(BaseClass):
-    """Связи таблиц с обновлением."""
-
-    update = models.ForeignKey(LinkUpdate, on_delete=models.PROTECT, )
-    main = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, related_name='col_main', )
-    sub = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, related_name='col_sub', )
-
-    def __str__(self):
-        return f'{self.update}-{self.main}-{self.sub}'
-
-    class Meta:
-        db_table = f'{db_schema}\".\"link_column_update'
-        unique_together = [['update', 'main', 'sub']]
-        verbose_name = '03 updatea'
-        verbose_name_plural = '03 updatea'
+        db_table = f'{db_schema}"."link_update'
+        unique_together = [['name', 'column']]
+        verbose_name = '02 Детали обновления'
+        verbose_name_plural = '02 Детали обновления'
