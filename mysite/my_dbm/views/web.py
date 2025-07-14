@@ -15,7 +15,7 @@ from ..models import (
     DimDB,
     LinkDB,
     LinkDBTable,
-    LinkColumnColumn, LinkColumn, LinkColumnName, LinkColumnStage,
+    LinkColumnColumn, LinkColumn, LinkColumnName, LinkColumnStage, LinkDBTableName,
 )
 from my_services.models import LinkServicesTable
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -123,19 +123,21 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         table = self.object
 
-        # Существующая логика без изменений
+        # Существующие столбцы
         columns = table.linkcolumn_set.filter(is_active=True).order_by('unique_together', 'date_create', 'id')
+        context['columns'] = columns
 
+        # Связи между столбцами
         context['column_relations'] = LinkColumnColumn.objects.filter(
             Q(main__in=columns) | Q(sub__in=columns)
         ).select_related('main', 'sub', 'type')
 
+        # Сервисы
         services = LinkServicesTable.objects.filter(table=table).select_related('service')
         context['services_list'] = services
         context['services_count'] = services.count()
-        context['columns'] = columns
 
-        # Запрос для получения только расписаний обновлений
+        # Расписания обновлений
         schedules = LinkUpdate.objects.filter(
             column__main__table=table
         ).values(
@@ -144,8 +146,11 @@ class TableDetailView(LoginRequiredMixin, DetailView):
             'name__schedule',
             'name__is_active'
         ).distinct().order_by('name__name')
-
         context['schedules'] = schedules
+
+        # === Новое: альтернативные имена таблицы ===
+        alt_names = LinkDBTableName.objects.filter(table=table)
+        context['alt_table_names'] = alt_names
 
         return context
 

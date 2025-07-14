@@ -4,6 +4,34 @@ from django_jsonform.widgets import JSONFormWidget
 from .models import *
 
 
+# === Формы ===
+
+class LinkColumnForm(forms.ModelForm):
+    class Meta:
+        model = LinkColumn
+        fields = '__all__'
+        widgets = {
+            'description': JSONFormWidget(
+                schema={
+                    "type": "object",
+                    "title": "Дополнительные параметры",
+                    "properties": {
+                        "name": {"type": "string", "title": "Название"},
+                        "description": {"type": "string", "title": "Описание"},
+                        "key": {"type": "string", "title": "Ключ"},
+                        "auto": {"type": "string", "title": "Авто"},
+                    },
+                    "required": [],
+                    "additionalProperties": False
+                }
+            )
+        }
+
+    def clean_description(self):
+        data = self.cleaned_data.get("description", {})
+        return {k: v for k, v in data.items() if v not in ("", None)}
+
+
 # === Базовый класс админки ===
 class BaseAdmin(admin.ModelAdmin):
     """Базовый класс админки с общими настройками"""
@@ -65,42 +93,14 @@ class LinkDBTableNameInline(admin.TabularInline):
 
 class LinkColumnInline(admin.TabularInline):
     model = LinkColumn
+    form = LinkColumnForm  # Добавляем твою форму здесь!
     extra = 0
-    fields = ('columns', 'type', 'is_null', 'is_key', 'is_active', 'unique_together')
+    fields = ('is_active', 'columns', 'type', 'is_null', 'is_key', 'description', 'unique_together')
     verbose_name = 'Колонка'
     verbose_name_plural = 'Колонки'
 
 
-# === Формы ===
-
-class LinkColumnForm(forms.ModelForm):
-    class Meta:
-        model = LinkColumn
-        fields = '__all__'
-        widgets = {
-            'description': JSONFormWidget(
-                schema={
-                    "type": "object",
-                    "title": "Дополнительные параметры",
-                    "properties": {
-                        "name": {"type": "string", "title": "Название"},
-                        "description": {"type": "string", "title": "Описание"},
-                        "key": {"type": "string", "title": "Ключ"},
-                        "auto": {"type": "string", "title": "Авто"},
-                    },
-                    "required": [],
-                    "additionalProperties": False
-                }
-            )
-        }
-
-    def clean_description(self):
-        data = self.cleaned_data.get("description", {})
-        return {k: v for k, v in data.items() if v not in ("", None)}
-
-
 # === Основные модели ===
-
 @admin.register(LinkDBSchema)
 class LinkDBSchemaAdmin(BaseAdmin):
     list_display = ('base', 'schema', 'is_active')
