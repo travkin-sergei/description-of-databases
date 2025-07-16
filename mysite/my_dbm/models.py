@@ -46,7 +46,7 @@ class DimDB(BaseClass):
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.version}-{self.name}'
+        return f'{self.name}'
 
     class Meta:
         db_table = f'{db_schema}\".\"dim_db'
