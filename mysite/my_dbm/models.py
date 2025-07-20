@@ -59,12 +59,12 @@ class LinkDB(BaseClass):
     """ Справочник баз данных."""
 
     data_base = models.ForeignKey(DimDB, on_delete=models.PROTECT)
+    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT)
     version = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     alias = models.CharField(max_length=255)
     host = models.CharField(max_length=255)
     port = models.CharField(max_length=255)
-    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.name} ({self.host})"
@@ -144,9 +144,7 @@ class LinkDBTable(BaseClass):
 
 
 class LinkDBTableName(BaseClass):
-    """
-    Связи таблиц и их синонимов.
-    """
+    """Связи таблиц и их синонимов."""
 
     table = models.ForeignKey(LinkDBTable, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
@@ -186,6 +184,8 @@ class LinkColumn(BaseClass):
 
 
 class DimTypeLink(BaseClass):
+    """Справочник типов связей."""
+
     name = models.CharField(max_length=255, )
 
     def __str__(self):
@@ -245,3 +245,11 @@ class LinkColumnStage(BaseClass):
         unique_together = [['stage', 'column', ]]
         verbose_name = '11 Связь столбца на стенде.'
         verbose_name_plural = '11 Связь столбца на стенде.'
+
+
+
+class MigrationPermission(models.Model):
+    class Meta:
+        permissions = [
+            ('can_run_migrations', 'Can run data migrations'),
+        ]

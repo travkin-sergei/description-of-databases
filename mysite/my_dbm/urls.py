@@ -1,16 +1,19 @@
-from django.urls import path, include
-
 from .views.web import (
     PageNotFoundView, AboutView,
     DatabasesView,  # не вижу смысла в детализации, DatabaseDetailView,
     TablesView, TableDetailView,
-    ColumnListView,ColumnDetailView,
+    ColumnListView, ColumnDetailView,
 
 )
+from django.urls import path
 
 app_name = "my_dbm"
 
 urlpatterns = [
+    # Панель администратора
+
+    # Миграция
+
     path('', AboutView.as_view(), name='about-app'),
     path('databases/', DatabasesView.as_view(), name='databases'),
     # не вижу смысла в детализации path('databases/<int:pk>/', DatabaseDetailView.as_view(), name='databases-detail'),
