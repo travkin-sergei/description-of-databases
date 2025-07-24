@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
-    DimTechStack, LinkGit, Swagger, LinkServicesServices
+    DimTechStack, DimLink, LinkLink, LinkServicesServices
 )
 
 
@@ -20,7 +20,7 @@ class LinkResponsiblePersonInline(admin.TabularInline):
     extra = 1
     fields = ('role', 'name')
     show_change_link = True
-    raw_id_fields = ('role', 'name')
+    raw_id_fields = ('name',)
 
 
 class LinkServicesTableInline(admin.TabularInline):
@@ -31,20 +31,12 @@ class LinkServicesTableInline(admin.TabularInline):
     raw_id_fields = ('table',)
 
 
-class LinkGitInline(admin.TabularInline):
-    model = LinkGit
-    fk_name = 'services'
+class LinkLinkInline(admin.TabularInline):
+    model = LinkLink
     extra = 1
-    fields = ('stack', 'name', 'link_name', 'link', 'description')
+    fields = ('link', 'stage')
     show_change_link = True
-    raw_id_fields = ('stack', 'name')
-
-
-class SwaggerInline(admin.TabularInline):
-    model = Swagger
-    extra = 1
-    fields = ('swagger', 'stage')
-    show_change_link = True
+    raw_id_fields = ('link', 'stage')
 
 
 # ——————— ModelAdmins ———————
@@ -66,8 +58,7 @@ class DimServicesAdmin(admin.ModelAdmin):
         DimServicesNameInline,
         LinkResponsiblePersonInline,
         LinkServicesTableInline,
-        LinkGitInline,
-        SwaggerInline,
+        LinkLinkInline,
     ]
     autocomplete_fields = ('type',)
 
@@ -94,13 +85,13 @@ class LinkResponsiblePersonAdmin(admin.ModelAdmin):
     search_fields = (
         'service__alias',
         'role__name',
-        'name__username',
-        'name__first_name',
-        'name__last_name',
+        'name__user__username',
+        'name__user__first_name',
+        'name__user__last_name',
     )
     ordering = ('service',)
-    autocomplete_fields = ('role',)
-    raw_id_fields = ('service', 'name')
+    autocomplete_fields = ('service', 'role')
+    raw_id_fields = ('name',)
 
 
 @admin.register(LinkServicesTable)
@@ -109,7 +100,7 @@ class LinkServicesTableAdmin(admin.ModelAdmin):
     list_filter = ('service',)
     search_fields = ('service__alias', 'table__name')
     ordering = ('service',)
-    raw_id_fields = ('service', 'table')
+    autocomplete_fields = ('service', 'table')
 
 
 @admin.register(DimTechStack)
@@ -119,48 +110,36 @@ class DimTechStackAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
-@admin.register(LinkGit)
-class LinkGitAdmin(admin.ModelAdmin):
-    list_display = ('id', 'services', 'stack', 'name', 'link_name', 'link')
-    list_filter = ('services', 'stack')
-    search_fields = ('link_name', 'name__alias', 'services__alias')
+@admin.register(DimLink)
+class DimLinkAdmin(admin.ModelAdmin):
+    list_display = ('id', 'link_name', 'link', 'description')
+    search_fields = ('link_name', 'link', 'description')
     ordering = ('link_name',)
-    raw_id_fields = ('stack', 'name')
-    autocomplete_fields = ('services',)
 
 
-@admin.register(Swagger)
-class SwaggerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'service', 'swagger',)
-    list_filter = ('service',)
-    search_fields = ('service__alias', 'swagger',)
-    ordering = ('service',)
-    autocomplete_fields = ('service',)
-    list_select_related = ('service',)
+@admin.register(LinkLink)
+class LinkLinkAdmin(admin.ModelAdmin):
+    list_display = ('id', 'services', 'link', 'stage')
+    list_filter = ('services', 'stage')
+    search_fields = ('services__alias', 'link__link_name', 'stage__name')
+    ordering = ('services',)
+    autocomplete_fields = ('services', 'link', 'stage')
 
 
 @admin.register(LinkServicesServices)
 class LinkServicesServicesAdmin(admin.ModelAdmin):
     list_display = ('id', 'main', 'sub', 'created_at', 'updated_at')
     search_fields = (
-        'main__alias',                    # Поиск по алиасу основного сервиса
-        'main__dimservicesname__name',    # Поиск по имени основного сервиса
-        'main__description',              # Поиск по описанию основного сервиса
-        'sub__alias',                     # Поиск по алиасу подсервиса
-        'sub__dimservicesname__name',     # Поиск по имени подсервиса
-        'sub__description',               # Поиск по описанию подсервиса
+        'main__alias',
+        'main__dimservicesname__name',
+        'sub__alias',
+        'sub__dimservicesname__name',
     )
     list_filter = ('created_at', 'updated_at')
-    raw_id_fields = ('main', 'sub')  # Полезно, если много сервисов
-    autocomplete_fields = ('main', 'sub')  # Требует настройки search_fields в DimServicesAdmin
+    autocomplete_fields = ('main', 'sub')
 
-    # Для оптимизации запросов
     def get_queryset(self, request):
         return super().get_queryset(request).select_related(
             'main', 'main__type',
             'sub', 'sub__type'
-        ).prefetch_related(
-            'main__dimservicesname_set',
-            'sub__dimservicesname_set'
         )
-

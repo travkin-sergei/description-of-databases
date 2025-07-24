@@ -6,114 +6,68 @@
         <div class="row">
             <!-- Основная информация о сервисе -->
             <div class="col-lg-4">
-                <div class="card mb-4"
-                     style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h3 class="mb-0">{{ service.alias|default_if_none:"—" }}</h3>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex align-items-center mb-3"
-                             style="gap: 0.5rem;">
-                            <h5 class="mb-0"
-                                style="color: #1a1a1a;">Тип сервиса:</h5>
-                            <span class="badge"
-                                  style="background-color: #ffcc00; color: #1a1a1a; font-size: 14px;">
+                        <div class="d-flex align-items-center mb-3" style="gap: 0.5rem;">
+                            <h5 class="mb-0" style="color: #1a1a1a;">Тип сервиса:</h5>
+                            <span class="badge" style="background-color: #ffcc00; color: #1a1a1a; font-size: 14px;">
                                 {{ service.type.name|default_if_none:"—" }}
                             </span>
                         </div>
-                        <div class="d-flex align-items-center mb-3"
-                             style="gap: 0.5rem;">
-                            <h5 class="mb-0"
-                                style="color: #1a1a1a;">Статус:</h5>
-                            <span class="badge"
-                                  style="background-color: {% if service.is_active %}#28a745{% else %}#dc3545{% endif %}; color: white;font-size: 14px;">
-                                {% if service.is_active %}Активен{% else %}Неактивен{% endif %}
-                            </span>
-                        </div>
                     </div>
                 </div>
-                <!-- Swagger -->
+
+                {% if service.linklink_set.all %}
+                <!-- Ссылки -->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
                     <div class="card-header"
                          style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
-                        <h5 class="mb-0">Swagger</h5>
+                        <h5 class="mb-0">Ссылки</h5>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            {% for i_link in service.swagger_set.all %}
-                            <a href="{{ i_link.swagger }}"
-                               target="_blank"
-                               class="text-decoration-none d-inline-flex align-items-center"
-                               style="color: #1a1a1a; background-color: #f8f9fa; padding: 0.5rem 1rem; border-radius: 4px;">
-                                <i class="fab fa-github me-2"></i>
-                                {{ i_link.stage }}
-                            </a>
-                            {% empty %}
-                            <span style="color: #1a1a1a;">Swagger отсутствует.</span>
+                        <div class="d-flex flex-column gap-3">
+                            {% for link in service.linklink_set.all %}
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="color: #1a1a1a; font-weight: bold;">{{ forloop.counter }}.</span>
+                                <a href="{{ link.link.link }}"
+                                   target="_blank"
+                                   class="text-decoration-none d-inline-flex align-items-center flex-grow-1"
+                                   style="color: #1a1a1a; background-color: #f8f9fa; padding: 0.5rem 1rem; border-radius: 4px;">
+                                    <i class="fas fa-link me-2"></i>
+                                    {{ link.stage|default:"" }}  {{ link.stack }}
+                                </a>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
-                <!-- Репозитории -->
-                <div class="card mb-4"
-                     style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a;
-                          color: #ffcc00;
-                          border-bottom: 2px solid #ffcc00;">
-                        <h5 class="mb-0">Репозитории</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            {% for repo in service.git_services.all %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center"
-                                style="background-color: #f8f9fa;">
-                                <a href="{{ repo.link }}"
-                                   target="_blank"
-                                   class="text-decoration-none"
-                                   style="color: #1a1a1a;">
-                                    <i class="fab fa-github me-2"></i>
-                                    {{ repo.stack }} - {{ repo.link_name }}
-                                </a>
-                                <span class="badge"
-                                      style="background-color:
-                                      {% if repo.branch == 'main' %}#ffcc00{% else %}#6c757d{% endif %};
-                                       color: #1a1a1a;">
-                                    {{ repo.branch }}
-                                </span>
-                            </li>
-                            {% empty %}
-                            <li class="list-group-item" style="color: #1a1a1a;">Нет репозиториев</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
+                {% endif %}
+
+                {% if service.linkresponsibleperson_set.all %}
                 <!-- Контактные лица-->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h5 class="mb-0">Контактные лица</h5>
                     </div>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
-                            {% for i_person in service.linkresponsibleperson_set.all %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center"
-                                style="background-color: #f8f9fa;">
-                                {{ i_person.role }}:
-                                {{ i_person.name.user.first_name }}
-                                {{ i_person.name.user.last_name }}
-                                {{ i_person.name.user.email }}
+                            {% for person in service.linkresponsibleperson_set.all %}
+                            <li class="list-group-item" style="background-color: #f8f9fa;">
+                                {{ person.role }}: {{ person.name.user.get_full_name }} ({{ person.name.user.email }})
                             </li>
-                            {% empty %}
-                            <li class="list-group-item" style="color: #1a1a1a;">Контактные лица отсутствуют</li>
                             {% endfor %}
                         </ul>
                     </div>
                 </div>
+                {% endif %}
+
+                {% if as_main %}
+                <!-- Подчиненные сервисы -->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h5 class="mb-0">Подчиненные сервисы</h5>
                     </div>
                     <div class="card-body">
@@ -124,17 +78,16 @@
                                     {{ relation.sub.alias }} ({{ relation.sub.type.name }})
                                 </a>
                             </li>
-                            {% empty %}
-                            <li class="list-group-item">Нет подчиненных сервисов</li>
                             {% endfor %}
                         </ul>
                     </div>
                 </div>
+                {% endif %}
 
-                <!-- Parent services (where current service is a child) -->
+                {% if as_sub %}
+                <!-- Родительские сервисы -->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h5 class="mb-0">Родительские сервисы</h5>
                     </div>
                     <div class="card-body">
@@ -145,49 +98,29 @@
                                     {{ relation.main.alias }} ({{ relation.main.type.name }})
                                 </a>
                             </li>
-                            {% empty %}
-                            <li class="list-group-item">Нет родительских сервисов</li>
                             {% endfor %}
                         </ul>
                     </div>
                 </div>
-                <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
-                        <h5 class="mb-0">Синонимы сервиса</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            {% for name in service.dimservicesname_set.all %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center"
-                                style="background-color: #f8f9fa;">
-                                {{ name.name }}:
-                            </li>
-                            {% empty %}
-                            <li class="list-group-item" style="color: #1a1a1a;">Нет синонимов сервиса</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
+                {% endif %}
             </div>
-            <!-- Репозитории -->
+
+            <!-- Основной контент -->
             <div class="col-lg-8">
+                <!-- Описание сервиса -->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h4 class="mb-0">Описание сервиса:</h4>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ service.description|default_if_none:"—" }}
-                            </div>
-                        </div>
+                        {{ service.description|default_if_none:"—" }}
                     </div>
                 </div>
+
+                <!-- Таблицы сервиса -->
+                {% if tables_page_obj %}
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a;color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h4 class="mb-0">Таблицы сервиса</h4>
                     </div>
                     <div class="card-body">
@@ -195,44 +128,36 @@
                             {% include 'inc/_paginator.html' %}
                             <table class="table table-striped table-hover">
                                 <thead>
-                                <tr>
-                                    <th style="color: #1a1a1a;">Название таблицы</th>
-                                    <th style="color: #1a1a1a;">Описание</th>
-                                </tr>
+                                    <tr>
+                                        <th>Название таблицы</th>
+                                        <th>Описание</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {% for table_link in tables_page_obj %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'my_dbm:tables-detail' pk=table_link.table.pk %}">
-                                            {% if table_link.table.schema %}
-                                            {{ table_link.table.schema }}.
-                                            {% endif %}
-                                            {{ table_link.table.name }}
-                                        </a>
-                                    </td>
-                                    <td style="color: #1a1a1a;">
-                                        {{ table_link.table.description|default:"Нет описания" }}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="2" style="color: #1a1a1a;">Нет связанных таблиц</td>
-                                </tr>
-                                {% endfor %}
+                                    {% for table_link in tables_page_obj %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'my_dbm:tables-detail' pk=table_link.table.pk %}">
+                                                {% if table_link.table.schema %}
+                                                {{ table_link.table.schema }}.
+                                                {% endif %}
+                                                {{ table_link.table.name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ table_link.table.description|default:"Нет описания" }}</td>
+                                    </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Back Button -->
-                        <div class="col-12 mb-3 text-end">
+                        <div class="text-end mt-3">
                             <a href="{% url 'my_services:services' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Назад
                             </a>
-
-
                         </div>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

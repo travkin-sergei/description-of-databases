@@ -79,42 +79,51 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return super().get_queryset().prefetch_related(
-            'dimservicesname_set',
-            'linkresponsibleperson_set',
-            'git_services',
-            'swagger_set',
-            'linkservicestable_set__table',
-            # Используем заданные related_name
-            'my_main__sub',  # Для связи, где текущий сервис является main
-            'my_sub__main'  # Для связи, где текущий сервис является sub
+            'dimservicesname_set',  # Синонимы сервиса
+            'linkresponsibleperson_set__name',  # Ответственные лица с профилями
+            'linkresponsibleperson_set__role',  # Ответственные лица с ролями
+            'linkservicestable_set__table',  # Таблицы сервиса
+            'linklink_set__link',  # Ссылки на репозитории
+            'linklink_set__stage',  # Стадии для ссылок
+            # Связи между сервисами
+            'my_main__sub',  # Где текущий сервис главный
+            'my_sub__main'   # Где текущий сервис подчиненный
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Существующая логика для таблиц и swagger
+        # Пагинация для таблиц
         tables = self.object.linkservicestable_set.select_related('table').all()
         paginator = Paginator(tables, self.paginate_by)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
+        # Фильтрация ссылок по stage_id
         stage_id = self.request.GET.get('stage_id')
-        swagger_queryset = self.object.swagger_set.all()
+        links_queryset = self.object.linklink_set.select_related('link', 'stage').filter(is_active=True)
         if stage_id:
-            swagger_queryset = swagger_queryset.filter(stage_id=stage_id)
+            links_queryset = links_queryset.filter(stage_id=stage_id)
 
-        # Получаем связанные сервисы через заданные related_name
+        # Получаем связанные сервисы
         as_main = self.object.my_main.all().select_related('sub')
         as_sub = self.object.my_sub.all().select_related('main')
+
+        # Ответственные лица с дополнительной информацией
+        responsible_persons = self.object.linkresponsibleperson_set.select_related(
+            'name', 'role'
+        ).filter(is_active=True)
 
         context.update({
             'page_obj': page_obj,
             'paginator': paginator,
             'is_paginated': page_obj.has_other_pages(),
             'tables_page_obj': page_obj,
-            'filtered_swagger': swagger_queryset,
+            'links': links_queryset,  # Переименовано с swagger на links
             'current_stage_id': stage_id,
-            'as_main': as_main,  # Где текущий сервис главный
-            'as_sub': as_sub,  # Где текущий сервис подчиненный
+            'as_main': as_main,
+            'as_sub': as_sub,
+            'responsible_persons': responsible_persons,
+            'all_names': self.object.all_names,  # Используем property из модели
         })
         return context

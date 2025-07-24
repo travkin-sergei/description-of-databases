@@ -155,42 +155,39 @@ class DimTechStack(BaseClass):
         verbose_name_plural = '06 Технологии.'
 
 
-class Swagger(BaseClass):
-    """Swagger."""
-
-    service = models.ForeignKey(DimServices, on_delete=models.PROTECT)
-    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT)
-    swagger = models.URLField()
-
-    def __str__(self):
-        return f'{self.service}-{self.swagger}'
-
-    class Meta:
-        db_table = f'{db_schema}\".\"link_swagger'
-        unique_together = [
-            ['service', 'swagger', ]
-        ]
-        verbose_name = '07 swagger.'
-        verbose_name_plural = '07 swagger.'
-
-
-class LinkGit(BaseClass):
+class DimLink(BaseClass):
     """Ссылка на git репозиторий."""
 
-    services = models.ForeignKey(DimServices, on_delete=models.PROTECT, related_name='git_services')
-    stack = models.ForeignKey(DimTechStack, on_delete=models.PROTECT)
-    name = models.ForeignKey(DimServices, on_delete=models.PROTECT, related_name='git_names')
-    link_name = models.CharField(max_length=255)
     link = models.URLField(blank=True, null=True)
+    link_name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.services}-{self.name}'
+        return f'{self.link}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_link_git'
+        db_table = f'{db_schema}\".\"dim_link'
         unique_together = [
-            ['name', ]
+            ['link', ]
         ]
         verbose_name = '08 ссылки на репозиторий.'
         verbose_name_plural = '08 ссылки на репозиторий.'
+
+
+class LinkLink(BaseClass):
+    """Ссылки."""
+    services = models.ForeignKey(DimServices, on_delete=models.PROTECT)
+    link = models.ForeignKey(DimLink, on_delete=models.PROTECT)
+    stack = models.ForeignKey(DimTechStack, on_delete=models.PROTECT, blank=True, null=True)
+    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.link}-{self.stage}'
+
+    class Meta:
+        db_table = f'{db_schema}\".\"link_services_link_stack'
+        unique_together = [
+            ['services', 'link', 'stack', 'stage']
+        ]
+        verbose_name = '09 сlink_services_link_stack.'
+        verbose_name_plural = '09 link_services_link_stack'
