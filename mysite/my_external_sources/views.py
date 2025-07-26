@@ -9,6 +9,7 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import TemplateView
 from requests import Timeout, HTTPError, RequestException
+from django.conf import settings
 
 env = environ.Env()
 environ.Env.read_env('.env')
@@ -37,7 +38,8 @@ class ListOfReferencesView(LoginRequiredMixin, View):
     """Представление для отображения списка ссылок из локального JSON-файла"""
 
     def get(self, request):
-        file_path = os.path.join(os.path.dirname(__file__), 'jsonExSources', 'ListOfReferences.json')
+
+        file_path = os.path.join(settings.BASE_DIR, 'my_external_sources', 'jsonExSources', 'ListOfReferences.json')
 
         try:
             with open(file_path, 'r', encoding='utf-8') as file:

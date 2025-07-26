@@ -20,6 +20,10 @@ class MyProfile(models.Model):
         default=False,
         verbose_name="Активирован администратором"
     )
+    link_profile = models.URLField(
+        null=True, blank=True,
+        verbose_name="ссылка на профиль во внешней системе."
+    )
 
     def __str__(self):
         return f"Профиль {self.user.username}"  # Исправленный метод

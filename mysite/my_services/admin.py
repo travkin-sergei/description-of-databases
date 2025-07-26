@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
@@ -8,16 +9,19 @@ from .models import (
 
 # ——————— Inlines ———————
 
+
+
+
 class DimServicesNameInline(admin.TabularInline):
     model = DimServicesName
-    extra = 1
+    extra = 0
     fields = ('name',)
     show_change_link = True
 
 
 class LinkResponsiblePersonInline(admin.TabularInline):
     model = LinkResponsiblePerson
-    extra = 1
+    extra = 0
     fields = ('role', 'name')
     show_change_link = True
     raw_id_fields = ('name',)
@@ -25,7 +29,7 @@ class LinkResponsiblePersonInline(admin.TabularInline):
 
 class LinkServicesTableInline(admin.TabularInline):
     model = LinkServicesTable
-    extra = 1
+    extra = 0
     fields = ('table',)
     show_change_link = True
     raw_id_fields = ('table',)
@@ -33,21 +37,19 @@ class LinkServicesTableInline(admin.TabularInline):
 
 class LinkLinkInline(admin.TabularInline):
     model = LinkLink
-    extra = 1
-    fields = ('link', 'stage')
+    extra = 0
+    fields = ('link', 'stage')  # Укажите поля, которые хотите отобразить
     show_change_link = True
     raw_id_fields = ('link', 'stage')
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        # Убедитесь, что все поля DimLink отображаются
+        formset.form.base_fields['link'].queryset = DimLink.objects.all()
+        return formset
+
 
 # ——————— ModelAdmins ———————
-
-@admin.register(DimServicesTypes)
-class DimServicesTypesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-    search_fields = ('name',)
-    ordering = ('name',)
-
-
 @admin.register(DimServices)
 class DimServicesAdmin(admin.ModelAdmin):
     list_display = ('id', 'alias', 'type', 'description')
@@ -61,6 +63,13 @@ class DimServicesAdmin(admin.ModelAdmin):
         LinkLinkInline,
     ]
     autocomplete_fields = ('type',)
+
+
+@admin.register(DimServicesTypes)
+class DimServicesTypesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
+    ordering = ('name',)
 
 
 @admin.register(DimServicesName)
@@ -112,7 +121,7 @@ class DimTechStackAdmin(admin.ModelAdmin):
 
 @admin.register(DimLink)
 class DimLinkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'link_name', 'link', 'description')
+    list_display = ('link_name', 'stack', 'link',)
     search_fields = ('link_name', 'link', 'description')
     ordering = ('link_name',)
 

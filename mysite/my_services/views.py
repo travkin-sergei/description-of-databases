@@ -87,7 +87,7 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
             'linklink_set__stage',  # Стадии для ссылок
             # Связи между сервисами
             'my_main__sub',  # Где текущий сервис главный
-            'my_sub__main'   # Где текущий сервис подчиненный
+            'my_sub__main'  # Где текущий сервис подчиненный
         )
 
     def get_context_data(self, **kwargs):
@@ -101,7 +101,11 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
 
         # Фильтрация ссылок по stage_id
         stage_id = self.request.GET.get('stage_id')
-        links_queryset = self.object.linklink_set.select_related('link', 'stage').filter(is_active=True)
+        links_queryset = self.object.linklink_set.select_related('link', 'stage', 'link__stack').filter(is_active=True)
+
+        # Order by stack and then by stage
+        links_queryset = links_queryset.order_by('link__stack', 'stage')
+
         if stage_id:
             links_queryset = links_queryset.filter(stage_id=stage_id)
 
@@ -113,8 +117,7 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
         responsible_persons = self.object.linkresponsibleperson_set.select_related(
             'name', 'role'
         ).filter(is_active=True)
-
-        context.update({
+        info = {
             'page_obj': page_obj,
             'paginator': paginator,
             'is_paginated': page_obj.has_other_pages(),
@@ -125,5 +128,6 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
             'as_sub': as_sub,
             'responsible_persons': responsible_persons,
             'all_names': self.object.all_names,  # Используем property из модели
-        })
+        }
+        context.update(info)
         return context

@@ -53,7 +53,8 @@ class DimServices(BaseClass):
 
 
 class LinkServicesServices(BaseClass):
-    """"""
+    """Связи сервисов между собой."""
+
     main = models.ForeignKey(DimServices, on_delete=models.PROTECT, related_name='my_main')
     sub = models.ForeignKey(DimServices, on_delete=models.PROTECT, related_name='my_sub')
 
@@ -105,6 +106,8 @@ class DimRoles(BaseClass):
 
 
 class LinkResponsiblePerson(BaseClass):
+    """Связи сервисов и профилей пользователей с указанием ролевых моделей."""
+
     service = models.ForeignKey(DimServices, on_delete=models.PROTECT)
     role = models.ForeignKey(DimRoles, on_delete=models.PROTECT)
     name = models.ForeignKey(MyProfile, on_delete=models.PROTECT)
@@ -160,6 +163,7 @@ class DimLink(BaseClass):
 
     link = models.URLField(blank=True, null=True)
     link_name = models.CharField(max_length=255)
+    stack = models.ForeignKey(DimTechStack, on_delete=models.PROTECT, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -176,9 +180,9 @@ class DimLink(BaseClass):
 
 class LinkLink(BaseClass):
     """Ссылки."""
+
     services = models.ForeignKey(DimServices, on_delete=models.PROTECT)
     link = models.ForeignKey(DimLink, on_delete=models.PROTECT)
-    stack = models.ForeignKey(DimTechStack, on_delete=models.PROTECT, blank=True, null=True)
     stage = models.ForeignKey(DimStage, on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
@@ -187,7 +191,7 @@ class LinkLink(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"link_services_link_stack'
         unique_together = [
-            ['services', 'link', 'stack', 'stage']
+            ['services', 'link', 'stage']
         ]
         verbose_name = '09 сlink_services_link_stack.'
         verbose_name_plural = '09 link_services_link_stack'

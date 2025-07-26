@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ service.alias|default_if_none:"—" }}{% endblock title %}
+{% block title %}{{ service.alias|default:"—" }}{% endblock title %}
 {% block body %}
 <section style="background-color: #f8f9fa;">
     <div class="container py-5">
@@ -8,36 +8,34 @@
             <div class="col-lg-4">
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
                     <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
-                        <h3 class="mb-0">{{ service.alias|default_if_none:"—" }}</h3>
+                        <h3 class="mb-0">{{ service.alias|default:"—" }}</h3>
                     </div>
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3" style="gap: 0.5rem;">
                             <h5 class="mb-0" style="color: #1a1a1a;">Тип сервиса:</h5>
                             <span class="badge" style="background-color: #ffcc00; color: #1a1a1a; font-size: 14px;">
-                                {{ service.type.name|default_if_none:"—" }}
+                                {{ service.type.name|default:"—" }}
                             </span>
                         </div>
                     </div>
                 </div>
-
-                {% if service.linklink_set.all %}
+                {% with links=service.linklink_set.all %}
+                {% if links %}
                 <!-- Ссылки -->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
                         <h5 class="mb-0">Ссылки</h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex flex-column gap-3">
-                            {% for link in service.linklink_set.all %}
+                            {% for link in links %}
                             <div class="d-flex align-items-center gap-2">
                                 <span style="color: #1a1a1a; font-weight: bold;">{{ forloop.counter }}.</span>
-                                <a href="{{ link.link.link }}"
-                                   target="_blank"
+                                <a href="{{ link.link.link }}" target="_blank"
                                    class="text-decoration-none d-inline-flex align-items-center flex-grow-1"
                                    style="color: #1a1a1a; background-color: #f8f9fa; padding: 0.5rem 1rem; border-radius: 4px;">
                                     <i class="fas fa-link me-2"></i>
-                                    {{ link.stage|default:"" }}  {{ link.stack }}
+                                    {{ link.link.stack|default:"" }} {{ link.stage|default:"" }}
                                 </a>
                             </div>
                             {% endfor %}
@@ -45,7 +43,7 @@
                     </div>
                 </div>
                 {% endif %}
-
+                {% endwith %}
                 {% if service.linkresponsibleperson_set.all %}
                 <!-- Контактные лица-->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
@@ -104,7 +102,6 @@
                 </div>
                 {% endif %}
             </div>
-
             <!-- Основной контент -->
             <div class="col-lg-8">
                 <!-- Описание сервиса -->
@@ -113,7 +110,7 @@
                         <h4 class="mb-0">Описание сервиса:</h4>
                     </div>
                     <div class="card-body">
-                        {{ service.description|default_if_none:"—" }}
+                        {{ service.description|default:"—" }}
                     </div>
                 </div>
 
