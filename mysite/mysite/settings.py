@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     , 'my_request'  # специализированные запросы
     , 'my_updates'  # обновления
     , 'my_upload'  # загрузка данных
+    , 'my_dictionary'  # словарь
 ]
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',

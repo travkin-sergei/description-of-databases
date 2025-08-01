@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock title %}
+{% block title %}Словарь данных{% endblock title %}
 {% block body %}
 <style>
     .table-black-yellow {
@@ -70,7 +70,7 @@
         {% include 'inc/_paginator.html' %}
         <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
-                <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Список таблиц</h5>
+                <h5 class="mb-0"><i class="fas fa-book mr-2"></i>Словарь данных</h5>
             </div>
             <div class="card-body p-0">
                 <form method="GET">
@@ -78,61 +78,49 @@
                         <thead>
                         <tr>
                             <th width="5%" class="text-center">№</th>
-                            <th>table_catalog</th>
-                            <th>schema</th>
-                            <th>table_name</th>
-                            <th width="5%">is_active</th>
-                            <th width="10%">is_metadata</th>
+                            <th>Название</th>
+                            <th>Категория</th>
+                            <th>Описание</th>
+                            <th width="10%">Статус</th>
                         </tr>
                         <tr style="background-color: #f8f9fa;">
                             <td></td>
                             <td>
                                 <input type="text"
-                                       name="table_catalog"
+                                       name="name"
                                        class="form-control form-control-dark"
-                                       placeholder="Поиск баз данных..."
-                                       value="{{ request.GET.table_catalog }}">
+                                       placeholder="Поиск по названию..."
+                                       value="{{ request.GET.name }}">
+                            </td>
+                            <td>
+                                <select name="category" class="form-control form-control-dark">
+                                    <option value="">Все категории</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}"
+                                            {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
                             </td>
                             <td>
                                 <input type="text"
-                                       name="schema"
+                                       name="description"
                                        class="form-control form-control-dark"
-                                       placeholder="Поиск схем..."
-                                       value="{{ request.GET.schema }}">
-                            </td>
-                            <td>
-                                <input type="text"
-                                       name="table_name"
-                                       class="form-control form-control-dark"
-                                       placeholder="Поиск таблиц..."
-                                       value="{{ request.GET.table_name }}">
+                                       placeholder="Поиск по описанию..."
+                                       value="{{ request.GET.description }}">
                             </td>
                             <td>
                                 <div class="d-flex">
                                     <select name="is_active" class="form-control form-control-dark mr-2">
-                                        <option value="">is_active</option>
+                                        <option value="">Все</option>
                                         <option value="true"
                                                 {% if request.GET.is_active == 'true' %}selected{% endif %}>
-                                        Активные
+                                            Активные
                                         </option>
                                         <option value="false"
                                                 {% if request.GET.is_active == 'false' %}selected{% endif %}>
-                                        Неактивные
-                                        </option>
-                                    </select>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex">
-                                    <select name="is_metadata" class="form-control form-control-dark mr-2">
-                                        <option value="">is_metadata</option>
-                                        <option value="true"
-                                                {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
-                                        Активные
-                                        </option>
-                                        <option value="false"
-                                                {% if request.GET.is_metadata == 'false' %}selected{% endif %}>
-                                        Неактивные
+                                            Неактивные
                                         </option>
                                     </select>
                                     <button type="submit" class="btn btn-gold">
@@ -143,41 +131,31 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for elem in tables %}
-                        {% with detail_url='my_dbm:tables-detail' pk=elem.pk %}
+                        {% for elem in results %}
                         <tr>
                             <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                             <td>
-                                <a href="{% url detail_url pk=pk %}">
-                                    {{ elem.schema.base.name|default_if_none:"—" }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="{% url detail_url pk=pk %}">
-                                    {{ elem.schema.schema|default_if_none:"—" }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="{% url detail_url pk=pk %}">
+                                <a href="{% url 'my_dictionary:dictionary-detail' pk=elem.pk %}">
                                     {{ elem.name|default_if_none:"—" }}
                                 </a>
-                                <span class="float-end">{{ elem.type|default_if_none:"—" }}</span>
                             </td>
-                            <td class="text-center">
-                                    <span class="badge badge-yellow">
-                                        {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
-                                    </span>
+                            <td>
+                                <a href="{% url 'my_dictionary:dictionary-detail' pk=elem.pk %}">
+                                    {{ elem.category.name|default_if_none:"—" }}
+                                </a>
+                            </td>
+                            <td>
+                                {{ elem.description|truncatechars:50|default_if_none:"—" }}
                             </td>
                             <td class="text-center">
                                 <span class="badge badge-yellow">
-                                    {% if elem.is_metadata %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
+                                    {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
                                 </span>
                             </td>
                         </tr>
-                        {% endwith %}
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Нет доступных таблиц</td>
+                            <td colspan="5" class="text-center text-muted py-4">Нет данных по вашему запросу</td>
                         </tr>
                         {% endfor %}
                         </tbody>

@@ -1,17 +1,12 @@
 from django.contrib import admin
-
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
-    DimTechStack, DimLink, LinkLink, LinkServicesServices
+    DimTechStack, DimLink, LinkServicesServices
 )
 
 
 # ——————— Inlines ———————
-
-
-
-
 class DimServicesNameInline(admin.TabularInline):
     model = DimServicesName
     extra = 0
@@ -36,20 +31,23 @@ class LinkServicesTableInline(admin.TabularInline):
 
 
 class LinkLinkInline(admin.TabularInline):
-    model = LinkLink
+    model = DimLink
     extra = 0
-    fields = ('link', 'stage')  # Укажите поля, которые хотите отобразить
+    fields = ('link', 'link_name', 'stack', 'stage', 'description')
     show_change_link = True
-    raw_id_fields = ('link', 'stage')
-
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        # Убедитесь, что все поля DimLink отображаются
-        formset.form.base_fields['link'].queryset = DimLink.objects.all()
-        return formset
+    #raw_id_fields = ('link',)
 
 
 # ——————— ModelAdmins ———————
+
+
+@admin.register(DimServicesTypes)
+class DimServicesTypesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
+    ordering = ('name',)
+
+
 @admin.register(DimServices)
 class DimServicesAdmin(admin.ModelAdmin):
     list_display = ('id', 'alias', 'type', 'description')
@@ -63,13 +61,6 @@ class DimServicesAdmin(admin.ModelAdmin):
         LinkLinkInline,
     ]
     autocomplete_fields = ('type',)
-
-
-@admin.register(DimServicesTypes)
-class DimServicesTypesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-    search_fields = ('name',)
-    ordering = ('name',)
 
 
 @admin.register(DimServicesName)
@@ -121,30 +112,30 @@ class DimTechStackAdmin(admin.ModelAdmin):
 
 @admin.register(DimLink)
 class DimLinkAdmin(admin.ModelAdmin):
-    list_display = ('link_name', 'stack', 'link',)
+    list_display = ('id', 'link_name', 'stack', 'link')
     search_fields = ('link_name', 'link', 'description')
     ordering = ('link_name',)
+    list_filter = ('stack',)
 
 
-@admin.register(LinkLink)
-class LinkLinkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'services', 'link', 'stage')
-    list_filter = ('services', 'stage')
-    search_fields = ('services__alias', 'link__link_name', 'stage__name')
-    ordering = ('services',)
-    autocomplete_fields = ('services', 'link', 'stage')
+# @admin.register(LinkLink)
+# class LinkLinkAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'services', 'link')
+#     list_filter = ('services',)
+#     search_fields = ('services__alias', 'link__link_name')
+#     ordering = ('services',)
+#     autocomplete_fields = ('services', 'link')
 
 
 @admin.register(LinkServicesServices)
 class LinkServicesServicesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'main', 'sub', 'created_at', 'updated_at')
+    list_display = ('id', 'main', 'sub')
     search_fields = (
         'main__alias',
         'main__dimservicesname__name',
         'sub__alias',
         'sub__dimservicesname__name',
     )
-    list_filter = ('created_at', 'updated_at')
     autocomplete_fields = ('main', 'sub')
 
     def get_queryset(self, request):

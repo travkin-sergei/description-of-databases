@@ -69,9 +69,9 @@ class ServicesView(LoginRequiredMixin, FilterView):  # Using FilterView instead 
         return context
 
 
-class ServicesDetailView(LoginRequiredMixin, DetailView):
-    """Детализация сервисов."""
+from collections import defaultdict
 
+class ServicesDetailView(LoginRequiredMixin, DetailView):
     model = DimServices
     context_object_name = 'service'
     template_name = 'my_services/services-detail.html'
@@ -79,55 +79,48 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return super().get_queryset().prefetch_related(
-            'dimservicesname_set',  # Синонимы сервиса
-            'linkresponsibleperson_set__name',  # Ответственные лица с профилями
-            'linkresponsibleperson_set__role',  # Ответственные лица с ролями
-            'linkservicestable_set__table',  # Таблицы сервиса
-            'linklink_set__link',  # Ссылки на репозитории
-            'linklink_set__stage',  # Стадии для ссылок
-            # Связи между сервисами
-            'my_main__sub',  # Где текущий сервис главный
-            'my_sub__main'  # Где текущий сервис подчиненный
+            'dimservicesname_set',
+            'linkresponsibleperson_set__name',
+            'linkresponsibleperson_set__role',
+            'linkservicestable_set__table',
+            'dimlink_set__stack',
+            'dimlink_set__stage',
+            'my_main__sub',
+            'my_sub__main',
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Пагинация для таблиц
         tables = self.object.linkservicestable_set.select_related('table').all()
         paginator = Paginator(tables, self.paginate_by)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        # Фильтрация ссылок по stage_id
-        stage_id = self.request.GET.get('stage_id')
-        links_queryset = self.object.linklink_set.select_related('link', 'stage', 'link__stack').filter(is_active=True)
+        links_queryset = self.object.dimlink_set.select_related('stack', 'stage').filter(is_active=True)
 
-        # Order by stack and then by stage
-        links_queryset = links_queryset.order_by('link__stack', 'stage')
+        # 🔸 Группировка ссылок по технологии
+        grouped_links = defaultdict(list)
+        for link in links_queryset:
+            key = link.stack.name if link.stack else "Без технологии"
+            grouped_links[key].append(link)
 
-        if stage_id:
-            links_queryset = links_queryset.filter(stage_id=stage_id)
-
-        # Получаем связанные сервисы
         as_main = self.object.my_main.all().select_related('sub')
         as_sub = self.object.my_sub.all().select_related('main')
 
-        # Ответственные лица с дополнительной информацией
         responsible_persons = self.object.linkresponsibleperson_set.select_related(
             'name', 'role'
         ).filter(is_active=True)
-        info = {
-            'page_obj': page_obj,
+
+        context.update({
+            'tables_page_obj': page_obj,
             'paginator': paginator,
             'is_paginated': page_obj.has_other_pages(),
-            'tables_page_obj': page_obj,
-            'links': links_queryset,  # Переименовано с swagger на links
-            'current_stage_id': stage_id,
+            'grouped_links': dict(grouped_links),
             'as_main': as_main,
             'as_sub': as_sub,
             'responsible_persons': responsible_persons,
-            'all_names': self.object.all_names,  # Используем property из модели
-        }
-        context.update(info)
+            'all_names': self.object.all_names,
+        })
         return context
+
