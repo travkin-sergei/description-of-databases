@@ -50,3 +50,23 @@ class DimDictionary(BaseClass):
         unique_together = [["name", "category"]]
         verbose_name = '02 Словарь.'
         verbose_name_plural = '02 Словарь.'
+
+
+class LinkDictionaryName(BaseClass):
+    """Синонимы названий слов."""
+
+    name = models.ForeignKey(
+        DimDictionary,
+        on_delete=models.PROTECT,
+        related_name="synonyms"
+    )
+    synonym = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f'{self.name}-{self.synonym}'
+
+    class Meta:
+        db_table = f'{db_schema}\".\"link_dictionary_synonym'
+        unique_together = [['name', 'synonym', ]]
+        verbose_name = '03 Связь столбцов и синонимом.'
+        verbose_name_plural = '03 Связь столбцов и синонимов.'

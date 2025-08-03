@@ -1,9 +1,9 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
+from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView
-from .models import DimCategory
-from .models import DimDictionary
+from .models import DimCategory, DimDictionary
 
 
 class PageNotFoundView(LoginRequiredMixin, View):
@@ -35,8 +35,12 @@ class DictionaryView(ListView):
         queryset = super().get_queryset()
         params = self.request.GET
 
-        if name := params.get('name'):
-            queryset = queryset.filter(name__icontains=name)
+        # Поиск по name (DimDictionary) и synonym (LinkDictionaryName)
+        if search_query := params.get('name'):
+            queryset = queryset.filter(
+                Q(name__icontains=search_query) |
+                Q(synonyms__synonym__icontains=search_query)
+            ).distinct()  # Убираем дубликаты
 
         if category_id := params.get('category'):
             queryset = queryset.filter(category_id=category_id)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import DimCategory, DimDictionary
+from .models import DimCategory, DimDictionary, LinkDictionaryName
 
 
 @admin.register(DimCategory)
@@ -14,6 +14,15 @@ class DimCategoryAdmin(admin.ModelAdmin):
     list_per_page = 20
 
 
+class LinkDictionaryNameInline(admin.TabularInline):
+    """Inline-форма для синонимов словаря."""
+    model = LinkDictionaryName
+    extra = 1  # Количество пустых форм по умолчанию
+    fields = ('synonym',)
+    verbose_name = 'Синоним'
+    verbose_name_plural = 'Синонимы'
+
+
 @admin.register(DimDictionary)
 class DimDictionaryAdmin(admin.ModelAdmin):
     """Конфигурация администратора для модели DimDictionary."""
@@ -26,13 +35,13 @@ class DimDictionaryAdmin(admin.ModelAdmin):
     list_per_page = 20
     raw_id_fields = ('category',)
     autocomplete_fields = ('category',)
+    inlines = [LinkDictionaryNameInline]  # Вставка синонимов
 
-    # If you want to show description in the admin form
     fieldsets = (
         (None, {
             'fields': ('name', 'category', 'is_active')
         }),
-        ('Advanced options', {
+        ('Дополнительные параметры', {
             'classes': ('collapse',),
             'fields': ('description',),
         }),
