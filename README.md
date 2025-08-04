@@ -1,8 +1,8 @@
 # Программа для хранения информации о состоянии баз данных
 
 ## Технологии:
-+ PostgreSQL 11.20 
-+ Django 4.1 (т.к. PostgreSQL 11.20)
++ PostgreSQL 13 и выше
++ Django 5.1.2
 + django-filter - фильтрация данных на фронте
 + подробнее смотри requirements.txt
 
