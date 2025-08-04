@@ -1,19 +1,12 @@
 import json
 import os
-from msilib.schema import Patch
 
-import environ
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
 from django.views import View
 from django.views.generic import TemplateView
-from requests import Timeout, HTTPError, RequestException
 from django.conf import settings
-
-env = environ.Env()
-environ.Env.read_env('.env')
-
 
 class PageNotFoundView(LoginRequiredMixin, View):
     """Обработка 404 ошибки отсутствия страницы"""
@@ -38,18 +31,17 @@ class ListOfReferencesView(LoginRequiredMixin, View):
     """Представление для отображения списка ссылок из локального JSON-файла"""
 
     def get(self, request):
-
-        file_path = os.path.join(settings.BASE_DIR, 'my_external_sources', 'jsonExSources', 'ListOfReferences.json')
-
+        # Используем BASE_DIR для указания пути к JSON-файлу
+        file_path = os.path.join('my_external_sources', 'jsonExSources', 'ListOfReferences.json')
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)  # Читаем JSON из файла
                 results = data.get('results', [])
         except (FileNotFoundError, json.JSONDecodeError) as e:
             results = []  # Обработка ошибок: файл не найден или невалидный JSON
-
         return render(
             request,
             'my_external_sources/ListOfReferences.html',
             {'results': results}
         )
+

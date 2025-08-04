@@ -103,6 +103,7 @@
                         <tr>
                             <th scope="col" width="5%" class="text-center">№</th>
                             <th scope="col">Название</th>
+                            <th scope="col">Описание</th>
                             <th scope="col">Тип ссылки</th>
                             <th scope="col" width="15%">Слой</th>
                         </tr>
@@ -114,6 +115,13 @@
                                        class="form-control form-control-dark"
                                        placeholder="Поиск по названию"
                                        value="{{ filter.form.link_name.value|default_if_none:'' }}">
+                            </td>
+                            <td>
+                                <input type="text"
+                                       name="description"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск по описанию"
+                                       value="{{ filter.form.description.value|default_if_none:'' }}">
                             </td>
                             <td>
                                 <select name="stack" class="form-control form-control-dark">
@@ -131,7 +139,7 @@
                             <td>
                                 <div class="filter-buttons">
                                     <select name="stage" class="form-control form-control-dark">
-                                        <option value="">Все стадии</option>
+                                        <option value="">Все стенды</option>
                                         {% for stage in stages %}
                                         <option value="{{ stage.id }}"
                                                 {% if filter.form.stage.value == stage.id|stringformat:"s" %}
@@ -164,6 +172,8 @@
                                     <i class="fas fa-tag text-yellow mr-2"></i>
                                     {{ link.link_name|default_if_none:"Без названия" }}
                                 </a>
+                            </td>
+                            <td>
                                 {% if link.description %}
                                 <div class="text-muted small mt-1">
                                     {{ link.description|truncatechars:60 }}

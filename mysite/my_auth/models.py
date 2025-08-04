@@ -22,7 +22,7 @@ class MyProfile(models.Model):
     )
     link_profile = models.URLField(
         null=True, blank=True,
-        verbose_name="ссылка на профиль во внешней системе."
+        verbose_name="ссылка на профиль"
     )
 
     def __str__(self):

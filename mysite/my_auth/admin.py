@@ -1,34 +1,42 @@
+# admin.py
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
-from django.utils.timezone import now, timedelta
+from django.contrib.auth.models import User
 from .models import MyProfile
+
 
 class MyProfileInline(admin.StackedInline):
     model = MyProfile
     can_delete = False
-    verbose_name_plural = 'Дополнительная информация'
-    fields = ('phone', 'is_approved')
+    verbose_name_plural = 'Профили'
+    fk_name = 'user'
+    fields = 'phone', 'is_approved',
+
 
 class CustomUserAdmin(UserAdmin):
     inlines = [MyProfileInline]
-    list_display = UserAdmin.list_display + ('last_login',)
 
-class UserStatsAdmin(admin.ModelAdmin):
-    change_list_template = 'admin/user_stats.html'
 
-    def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        extra_context.update({
-            'total_users': User.objects.count(),
-            'logged_in_today': User.objects.filter(
-                last_login__gte=now() - timedelta(days=1)
-            ).count()
-        })
-        return super().changelist_view(request, extra_context)
+# Регистрируем UserAdmin с MyProfileInline
+admin.site.unregister(User)  # Сначала удаляем стандартный UserAdmin
+admin.site.register(User, CustomUserAdmin)  # Затем регистрируем с кастомным UserAdmin
 
-# Регистрация моделей
-admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)  # Основная регистрация
-admin.site.register(MyProfile)  # Отдельная регистрация профиля
 
+# Убираем дублирование регистрации
+@admin.register(MyProfile)
+class MyProfileAdmin(admin.ModelAdmin):
+    list_display = 'user', 'phone', 'is_approved',
+    list_filter = 'is_approved',
+    search_fields = 'user__username', 'phone',
+    actions = ['approve_profiles', 'disapprove_profiles']
+
+
+    def approve_profiles(self, request, queryset):
+        queryset.update(is_approved=True)
+
+    approve_profiles.short_description = "Одобрить выбранные профили"
+
+    def disapprove_profiles(self, request, queryset):
+        queryset.update(is_approved=False)
+
+    disapprove_profiles.short_description = "Отклонить выбранные профили"

@@ -148,7 +148,7 @@
                     {% for elem in databases %}
                     <tr>
                         <th scope="row" class="text-center">
-                            {{ start_index|add:forloop.counter0 }}
+                            {{ page_obj.start_index|add:forloop.counter0 }}
                         </th>
                         <td>
                             <a href="#"

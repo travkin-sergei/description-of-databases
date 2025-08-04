@@ -46,6 +46,12 @@ class DimUpdateMethodView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['filterset'] = self.filterset
         context['title'] = "Методы обновления"
+        # Сохраняем параметры фильтрации для пагинации
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        if get_params:
+            context['query_string'] = get_params.urlencode()
         return context
 
 
@@ -73,4 +79,10 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
             'column__type'
         )
         context['title'] = f"Метод обновления: {self.object.name}"
+        # Сохраняем параметры фильтрации для пагинации
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        if get_params:
+            context['query_string'] = get_params.urlencode()
         return context

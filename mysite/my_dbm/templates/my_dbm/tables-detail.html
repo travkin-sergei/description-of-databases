@@ -11,10 +11,15 @@
         --text-light: #f8f9fa;
     }
 
-    .data-container {
-        width: 90%;
-        max-width: 1400px;
+    .three-quarters-width {
+        width: 75%;
         margin: 0 auto;
+    }
+
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
     }
 
     /* Карточки */
@@ -169,10 +174,6 @@
 
     /* Адаптивность */
     @media (max-width: 768px) {
-        .data-container {
-            width: 95%;
-        }
-
         .data-table thead {
             display: none;
         }
@@ -211,8 +212,9 @@
         margin-bottom: 1rem;
     }
 </style>
-<div class="container-fluid bg-white py-4">
-    <div class="data-container">
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
         <!-- Основная карточка с аккордеонами -->
         <div class="data-card">
             <div class="data-card-header">
@@ -366,7 +368,7 @@
                 {% endif %}
             </div>
         </div>
-        <!-- Карточка с колонками таблицы (остается без изменений) -->
+        <!-- Карточка с колонками таблицы -->
         <div class="data-card">
             <div class="data-card-header">
                 <h5 class="mb-0 d-flex align-items-center">
@@ -470,7 +472,6 @@
                         </tr>
                         {% endfor %}
                         </tbody>
-
                     </table>
                 </div>
                 {% include 'inc/_paginator.html' %}

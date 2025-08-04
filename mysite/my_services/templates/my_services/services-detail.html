@@ -58,7 +58,7 @@
                                                    class="text-decoration-none d-inline-flex align-items-center"
                                                    style="color: #1a1a1a; background-color: #f8f9fa; padding: 0.5rem 1rem; border-radius: 4px;">
                                                     <i class="fas fa-link me-2"></i>
-                                                    {{ link.link_name|default:link.link }}
+                                                     {{ link.link_name|default:'' }} {{ link.stage|default:link.link }}
                                                 </a>
                                             </li>
                                             {% endfor %}

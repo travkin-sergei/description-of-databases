@@ -1,19 +1,19 @@
+from collections import defaultdict
+from django_filters.views import FilterView
 from django.db.models import Prefetch
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.views import View
 from django.http import HttpResponseNotFound
+from django.views import View
 from django.views.generic import TemplateView, DetailView, ListView
-from django_filters.views import FilterView
-from collections import defaultdict
 
 from .filters import DimServicesFilter, DimLinkFilter
+from my_dbm.models import DimStage
 from .models import (
     DimServices,
     DimServicesName,
     DimLink, DimTechStack,
 )
-from my_dbm.models import DimStage
 
 
 class PageNotFoundView(View):
@@ -45,10 +45,7 @@ class ServicesView(LoginRequiredMixin, FilterView):  # Using FilterView instead 
     paginate_by = 20
 
     def get_queryset(self):
-        # Get the base queryset from FilterView
         queryset = super().get_queryset()
-
-        # Apply your custom prefetch
         queryset = queryset.prefetch_related(
             Prefetch(
                 'dimservicesname_set',
@@ -121,7 +118,14 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
             'responsible_persons': responsible_persons,
             'all_names': self.object.all_names,
         })
+        # Сохраняем параметры фильтрации для пагинации
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        if get_params:
+            context['query_string'] = get_params.urlencode()
         return context
+
 
 class DimLinkListView(ListView):
     """Список ссылок."""
@@ -140,7 +144,15 @@ class DimLinkListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['filter'] = self.filter
+
+        # Сохраняем параметры фильтрации для пагинации
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            del get_params['page']
+        if get_params:
+            context['query_string'] = get_params.urlencode()
+
         # Добавляем querysets для фильтров
         context['tech_stacks'] = DimTechStack.objects.all()
-        context['stages'] = DimStage.objects.all()
+        context['stages'] = DimStage.objects.all()  # Опечатка в оригинале (stages вместо stages)
         return context

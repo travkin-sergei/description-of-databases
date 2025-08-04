@@ -3,7 +3,6 @@ from django_filters import CharFilter, AllValuesFilter, BooleanFilter
 from django.db.models import Q
 from my_dbm.models import DimStage
 from .models import (
-    DimServices,
     DimLink,
     DimTechStack,
     DimServices
@@ -28,15 +27,16 @@ class DimServicesFilter(django_filters.FilterSet):
             Q(dimservicesname__name__icontains=value)  # поиск по name в DimServicesName
         ).distinct()
 
+
 class DimLinkFilter(django_filters.FilterSet):
     link = django_filters.CharFilter(lookup_expr='icontains', label='Ссылка содержит')
     link_name = django_filters.CharFilter(lookup_expr='icontains', label='Название ссылки содержит')
-
+    description = django_filters.CharFilter(lookup_expr='icontains', label='Описание ссылки содержит')
     stack = django_filters.ModelChoiceFilter(
         queryset=DimTechStack.objects.all(),
         label='Технологический стек',
         field_name='stack',  # явно указываем имя поля
-        to_field_name='id'   # явно указываем поле для сравнения
+        to_field_name='id',  # явно указываем поле для сравнения
     )
 
     stage = django_filters.ModelChoiceFilter(
@@ -48,4 +48,4 @@ class DimLinkFilter(django_filters.FilterSet):
 
     class Meta:
         model = DimLink
-        fields = ['link', 'link_name', 'stack', 'stage', 'service']
+        fields = ['link', 'link_name', 'stack', 'stage', 'service', 'description',]
