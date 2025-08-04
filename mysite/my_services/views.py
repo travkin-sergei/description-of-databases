@@ -1,18 +1,19 @@
+from django.db.models import Prefetch
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.views import View
-from django.views.generic import ListView
-
 from django.http import HttpResponseNotFound
-from django.views.generic import TemplateView, ListView, DetailView
-from django.db.models import Prefetch
-from django_filters.views import FilterMixin, FilterView
+from django.views.generic import TemplateView, DetailView, ListView
+from django_filters.views import FilterView
+from collections import defaultdict
 
-from .filters import DimServicesFilter
+from .filters import DimServicesFilter, DimLinkFilter
 from .models import (
     DimServices,
-    DimServicesName, LinkServicesServices,
+    DimServicesName,
+    DimLink, DimTechStack,
 )
+from my_dbm.models import DimStage
 
 
 class PageNotFoundView(View):
@@ -69,8 +70,6 @@ class ServicesView(LoginRequiredMixin, FilterView):  # Using FilterView instead 
         return context
 
 
-from collections import defaultdict
-
 class ServicesDetailView(LoginRequiredMixin, DetailView):
     model = DimServices
     context_object_name = 'service'
@@ -124,3 +123,24 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
         })
         return context
 
+class DimLinkListView(ListView):
+    """Список ссылок."""
+
+    model = DimLink
+    filterset_class = DimLinkFilter
+    template_name = 'my_services/link-list.html'
+    context_object_name = 'links'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        self.filter = self.filterset_class(self.request.GET, queryset=queryset)
+        return self.filter.qs.distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter'] = self.filter
+        # Добавляем querysets для фильтров
+        context['tech_stacks'] = DimTechStack.objects.all()
+        context['stages'] = DimStage.objects.all()
+        return context

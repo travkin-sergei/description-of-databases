@@ -178,21 +178,3 @@ class DimLink(BaseClass):
         ]
         verbose_name = '08 ссылки на репозиторий.'
         verbose_name_plural = '08 ссылки на репозиторий.'
-
-
-# class LinkLink(BaseClass):
-#     """Ссылки."""
-#
-#     services = models.ForeignKey(DimServices, on_delete=models.PROTECT)
-#     link = models.ForeignKey(DimLink, on_delete=models.PROTECT)
-#
-#     def __str__(self):
-#         return f'{self.link}-{self.stage}'
-#
-#     class Meta:
-#         db_table = f'{db_schema}\".\"link_services_link_stack'
-#         unique_together = [
-#             ['services', 'link']
-#         ]
-#         verbose_name = '09 сlink_services_link_stack.'
-#         verbose_name_plural = '09 link_services_link_stack'
