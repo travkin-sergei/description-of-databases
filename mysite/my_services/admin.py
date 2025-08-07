@@ -68,7 +68,7 @@ class DimServicesTypesAdmin(admin.ModelAdmin):
 class DimServicesAdmin(admin.ModelAdmin):
     list_display = ('id', 'alias', 'type',)
     list_filter = ('type',)
-    search_fields = ('alias', 'description', 'dimservicesname__name')
+    search_fields = ('alias', 'description', 'dimservicesname__name')  # Это уже есть у вас
     ordering = ('alias',)
     inlines = [
         DimServicesNameInline,
@@ -132,6 +132,7 @@ class DimLinkAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'last_checked', 'service')
     search_fields = ('link', 'link_name')
     readonly_fields = ('last_checked',)
+    autocomplete_fields = ('service',)  # Добавьте эту строку
 
     fieldsets = (
         (None, {

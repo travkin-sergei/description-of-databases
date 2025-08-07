@@ -48,8 +48,8 @@ class DimServices(BaseClass):
         unique_together = [
             ['alias', 'type', ]
         ]
-        verbose_name = '08 Список сервисов.'
-        verbose_name_plural = '08 Список сервисов.'
+        verbose_name = '07 Список сервисов.'
+        verbose_name_plural = '07 Список сервисов.'
 
 
 class LinkServicesServices(BaseClass):
@@ -66,8 +66,8 @@ class LinkServicesServices(BaseClass):
         unique_together = [
             ['main', 'sub', ]
         ]
-        verbose_name = '04 Группировки сервисов.'
-        verbose_name_plural = '04 Группировки сервисов.'
+        verbose_name = '08 Группировки сервисов.'
+        verbose_name_plural = '08 Группировки сервисов.'
 
 
 class DimServicesName(BaseClass):
@@ -138,8 +138,8 @@ class LinkServicesTable(BaseClass):
         unique_together = [
             ['service', 'table', ]
         ]
-        verbose_name = '05 Таблицы сервиса.'
-        verbose_name_plural = '05 Таблицы сервиса.'
+        verbose_name = '09 Таблицы сервиса.'
+        verbose_name_plural = '09 Таблицы сервиса.'
 
 
 class DimTechStack(BaseClass):
