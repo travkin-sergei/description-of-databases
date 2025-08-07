@@ -26,7 +26,7 @@ class MyProfile(models.Model):
     )
 
     def __str__(self):
-        return f"Профиль {self.user.username}"  # Исправленный метод
+        return f"Профиль {self.user.username}"
 
     class Meta:
         db_table = 'my_auth\".\"profile'

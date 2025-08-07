@@ -1,5 +1,6 @@
+# filters.py
 import django_filters
-from django_filters import CharFilter, AllValuesFilter, BooleanFilter
+from django_filters import CharFilter, BooleanFilter
 from django.db.models import Q
 from my_dbm.models import DimStage
 from .models import (
@@ -32,6 +33,7 @@ class DimLinkFilter(django_filters.FilterSet):
     link = django_filters.CharFilter(lookup_expr='icontains', label='Ссылка содержит')
     link_name = django_filters.CharFilter(lookup_expr='icontains', label='Название ссылки содержит')
     description = django_filters.CharFilter(lookup_expr='icontains', label='Описание ссылки содержит')
+    status_code = django_filters.CharFilter(lookup_expr='icontains', label='Статус код')
     stack = django_filters.ModelChoiceFilter(
         queryset=DimTechStack.objects.all(),
         label='Технологический стек',
@@ -48,4 +50,4 @@ class DimLinkFilter(django_filters.FilterSet):
 
     class Meta:
         model = DimLink
-        fields = ['link', 'link_name', 'stack', 'stage', 'service', 'description',]
+        fields = ['link', 'link_name', 'stack', 'stage', 'service', 'status_code', 'description', ]

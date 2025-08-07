@@ -1,8 +1,7 @@
+# settings.py
 import os
 import environ
 from pathlib import Path
-from tkinter.constants import PAGES
-from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -48,6 +47,7 @@ INSTALLED_APPS = [
     'my_request',  # специализированные запросы
     'my_updates',  # обновления
     'my_dictionary',  # словарь
+    'django_apscheduler',  # Шедулер в admin
 ]
 
 MIDDLEWARE = [
@@ -171,4 +171,18 @@ SPECTACULAR_SETTINGS = {
         {'name': 'DBA', 'description': 'Эндпоинты для приложения DBA (Описание баз данных)'},
         {'name': 'Data Sources', 'description': 'Эндпоинты для приложения Data Sources (Источников данных)'},
     ],
+}
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'my_services': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
 }

@@ -1,10 +1,10 @@
+from django.db import models
+from my_auth.models import MyProfile
 from my_dbm.models import (
     BaseClass,
     LinkDBTable,
     DimStage,
 )
-from my_auth.models import MyProfile
-from django.db import models
 
 db_schema = 'my_services'
 
@@ -167,6 +167,8 @@ class DimLink(BaseClass):
     stage = models.ForeignKey(DimStage, on_delete=models.PROTECT, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     service = models.ForeignKey(DimServices, on_delete=models.PROTECT, blank=True, null=True)
+    last_checked = models.DateTimeField(blank=True, null=True, verbose_name='Время последней проверки')
+    status_code = models.IntegerField(blank=True, null=True, verbose_name='HTTP статус код')
 
     def __str__(self):
         return f'{self.link}'
@@ -176,5 +178,24 @@ class DimLink(BaseClass):
         unique_together = [
             ['link', ]
         ]
-        verbose_name = '08 ссылки на репозиторий.'
-        verbose_name_plural = '08 ссылки на репозиторий.'
+        verbose_name = '09 ссылки.'
+        verbose_name_plural = '09 ссылки.'
+
+
+class LinkCheckSchedule(models.Model):
+    """Расписание  запросов статсуса ссылок"""
+
+    cron_expression = models.CharField(
+        max_length=100,
+        default='0 0 0 1 * * *',  # сек мин час день месяц день_неделя год
+        help_text='Формат: сек мин час день месяц день_неделя год (например, "0 1 * * * * *")'
+    )
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"CRON: {self.cron_expression}"
+
+    class Meta:
+        db_table = f'{db_schema}"."dim_schedule'
+        verbose_name = '10 Расписание проверки ссылок (cron)'
+        verbose_name_plural = '10 Расписание проверки ссылок (cron)'
