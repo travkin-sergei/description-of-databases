@@ -2,26 +2,22 @@ from django.db.models import Q
 from django.http import HttpResponseNotFound
 
 from django.views import View
-from django.views.generic import (
-    DetailView, TemplateView,
-)
+from django.views.generic import DetailView, TemplateView
 from django_filters.views import FilterView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from ..filters import (
     LinkDBFilter,
     LinkDBTableFilter, LinkColumnFilter,
 )
+from my_services.models import LinkServicesTable
+from my_updates.models import LinkUpdate
 from ..models import (
     DimDB,
     LinkDB,
     LinkDBTable,
     LinkColumnColumn, LinkColumn, LinkColumnName, LinkColumnStage, LinkDBTableName,
 )
-from my_services.models import LinkServicesTable
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-from my_updates.models import LinkUpdate
-
 
 class PageNotFoundView(LoginRequiredMixin, View):
     """Обработка 404 ошибки отсутствия страницы"""
@@ -69,15 +65,6 @@ class DatabasesView(LoginRequiredMixin, FilterView):
         return context
 
 
-# не вижу смысла в детализации
-# class DatabaseDetailView(LoginRequiredMixin, DetailView):
-#     """Детализация базы данных."""
-#
-#     model = DimDB
-#     template_name = 'my_dbm/databases-detail.html'
-#     context_object_name = 'database'
-
-
 class TablesView(LoginRequiredMixin, FilterView):
     model = LinkDBTable
     template_name = 'my_dbm/tables.html'
@@ -86,11 +73,14 @@ class TablesView(LoginRequiredMixin, FilterView):
     filterset_class = LinkDBTableFilter
 
     def get_queryset(self):
-        return LinkDBTable.objects.select_related(
-            'schema',
-            'schema__base',
-            'type'
-        ).all()
+        return (
+            LinkDBTable.objects
+            .filter(is_active=True)
+            .select_related(
+                'schema',
+                'schema__base',
+                'type'
+            ).all())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -139,7 +129,8 @@ class TableDetailView(LoginRequiredMixin, DetailView):
 
         # Расписания обновлений
         schedules = LinkUpdate.objects.filter(
-            column__main__table=table
+            is_active=True,
+            column__main__table=table,
         ).values(
             'name__id',
             'name__name',
@@ -198,14 +189,18 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'column'
 
     def get_queryset(self):
-        return LinkColumn.objects.select_related(
-            'table',
-            'table__schema',
-            'table__schema__base',
-            'table__type'
-        ).prefetch_related(
-            'linkcolumnname_set__name',
-            'linkcolumnstage_set__stage'
+        return (
+            LinkColumn.objects
+            .filter(is_active=True)
+            .select_related(
+                'table',
+                'table__schema',
+                'table__schema__base',
+                'table__type'
+            ).prefetch_related(
+                'linkcolumnname_set__name',
+                'linkcolumnstage_set__stage'
+            )
         )
 
     def get_context_data(self, **kwargs):

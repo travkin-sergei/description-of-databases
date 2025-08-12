@@ -22,6 +22,35 @@ class BaseClass(models.Model):
         abstract = True
 
 
+
+class TotalData(BaseClass):
+    """Содержится полная загружаемая из вне."""
+
+    stage = models.CharField(max_length=255)
+    db_version = models.CharField(max_length=255)
+    db_name = models.CharField(max_length=255)
+    db_description = models.TextField(blank=True, null=True)
+    schem_name = models.CharField(max_length=255)
+    schem_description = models.TextField(blank=True, null=True)
+    tab_is_metadata = models.BooleanField(default=True, verbose_name='метаданные')
+    tab_type = models.CharField(max_length=255)
+    tab_name = models.CharField(max_length=255)
+    tab_description = models.TextField(blank=True, null=True)
+    col_date_create = models.DateTimeField(default=datetime.datetime.now)
+    col_type = models.CharField(max_length=255, null=True, )
+    col_columns = models.CharField(max_length=255, )
+    col_is_null = models.BooleanField(blank=True, null=True, db_default=True, )
+    col_is_key = models.BooleanField(db_default=False, )
+    col_unique_together = models.IntegerField(blank=True, null=True, )
+    col_default = models.TextField(blank=True, null=True, )
+    col_description = models.JSONField(blank=True, null=True)
+
+    class Meta:
+        db_table = f'{db_schema}\".\"link_total_data'
+        verbose_name = '00 Полная информация о данных.'
+        verbose_name_plural = '00 Полная информация о данных.'
+
+
 class DimStage(BaseClass):
     """Справочник стендов разработки."""
 
@@ -58,13 +87,13 @@ class DimDB(BaseClass):
 class LinkDB(BaseClass):
     """ Справочник баз данных."""
 
-    data_base = models.ForeignKey(DimDB, on_delete=models.PROTECT)
+    base = models.ForeignKey(DimDB, on_delete=models.CASCADE)
     version = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     alias = models.CharField(max_length=255)
     host = models.CharField(max_length=255)
     port = models.CharField(max_length=255)
-    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT)
+    stage = models.ForeignKey(DimStage, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.name} ({self.host})"
@@ -79,7 +108,7 @@ class LinkDB(BaseClass):
 class LinkDBSchema(BaseClass):
     """Таблица связи баз данных и имен схем."""
 
-    base = models.ForeignKey(DimDB, on_delete=models.PROTECT)
+    base = models.ForeignKey(DimDB, on_delete=models.CASCADE)
     schema = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
 
@@ -127,9 +156,9 @@ class DimColumnName(BaseClass):
 class LinkDBTable(BaseClass):
     """Связи схем схем, типов таблиц и таблиц."""
 
-    schema = models.ForeignKey(LinkDBSchema, on_delete=models.PROTECT)
+    schema = models.ForeignKey(LinkDBSchema, on_delete=models.CASCADE)
     is_metadata = models.BooleanField(default=True, verbose_name='метаданные')
-    type = models.ForeignKey(DimDBTableType, on_delete=models.PROTECT)
+    type = models.ForeignKey(DimDBTableType, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
 
@@ -148,7 +177,7 @@ class LinkDBTableName(BaseClass):
     Связи таблиц и их синонимов.
     """
 
-    table = models.ForeignKey(LinkDBTable, on_delete=models.PROTECT)
+    table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
 
@@ -165,7 +194,7 @@ class LinkDBTableName(BaseClass):
 class LinkColumn(BaseClass):
     """Связи таблиц типов данных и столбцов."""
 
-    table = models.ForeignKey(LinkDBTable, on_delete=models.PROTECT, )
+    table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE, )
     date_create = models.DateTimeField(default=datetime.datetime.now)
     type = models.CharField(max_length=255, null=True, )
     columns = models.CharField(max_length=255, )
@@ -201,9 +230,9 @@ class DimTypeLink(BaseClass):
 class LinkColumnColumn(BaseClass):
     """Связи столбцов между собой."""
 
-    type = models.ForeignKey(DimTypeLink, on_delete=models.PROTECT, )
-    main = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, related_name='main')
-    sub = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, related_name='sub', blank=True, null=True, )
+    type = models.ForeignKey(DimTypeLink, on_delete=models.CASCADE, )
+    main = models.ForeignKey(LinkColumn, on_delete=models.CASCADE, related_name='main')
+    sub = models.ForeignKey(LinkColumn, on_delete=models.CASCADE, related_name='sub', blank=True, null=True, )
 
     def __str__(self):
         return f'{self.main}-{self.sub}'
@@ -218,8 +247,8 @@ class LinkColumnColumn(BaseClass):
 class LinkColumnName(BaseClass):
     """синонимы названий столбцов."""
 
-    column = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, )
-    name = models.ForeignKey(DimColumnName, on_delete=models.PROTECT, )
+    column = models.ForeignKey(LinkColumn, on_delete=models.CASCADE, )
+    name = models.ForeignKey(DimColumnName, on_delete=models.CASCADE, )
 
     def __str__(self):
         return f'{self.column}-{self.name}'
@@ -234,8 +263,8 @@ class LinkColumnName(BaseClass):
 class LinkColumnStage(BaseClass):
     """Связи столбцов и стендов разработки."""
 
-    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT, )
-    column = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, )
+    stage = models.ForeignKey(DimStage, on_delete=models.CASCADE, )
+    column = models.ForeignKey(LinkColumn, on_delete=models.CASCADE, )
 
     def __str__(self):
         return f'{self.stage}-{self.column}'

@@ -5,5 +5,6 @@ class MyServicesConfig(AppConfig):
     name = 'my_services'
 
     def ready(self):
-        from .scheduler import start
-        start()
+        # from .scheduler import start
+        # start()
+        pass

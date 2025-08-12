@@ -18,11 +18,9 @@ def check_link_status(link_instance):
         )
         status_code = response.status_code
         is_active = 200 <= status_code < 400
-        error_message = None
     except requests.exceptions.RequestException as e:
         status_code = 0
         is_active = False
-        error_message = str(e)
 
     # Обновляем поля модели
     link_instance.last_checked = timezone.now()
