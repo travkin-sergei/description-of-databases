@@ -1,3 +1,4 @@
+# my_services/models.py
 from django.db import models
 from my_auth.models import MyProfile
 from my_dbm.models import (
@@ -29,6 +30,7 @@ class DimServicesTypes(BaseClass):
 class DimServices(BaseClass):
     """Список сервисов."""
 
+    code = models.CharField(max_length=255, blank=True, null=True, verbose_name="код сервиса.")
     alias = models.CharField(max_length=255)
     type = models.ForeignKey(DimServicesTypes, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True)
@@ -70,10 +72,25 @@ class LinkServicesServices(BaseClass):
         verbose_name_plural = '08 Группировки сервисов.'
 
 
+class DimServicesNameType(BaseClass):
+    """Тип имени таблицы"""
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = f'{db_schema}\".\"dim_service_name_type'
+        unique_together = [['name', ]]
+        verbose_name = '08 Словарь типов наименований.'
+        verbose_name_plural = '08 Словарь типов наименований.'
+
+
 class DimServicesName(BaseClass):
     """Синонимы для сервиса."""
 
     alias = models.ForeignKey(DimServices, on_delete=models.PROTECT)
+    type = models.ForeignKey(DimServicesNameType, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
     def __str__(self):

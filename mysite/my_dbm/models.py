@@ -22,7 +22,6 @@ class BaseClass(models.Model):
         abstract = True
 
 
-
 class TotalData(BaseClass):
     """Содержится полная загружаемая из вне."""
 
@@ -172,14 +171,28 @@ class LinkDBTable(BaseClass):
         verbose_name_plural = '10 Связи схем и таблиц'
 
 
+class DimDBTableNameType(BaseClass):
+    """Тип имени таблицы"""
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = f'{db_schema}\".\"dim_db_table_name_type'
+        unique_together = [['name', ]]
+        verbose_name = '08 Словарь типов наименований.'
+        verbose_name_plural = '08 Словарь типов наименований.'
+
+
 class LinkDBTableName(BaseClass):
     """
     Связи таблиц и их синонимов.
     """
 
     table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE)
+    type = models.ForeignKey(DimDBTableNameType, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.table}-{self.name}'

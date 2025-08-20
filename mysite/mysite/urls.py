@@ -20,7 +20,6 @@ urlpatterns = [
     path('accounts/', include('my_auth.urls')),
     path('dictionary/', include('my_dictionary.urls')),
     path('services/', include('my_services.urls')),
-    path('ExtSources/', include('my_external_sources.urls')),
     path('request/', include('my_request.urls')),
     path('updates/', include('my_updates.urls')),
 

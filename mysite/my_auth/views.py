@@ -17,15 +17,26 @@ class MyPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     success_url = reverse_lazy('my_auth:password_change_done')  # Исправлено на подчёркивания
 
 
+class AboutAppView(TemplateView):
+    """Информационная страница о приложении."""
+
+    template_name = "my_auth/about-application.html"
+
+
 class MyPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
     """Сообщение об успешном изменении пароля"""
 
     template_name = 'my_auth/password-change-done.html'
 
 
-class MyProfileView(LoginRequiredMixin, DetailView):
-    """Просмотр профиля пользователя"""
+from django.views.generic import DetailView
+from django.contrib import messages
+from my_services.models import LinkResponsiblePerson
+from .models import MyProfile
 
+
+class MyProfileView(LoginRequiredMixin, DetailView):
+    """Просмотр профиля пользователя с сервисами и ролями"""
     model = MyProfile
     template_name = 'my_auth/profile.html'
     context_object_name = 'profile'
@@ -37,11 +48,17 @@ class MyProfileView(LoginRequiredMixin, DetailView):
             messages.info(self.request, "Профиль был автоматически создан")
         return profile
 
-
-class AboutAppView(TemplateView):
-    """Информационная страница о приложении."""
-
-    template_name = "my_auth/about-application.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profile = self.get_object()
+        # Получаем все сервисы, где участвует текущий пользователь
+        context['responsibilities'] = (
+            LinkResponsiblePerson.objects
+            .select_related("service", "role")
+            .filter(name=profile)
+            .order_by("service__alias")
+        )
+        return context
 
 
 class MyLoginView(LoginView):

@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
-    DimTechStack, DimLink, LinkServicesServices, LinkCheckSchedule
+    DimTechStack, DimLink, LinkServicesServices, LinkCheckSchedule, DimServicesNameType
 )
 from django_apscheduler.models import DjangoJobExecution
 from django_apscheduler.admin import DjangoJobExecutionAdmin
@@ -29,7 +29,7 @@ class CustomDjangoJobExecutionAdmin(DjangoJobExecutionAdmin):
 class DimServicesNameInline(admin.TabularInline):
     model = DimServicesName
     extra = 0
-    fields = ('name',)
+    fields = ('name', 'type')
     show_change_link = True
 
 
@@ -134,20 +134,6 @@ class DimLinkAdmin(admin.ModelAdmin):
     readonly_fields = ('last_checked',)
     autocomplete_fields = ('service',)  # Добавьте эту строку
 
-    fieldsets = (
-        (None, {
-            'fields': ('link', 'link_name', 'description')
-        }),
-        ('Статус', {
-            'fields': ('last_checked', 'status_code', 'is_active'),
-            'classes': ('collapse',)
-        }),
-        ('Связи', {
-            'fields': ('stack', 'stage', 'service'),
-            'classes': ('collapse',)
-        }),
-    )
-
 
 @admin.register(LinkServicesServices)
 class LinkServicesServicesAdmin(admin.ModelAdmin):
@@ -165,6 +151,11 @@ class LinkServicesServicesAdmin(admin.ModelAdmin):
             'main', 'main__type',
             'sub', 'sub__type'
         )
+
+
+@admin.register(DimServicesNameType)
+class DimServicesNameTypeAdmin(admin.ModelAdmin):
+    list_display = ('name',)
 
 
 @admin.register(LinkCheckSchedule)

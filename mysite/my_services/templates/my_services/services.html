@@ -82,12 +82,26 @@
                         <thead>
                         <tr>
                             <th scope="col" width="5%" class="text-center">№</th>
+                            <th scope="col">Тип</th>
                             <th scope="col">Сервис</th>
-                            <th scope="col">тип</th>
                             <th scope="col" width="20%">Статус</th>
                         </tr>
                         <tr style="background-color: #f8f9fa;">
                             <td></td>
+                            <td>
+                                <select name="type"
+                                        class="form-control form-control-dark">
+                                    <option value="">Все типы</option>
+                                    {% for type in filter.form.type.field.queryset %}
+                                    <option value="{{ type.id }}"
+                                        {% if filter.form.type.value == type.id|stringformat:"s" %}
+                                        selected
+                                        {% endif %}>
+                                        {{ type.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
                             <td>
                                 <input type="text"
                                        name="search"
@@ -96,22 +110,17 @@
                                        value="{{ filter.form.search.value|default_if_none:'' }}">
                             </td>
                             <td>
-                                <input type="text"
-                                       name="type"
-                                       class="form-control form-control-dark"
-                                       placeholder="Поиск по типу"
-                                       value="{{ filter.form.type.value|default_if_none:'' }}">
-                            </td>
-                            <td>
                                 <div class="d-flex">
                                     <select name="is_active"
                                             class="form-control form-control-dark mr-2">
                                         <option value="">Все статусы</option>
-                                        <option value="true" {% if filter.form.is_active.value == 'true' %}selected{% endif %}>
-                                        Активные
+                                        <option value="true"
+                                                {% if filter.form.is_active.value == 'true' %}selected{% endif %}>
+                                            Активные
                                         </option>
-                                        <option value="false" {% if filter.form.is_active.value == 'false' %}selected{% endif %}>
-                                        Неактивные
+                                        <option value="false"
+                                                {% if filter.form.is_active.value == 'false' %}selected{% endif %}>
+                                            Неактивные
                                         </option>
                                     </select>
                                     <button type="submit" class="btn btn-gold">
@@ -137,7 +146,7 @@
                                     <a href="{% url 'my_services:services-detail' pk=elem.pk %}"
                                        class="text-dark font-weight-bold">
                                         <i class="fas fa-cog text-yellow mr-2"></i>
-                                        {{ elem.alias|default_if_none:'Не указано' }}
+                                        {{ elem.type.name|default_if_none:'Не указано' }}
                                     </a>
                                 </div>
                             </th>
@@ -146,7 +155,7 @@
                                     <a href="{% url 'my_services:services-detail' pk=elem.pk %}"
                                        class="text-dark font-weight-bold">
                                         <i class="fas fa-cog text-yellow mr-2"></i>
-                                        {{ elem.type|default_if_none:'Не указано' }}
+                                        {{ elem.alias|default_if_none:'Не указано' }}
                                     </a>
                                 </div>
                             </th>
@@ -158,7 +167,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-4">Нет доступных сервисов</td>
+                            <td colspan="4" class="text-center text-muted py-4">Нет доступных сервисов</td>
                         </tr>
                         {% endfor %}
                         </tbody>

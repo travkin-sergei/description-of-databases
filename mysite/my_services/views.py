@@ -2,7 +2,9 @@ from collections import defaultdict
 from django_filters.views import FilterView
 from django.db.models import Prefetch
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.utils.decorators import method_decorator
 from django.http import HttpResponseNotFound
 from django.views import View
 from django.views.generic import TemplateView, DetailView, ListView
@@ -12,7 +14,9 @@ from my_dbm.models import DimStage
 from .models import (
     DimServices,
     DimServicesName,
-    DimLink, DimTechStack,
+    DimLink,
+    DimTechStack,
+    LinkResponsiblePerson,
 )
 
 

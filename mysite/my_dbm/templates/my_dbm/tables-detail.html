@@ -409,14 +409,15 @@
                             <td data-label="Тип">
                                 <code>{{ col.type }}</code>
                             <td data-label="NULL" class="text-center">
+                            {% if col.default %}
                                 <span class="badge bg-warning text-dark me-1">{{ col.default }}</span>
-                                {% if not col.default %}
-                                {% if col.is_null %}
+                            {% else %}
+                                 {% if col.is_null %}
                                 <span class="badge bg-success">NULL</span>
                                 {% else %}
                                 <span class="badge bg-danger">NOT NULL</span>
                                 {% endif %}
-                                {% endif %}
+                            {% endif %}
                             </td>
                             <td data-label="Описание" class="small">
                                 <div>

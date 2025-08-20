@@ -1,5 +1,11 @@
+"""
+Синхронизация моделей:
+1) деактивация
+2) активация
+3) добавление
+"""
+
 from django.db import connection, transaction
-from django.utils import timezone
 
 
 def sync_database(name_db, stage_db):
@@ -191,5 +197,5 @@ def sync_database(name_db, stage_db):
 
             return f"Синхронизировано {len(rows)} строк. Деактивированы отсутствующие записи."
 
-    except Exception as e:
-        return f"Ошибка: {e}"
+    except Exception as error:
+        return f"Ошибка: {error}"

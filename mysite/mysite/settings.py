@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'my_auth',  # Авторизация
     'my_dbm',  # База данных
     'my_services',  # Сервисов
-    'my_external_sources',  # внешние источники
     'my_request',  # специализированные запросы
     'my_updates',  # обновления
     'my_dictionary',  # словарь

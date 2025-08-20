@@ -25,11 +25,10 @@ admin.site.register(User, CustomUserAdmin)  # Затем регистрируе�
 # Убираем дублирование регистрации
 @admin.register(MyProfile)
 class MyProfileAdmin(admin.ModelAdmin):
-    list_display = 'user', 'phone', 'is_approved',
+    list_display = 'user', 'is_approved',
     list_filter = 'is_approved',
-    search_fields = 'user__username', 'phone',
+    search_fields = 'user__username',
     actions = ['approve_profiles', 'disapprove_profiles']
-
 
     def approve_profiles(self, request, queryset):
         queryset.update(is_approved=True)
