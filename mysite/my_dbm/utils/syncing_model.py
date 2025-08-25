@@ -1,201 +1,147 @@
+# utils/syncing_model.py
 """
 Синхронизация моделей:
 1) деактивация
 2) активация
 3) добавление
 """
-
+# utils/syncing_model.py
+import logging
 from django.db import connection, transaction
+from contextlib import closing
+import time
+
+logger = logging.getLogger(__name__)
 
 
 def sync_database(name_db, stage_db):
-    if not name_db or not stage_db:
-        return "Ошибка: name_db или stage_db пустой"
+    """
+    Массовая синхронизация для миллионов записей
+    """
+    start_time = time.time()
+    name_db = name_db.name
+    stage_db = stage_db.name
+
+    sql_insert = [
+        # 1. Добавляем недостающие данные schemas
+        """
+        INSERT INTO my_dbmatch.link_base_schemas(created_at, updated_at, is_active, schema, description, base_id)
+        SELECT
+             NOW()                 AS created_at
+            ,NOW()                 AS updated_at
+            ,TRUE                  AS is_active
+            ,ltd.schem_name        AS schema
+            ,ltd.schem_description AS schem_description
+            ,ldb.base_id           AS schem_name_id
+        FROM my_dbmatch.link_total_data AS ltd
+            LEFT JOIN my_dbmatch.dim_stage         AS dst ON dst.name = ltd.stage
+            LEFT JOIN my_dbmatch.link_db           AS ldb ON ldb.stage_id = dst.id AND ldb.alias = ltd.db_name
+            LEFT JOIN my_dbmatch.link_base_schemas AS lbs ON lbs.base_id = ldb.base_id AND lbs.schema = ltd.schem_name
+        WHERE 1=1
+            AND lbs.id IS NULL
+            AND ltd.stage = %s
+            AND ltd.db_name = %s
+        """,
+
+        # 2. Добавляем недостающие данные table
+        """
+        INSERT INTO my_dbmatch.link_tables(created_at, updated_at, is_active, is_metadata, name, description, schema_id, type_id)
+        SELECT
+             NOW()               AS created_at
+            ,NOW()               AS updated_at
+            ,TRUE                AS is_active
+            ,ltd.tab_is_metadata AS is_metadata
+            ,ltd.tab_name        AS name
+            ,ltd.tab_description AS description
+            ,lbs.id              AS schema_id
+            ,dtt.id              AS type_id
+        FROM my_dbmatch.link_total_data AS ltd
+            LEFT JOIN my_dbmatch.dim_stage         AS dst ON dst.name = ltd.stage
+            LEFT JOIN my_dbmatch.link_db           AS ldb ON ldb.stage_id = dst.id AND ldb.alias = ltd.db_name
+            LEFT JOIN my_dbmatch.link_base_schemas AS lbs ON lbs.base_id = ldb.base_id AND lbs.schema = ltd.schem_name
+            LEFT JOIN my_dbmatch.dim_table_type    AS dtt ON dtt.name = ltd.tab_type
+            LEFT JOIN my_dbmatch.link_tables       AS lts ON lts.type_id = dtt.id AND lts.schema_id = lbs.id AND lts.name = ltd.tab_name
+        WHERE 1=1
+            AND lts.id IS NULL
+            AND ltd.stage = %s
+            AND ltd.db_name = %s
+        """,
+
+        # 3. Добавляем недостающие столбцы
+        """
+        INSERT INTO my_dbmatch.link_columns(
+            created_at, updated_at, is_active, date_create, type, columns, is_null, is_key, unique_together, "default", description, table_id)
+        SELECT 
+             NOW()                   AS created_at
+            ,NOW()                   AS updated_at
+            ,TRUE                    AS is_active
+            ,ltd.col_date_create     AS date_create
+            ,ltd.col_type            AS type
+            ,ltd.col_columns         AS columns
+            ,ltd.col_is_null         AS is_null
+            ,ltd.col_is_key          AS is_key
+            ,ltd.col_unique_together AS unique_together
+            ,ltd.col_default         AS "default"
+            ,ltd.col_description     AS description
+            ,lts.id                  AS table_id
+        FROM my_dbmatch.link_total_data AS ltd
+            LEFT JOIN my_dbmatch.dim_stage         AS dst ON dst.name = ltd.stage
+            LEFT JOIN my_dbmatch.link_db           AS ldb ON ldb.stage_id = dst.id AND ldb.alias = ltd.db_name
+            LEFT JOIN my_dbmatch.link_base_schemas AS lbs ON lbs.base_id = ldb.base_id AND lbs.schema = ltd.schem_name
+            LEFT JOIN my_dbmatch.dim_table_type    AS dtt ON dtt.name = ltd.tab_type
+            LEFT JOIN my_dbmatch.link_tables       AS lts ON lts.type_id = dtt.id AND lts.schema_id = lbs.id AND lts.name = ltd.tab_name
+            LEFT JOIN my_dbmatch.link_columns      AS lcs ON lcs.columns = ltd.col_columns AND lcs.table_id = lts.id
+        WHERE 1=1
+            AND lcs.id      IS NULL
+            AND ltd.stage   = %s
+            AND ltd.db_name = %s
+        """,
+
+        # 4. Добавляем данные в stage
+        """
+        INSERT INTO my_dbmatch.link_columns_stage(created_at, updated_at, is_active, column_id, stage_id)
+        SELECT 
+             NOW() AS created_at
+            ,NOW() AS updated_at
+            ,TRUE AS is_active
+            ,lcs.id AS column_id
+            ,dst.id AS stage_id
+        FROM my_dbmatch.link_total_data AS ltd
+            LEFT JOIN my_dbmatch.dim_stage          AS dst ON dst.name = ltd.stage
+            LEFT JOIN my_dbmatch.link_db            AS ldb ON ldb.stage_id = dst.id AND ldb.alias = ltd.db_name
+            LEFT JOIN my_dbmatch.link_base_schemas  AS lbs ON lbs.base_id = ldb.base_id AND lbs.schema = ltd.schem_name
+            LEFT JOIN my_dbmatch.dim_table_type     AS dtt ON dtt.name = ltd.tab_type
+            LEFT JOIN my_dbmatch.link_tables        AS lts ON lts.type_id = dtt.id AND lts.schema_id = lbs.id AND lts.name = ltd.tab_name
+            LEFT JOIN my_dbmatch.link_columns       AS lcs ON lcs.columns = ltd.col_columns AND lcs.table_id = lts.id
+            LEFT JOIN my_dbmatch.link_columns_stage AS lct ON lct.column_id = lcs.id AND lct.stage_id = dst.id
+        WHERE 1=1
+            AND lct.id     IS NULL
+            AND ltd.stage   = %s
+            AND ltd.db_name = %s
+        """
+    ]
 
     try:
-        with connection.cursor() as cursor:
-            # 🔹 Получаем все строки TotalData для этой базы и слоя
-            cursor.execute("""
-                SELECT 
-                    schem_name, schem_description,
-                    tab_type, tab_is_metadata, tab_name, tab_description,
-                    col_type, col_columns, col_is_null, col_is_key, col_unique_together, col_default, col_description,
-                    col_date_create
-                FROM my_dbmatch.link_total_data
-                WHERE is_active = TRUE AND db_name = %s AND stage = %s;
-            """, [name_db.name, stage_db.name])
-            rows = cursor.fetchall()
+        with transaction.atomic():
+            with closing(connection.cursor()) as cursor:
+                # вставляем новые данные
+                for sql_query in sql_insert:
+                    try:
+                        logger.info(f"🔄 Выполнение запроса.")
+                        cursor.execute(sql_query, [stage_db, name_db])
+                        row_count = cursor.rowcount
+                        logger.info(f"✅ Запрос выполнен. Затронуто строк: {row_count}")
 
-            if not rows:
-                # Если нет активных данных, деактивируем все связанные записи
-                with transaction.atomic():
-                    cursor.execute("""
-                        UPDATE my_dbmatch.link_columns_stage 
-                        SET is_active = FALSE, updated_at = NOW()
-                        WHERE stage_id = (SELECT id FROM my_dbmatch.dim_stage WHERE name = %s);
-                    """, [stage_db.name])
+                    except Exception as e:
+                        logger.error(f"❌ Ошибка в запросе: {str(e)}")
+                        # При ошибке транзакция автоматически откатится
+                        raise
 
-                    cursor.execute("""
-                        UPDATE my_dbmatch.link_columns 
-                        SET is_active = FALSE, updated_at = NOW()
-                        WHERE table_id IN (
-                            SELECT lt.id FROM my_dbmatch.link_tables lt
-                            JOIN my_dbmatch.link_base_schemas lbs ON lt.schema_id = lbs.id
-                            JOIN my_dbmatch.dim_db db ON lbs.base_id = db.id
-                            WHERE db.name = %s
-                        );
-                    """, [name_db.name])
+        end_time = time.time()
+        execution_time = end_time - start_time
+        logger.info(f"✅ Синхронизация завершена за {execution_time:.2f} секунд")
+        return f"Синхронизация завершена за {execution_time:.2f} секунд"
 
-                    cursor.execute("""
-                        UPDATE my_dbmatch.link_tables 
-                        SET is_active = FALSE, updated_at = NOW()
-                        WHERE schema_id IN (
-                            SELECT id FROM my_dbmatch.link_base_schemas 
-                            WHERE base_id = (SELECT id FROM my_dbmatch.dim_db WHERE name = %s)
-                        );
-                    """, [name_db.name])
-
-                    cursor.execute("""
-                        UPDATE my_dbmatch.link_base_schemas 
-                        SET is_active = FALSE, updated_at = NOW()
-                        WHERE base_id = (SELECT id FROM my_dbmatch.dim_db WHERE name = %s);
-                    """, [name_db.name])
-
-                return "Нет активных данных для синхронизации - все записи деактивированы"
-
-            # Собираем идентификаторы для последующей деактивации отсутствующих записей
-            processed_schemas = set()
-            processed_tables = set()
-            processed_columns = set()
-
-            with transaction.atomic():
-                for row in rows:
-                    (
-                        schem_name, schem_description,
-                        tab_type, tab_is_metadata, tab_name, tab_description,
-                        col_type, col_columns, col_is_null, col_is_key, col_unique_together, col_default,
-                        col_description,
-                        col_date_create
-                    ) = row
-
-                    # 1. Схема
-                    cursor.execute("""
-                        INSERT INTO my_dbmatch.link_base_schemas (base_id, "schema", description, is_active, created_at, updated_at)
-                        VALUES (
-                            (SELECT id FROM my_dbmatch.dim_db WHERE name = %s LIMIT 1),
-                            %s, %s, TRUE, NOW(), NOW()
-                        )
-                        ON CONFLICT (base_id, "schema")
-                        DO UPDATE SET description = EXCLUDED.description, is_active = TRUE, updated_at = NOW()
-                        RETURNING id;
-                    """, [name_db.name, schem_name, schem_description])
-
-                    schema_id = cursor.fetchone()[0]
-                    processed_schemas.add(schema_id)
-
-                    # 2. Тип таблицы
-                    cursor.execute("""
-                        INSERT INTO my_dbmatch.dim_table_type (name, created_at, updated_at, is_active)
-                        VALUES (%s, NOW(), NOW(), TRUE)
-                        ON CONFLICT (name)
-                        DO UPDATE SET updated_at = NOW(), is_active = TRUE
-                        RETURNING id;
-                    """, [tab_type])
-
-                    table_type_id = cursor.fetchone()[0]
-
-                    # 3. Таблица
-                    cursor.execute("""
-                        INSERT INTO my_dbmatch.link_tables (schema_id, type_id, name, is_metadata, description, created_at, updated_at, is_active)
-                        VALUES (
-                            %s, %s, %s, %s, %s, NOW(), NOW(), TRUE
-                        )
-                        ON CONFLICT (schema_id, type_id, name)
-                        DO UPDATE SET description = EXCLUDED.description, is_metadata = EXCLUDED.is_metadata, 
-                                      updated_at = NOW(), is_active = TRUE
-                        RETURNING id;
-                    """, [schema_id, table_type_id, tab_name, tab_is_metadata, tab_description])
-
-                    table_id = cursor.fetchone()[0]
-                    processed_tables.add(table_id)
-
-                    # 4. Колонка
-                    cursor.execute("""
-                        INSERT INTO my_dbmatch.link_columns (table_id, type, columns, is_null, is_key, unique_together, "default", description, date_create, created_at, updated_at, is_active)
-                        VALUES (
-                            %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW(), TRUE
-                        )
-                        ON CONFLICT (table_id, columns)
-                        DO UPDATE SET type = EXCLUDED.type, is_null = EXCLUDED.is_null, is_key = EXCLUDED.is_key,
-                                      unique_together = EXCLUDED.unique_together, "default" = EXCLUDED.default,
-                                      description = EXCLUDED.description, updated_at = NOW(), is_active = TRUE
-                        RETURNING id;
-                    """, [table_id, col_type, col_columns, col_is_null, col_is_key,
-                          col_unique_together, col_default, col_description, col_date_create])
-
-                    column_id = cursor.fetchone()[0]
-                    processed_columns.add(column_id)
-
-                    # 5. Связь колонка ↔ stage
-                    stage_id_result = cursor.execute("""
-                        SELECT id FROM my_dbmatch.dim_stage WHERE name = %s;
-                    """, [stage_db.name])
-                    stage_id = cursor.fetchone()[0]
-
-                    cursor.execute("""
-                        INSERT INTO my_dbmatch.link_columns_stage (stage_id, column_id, created_at, updated_at, is_active)
-                        VALUES (%s, %s, NOW(), NOW(), TRUE)
-                        ON CONFLICT (stage_id, column_id)
-                        DO UPDATE SET updated_at = NOW(), is_active = TRUE;
-                    """, [stage_id, column_id])
-
-                # 🔹 Деактивируем записи, которые отсутствуют в исходных данных
-
-                # Деактивируем схемы
-                if processed_schemas:
-                    cursor.execute("""
-                        UPDATE my_dbmatch.link_base_schemas 
-                        SET is_active = FALSE, updated_at = NOW()
-                        WHERE base_id = (SELECT id FROM my_dbmatch.dim_db WHERE name = %s)
-                        AND id NOT IN %s;
-                    """, [name_db.name, tuple(processed_schemas)])
-
-                # Деактивируем таблицы
-                if processed_tables:
-                    cursor.execute("""
-                        UPDATE my_dbmatch.link_tables 
-                        SET is_active = FALSE, updated_at = NOW()
-                        WHERE schema_id IN (
-                            SELECT id FROM my_dbmatch.link_base_schemas 
-                            WHERE base_id = (SELECT id FROM my_dbmatch.dim_db WHERE name = %s)
-                        )
-                        AND id NOT IN %s;
-                    """, [name_db.name, tuple(processed_tables)])
-
-                # Деактивируем колонки
-                if processed_columns:
-                    cursor.execute("""
-                        UPDATE my_dbmatch.link_columns 
-                        SET is_active = FALSE, updated_at = NOW()
-                        WHERE table_id IN (
-                            SELECT id FROM my_dbmatch.link_tables 
-                            WHERE schema_id IN (
-                                SELECT id FROM my_dbmatch.link_base_schemas 
-                                WHERE base_id = (SELECT id FROM my_dbmatch.dim_db WHERE name = %s)
-                            )
-                        )
-                        AND id NOT IN %s;
-                    """, [name_db.name, tuple(processed_columns)])
-
-                # Деактивируем связи колонок со stage
-                cursor.execute("""
-                    UPDATE my_dbmatch.link_columns_stage 
-                    SET is_active = FALSE, updated_at = NOW()
-                    WHERE stage_id = (SELECT id FROM my_dbmatch.dim_stage WHERE name = %s)
-                    AND column_id NOT IN %s;
-                """, [stage_db.name, tuple(processed_columns) if processed_columns else (0,)])
-
-            return f"Синхронизировано {len(rows)} строк. Деактивированы отсутствующие записи."
-
-    except Exception as error:
-        return f"Ошибка: {error}"
+    except Exception as e:
+        logger.error(f"❌ Ошибка синхронизации: {str(e)}")
+        return f"Ошибка: {str(e)}"
