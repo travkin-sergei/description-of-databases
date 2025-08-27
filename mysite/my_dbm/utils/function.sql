@@ -136,7 +136,7 @@ BEGIN
         LEFT JOIN my_dbmatch.link_db           AS ldb ON ldb.stage_id = dst.id AND ldb.alias = ltd.db_name
         LEFT JOIN my_dbmatch.link_base_schemas AS lbs ON lbs.base_id = ldb.base_id AND lbs.schema = ltd.schem_name
     WHERE lbs.id IS NULL
-      AND ltd.stage = stage_db
+      AND ltd.stage   = stage_db
       AND ltd.db_name = name_db;
 
     -- 2. Таблицы
@@ -155,18 +155,18 @@ BEGIN
     -- 3. Колонки - ИСПРАВЛЕННЫЙ БЛОК с DISTINCT
     WITH unique_columns AS (
         SELECT DISTINCT ON (lts.id, ltd.col_columns)
-            NOW() as created_at,
-            NOW() as updated_at,
-            TRUE as is_active,
-            ltd.col_date_create,
-            ltd.col_type,
-            ltd.col_columns,
-            ltd.col_is_null,
-            ltd.col_is_key,
-            ltd.col_unique_together,
-            ltd.col_default,
-            ltd.col_description,
-            lts.id as table_id
+             NOW()               as created_at
+			,NOW()               as updated_at
+			,TRUE                as is_active
+			,ltd.col_date_create as col_date_create
+			,ltd.col_type
+			,ltd.col_columns
+			,ltd.col_is_null
+			,ltd.col_is_key
+			,ltd.col_unique_together
+			,ltd.col_default
+			,ltd.col_description
+			,lts.id as table_id
         FROM my_dbmatch.link_total_data AS ltd
             LEFT JOIN my_dbmatch.dim_stage         AS dst ON dst.name = ltd.stage
             LEFT JOIN my_dbmatch.link_db           AS ldb ON ldb.stage_id = dst.id AND ldb.alias = ltd.db_name
@@ -177,18 +177,19 @@ BEGIN
           AND ltd.db_name = name_db
           AND lts.id IS NOT NULL
           AND NOT EXISTS (
-              SELECT 1 FROM my_dbmatch.link_columns lcs
+              SELECT 1 FROM my_dbmatch.link_columns lcs 
               WHERE lcs.table_id = lts.id AND lcs.columns = ltd.col_columns
           )
     )
     INSERT INTO my_dbmatch.link_columns(
-        created_at, updated_at, is_active, date_create, type, columns, is_null, is_key,
-        unique_together, "default", description, table_id)
-    SELECT
-        created_at, updated_at, is_active, col_date_create, col_type, col_columns,
+        created_at, updated_at, is_active, date_create, type, columns, is_null, is_key, 
+        unique_together, "default", description, table_id
+    )
+    SELECT 
+        created_at, updated_at, is_active, col_date_create, col_type, col_columns, 
         col_is_null, col_is_key, col_unique_together, col_default, col_description, table_id
     FROM unique_columns
-    ON CONFLICT (table_id, columns)
+    ON CONFLICT (table_id, columns) 
     DO UPDATE SET
         updated_at = NOW(),
         is_active = TRUE,
@@ -203,11 +204,11 @@ BEGIN
     -- 4. Привязка колонок к stage
     WITH unique_column_stages AS (
         SELECT DISTINCT ON (lcs.id, dst.id)
-            NOW() as created_at,
-            NOW() as updated_at,
-            TRUE as is_active,
-            lcs.id as column_id,
-            dst.id as stage_id
+             NOW()  as created_at
+            ,NOW()  as updated_at
+            ,TRUE   as is_active
+            ,lcs.id as column_id
+            ,dst.id as stage_id
         FROM my_dbmatch.link_total_data AS ltd
             JOIN my_dbmatch.dim_stage          AS dst ON dst.name = ltd.stage
             JOIN my_dbmatch.link_db            AS ldb ON ldb.stage_id = dst.id AND ldb.alias = ltd.db_name
@@ -218,38 +219,45 @@ BEGIN
         WHERE ltd.stage = stage_db
           AND ltd.db_name = name_db
           AND NOT EXISTS (
-              SELECT 1 FROM my_dbmatch.link_columns_stage lct
+              SELECT 1 FROM my_dbmatch.link_columns_stage lct 
               WHERE lct.column_id = lcs.id AND lct.stage_id = dst.id
           )
     )
     INSERT INTO my_dbmatch.link_columns_stage(created_at, updated_at, is_active, column_id, stage_id)
     SELECT created_at, updated_at, is_active, column_id, stage_id
     FROM unique_column_stages
-    ON CONFLICT (column_id, stage_id)
+    ON CONFLICT (column_id, stage_id) 
     DO UPDATE SET
         updated_at = NOW(),
         is_active = TRUE;
 
-    -- 5. Деактивация лишних колонок
-    UPDATE my_dbmatch.link_columns_stage lct
+-- 5. Деактивация лишних колонок (только если is_active = true)
+    UPDATE my_dbmatch.link_columns_stage as lct
     SET is_active = FALSE,
         updated_at = NOW()
-    WHERE lct.stage_id = (SELECT id FROM my_dbmatch.dim_stage WHERE name = stage_db)
-      AND lct.column_id NOT IN (
+	WHERE 1=1
+		AND lct.is_active = False
+    	AND lct.stage_id = (SELECT id FROM my_dbmatch.dim_stage WHERE name = stage_db )
+		AND lct.column_id NOT IN (
           SELECT lcs.id
           FROM my_dbmatch.link_total_data ltd
               JOIN my_dbmatch.link_db ldb ON ldb.alias = ltd.db_name
               JOIN my_dbmatch.link_base_schemas lbs ON lbs.base_id = ldb.base_id AND lbs.schema = ltd.schem_name
               JOIN my_dbmatch.link_tables lts ON lts.schema_id = lbs.id AND lts.name = ltd.tab_name
               JOIN my_dbmatch.link_columns lcs ON lcs.table_id = lts.id AND lcs.columns = ltd.col_columns
-          WHERE ltd.stage = stage_db AND ltd.db_name = name_db
+          where 1=1
+          	AND ltd.stage   = stage_db 
+          	AND ltd.db_name = name_db
       );
 
     -- 6. Активация связанных
     UPDATE my_dbmatch.link_columns_stage
-    SET is_active = TRUE,
-        updated_at = NOW()
-    WHERE column_id IN (
+    	set 
+    		 is_active = true
+    		,updated_at = NOW()
+    WHERE 1=1
+    	and is_active=FALSE
+    	and column_id IN (
         SELECT lcs.id
         FROM my_dbmatch.link_columns lcs
             JOIN my_dbmatch.link_tables lts ON lts.id = lcs.table_id
@@ -260,19 +268,28 @@ BEGIN
     );
 
     UPDATE my_dbmatch.link_columns
-    SET is_active = TRUE,
-        updated_at = NOW()
-    WHERE id IN (SELECT column_id FROM my_dbmatch.link_columns_stage WHERE is_active = TRUE);
+    	set
+	    	 is_active = true
+			,updated_at = NOW()
+    WHERE 1=1
+    	and is_active = fALSE
+    	and id IN (SELECT column_id FROM my_dbmatch.link_columns_stage WHERE is_active = TRUE);
 
     UPDATE my_dbmatch.link_tables
-    SET is_active = TRUE,
-        updated_at = NOW()
-    WHERE id IN (SELECT DISTINCT table_id FROM my_dbmatch.link_columns WHERE is_active = TRUE);
+    	SET 
+    		 is_active = true
+    		,updated_at = NOW() 
+	WHERE 1=1
+		and is_active = fALSE
+    	and id IN (SELECT DISTINCT table_id FROM my_dbmatch.link_columns WHERE is_active = TRUE);
 
     UPDATE my_dbmatch.link_base_schemas
-    SET is_active = TRUE,
-        updated_at = NOW()
-    WHERE id IN (SELECT DISTINCT schema_id FROM my_dbmatch.link_tables WHERE is_active = TRUE);
+    	SET 
+    		 is_active = true
+    		,updated_at = NOW()
+    WHERE 1=1
+		and is_active = false
+    	and id IN (SELECT DISTINCT schema_id FROM my_dbmatch.link_tables WHERE is_active = TRUE);
 
 END;
 $function$

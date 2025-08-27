@@ -12,8 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 def sync_database(name_db, stage_db):
+    p_1 = stage_db.name
+    p_2 = name_db.name
+
     with connection.cursor() as cursor:
-        p_1 = stage_db.name
-        p_2 = name_db.name
-        print(p_1, p_2)
-        cursor.execute("SELECT my_dbmatch.sync_database(%s, %s);", [p_1, p_2])
+        cursor.execute("SELECT my_dbmatch.sync_database(%s, %s)", [p_1, p_2])
+        result = cursor.fetchone()[0]
+
+    return result
