@@ -177,18 +177,18 @@ BEGIN
           AND ltd.db_name = name_db
           AND lts.id IS NOT NULL
           AND NOT EXISTS (
-              SELECT 1 FROM my_dbmatch.link_columns lcs 
+              SELECT 1 FROM my_dbmatch.link_columns lcs
               WHERE lcs.table_id = lts.id AND lcs.columns = ltd.col_columns
           )
     )
     INSERT INTO my_dbmatch.link_columns(
-        created_at, updated_at, is_active, date_create, type, columns, is_null, is_key, 
+        created_at, updated_at, is_active, date_create, type, columns, is_null, is_key,
         unique_together, "default", description, table_id)
-    SELECT 
-        created_at, updated_at, is_active, col_date_create, col_type, col_columns, 
+    SELECT
+        created_at, updated_at, is_active, col_date_create, col_type, col_columns,
         col_is_null, col_is_key, col_unique_together, col_default, col_description, table_id
     FROM unique_columns
-    ON CONFLICT (table_id, columns) 
+    ON CONFLICT (table_id, columns)
     DO UPDATE SET
         updated_at = NOW(),
         is_active = TRUE,
@@ -218,14 +218,14 @@ BEGIN
         WHERE ltd.stage = stage_db
           AND ltd.db_name = name_db
           AND NOT EXISTS (
-              SELECT 1 FROM my_dbmatch.link_columns_stage lct 
+              SELECT 1 FROM my_dbmatch.link_columns_stage lct
               WHERE lct.column_id = lcs.id AND lct.stage_id = dst.id
           )
     )
     INSERT INTO my_dbmatch.link_columns_stage(created_at, updated_at, is_active, column_id, stage_id)
     SELECT created_at, updated_at, is_active, column_id, stage_id
     FROM unique_column_stages
-    ON CONFLICT (column_id, stage_id) 
+    ON CONFLICT (column_id, stage_id)
     DO UPDATE SET
         updated_at = NOW(),
         is_active = TRUE;
