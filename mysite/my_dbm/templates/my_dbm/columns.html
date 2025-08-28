@@ -77,7 +77,7 @@
                         </thead>
                         <tbody>
                         {% for column in columns %}
-                        {% with detail_url='my_dbm:columns-detail' pk=column.pk %}
+                        {% with detail_url='my_dbm:tables-detail' pk=column.table.pk %}
                         <tr>
                             <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                             <td>

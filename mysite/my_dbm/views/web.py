@@ -181,9 +181,8 @@ class ColumnListView(LoginRequiredMixin, FilterView):
 
 
 class ColumnDetailView(LoginRequiredMixin, DetailView):
-    """
-    Детализация столбца.
-    """
+    """Детализация столбца."""
+
     model = LinkColumn
     template_name = 'my_dbm/columns-detail.html'
     context_object_name = 'column'
