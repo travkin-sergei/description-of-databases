@@ -207,22 +207,27 @@ class LinkDBTableName(BaseClass):
 class LinkColumn(BaseClass):
     """Связи таблиц типов данных и столбцов."""
 
-    table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE, )
+    table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE)
     date_create = models.DateTimeField(default=datetime.datetime.now)
-    type = models.CharField(max_length=255, null=True, )
-    columns = models.CharField(max_length=255, )
-    is_null = models.BooleanField(blank=True, null=True, db_default=True, )
-    is_key = models.BooleanField(db_default=False, )
-    unique_together = models.IntegerField(blank=True, null=True, )
-    default = models.TextField(blank=True, null=True, )
+    type = models.CharField(max_length=255, null=True)
+    columns = models.CharField(max_length=255)
+    is_null = models.BooleanField(blank=True, null=True, db_default=True)
+    is_key = models.BooleanField(db_default=False)
+    unique_together = models.IntegerField(blank=True, null=True)
+    default = models.TextField(blank=True, null=True)
     description = models.JSONField(blank=True, null=True)
+    stage = models.JSONField(
+        blank=True, null=True,
+        verbose_name="Доп. информация о слое",
+        help_text='{"1": "Sand","2": "DEV", "3": "TEST","4": "PreProd", "5": "Prod",}'
+    )
 
     def __str__(self):
         return f'{self.table}-{self.columns}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_columns'
-        unique_together = [['table', 'columns', ]]
+        db_table = f'{db_schema}"."link_columns'
+        unique_together = [['table', 'columns']]
         verbose_name = '11 Столбец.'
         verbose_name_plural = '11 Столбцы.'
 

@@ -1,23 +1,24 @@
 from django.db.models import Q
 from django.http import HttpResponseNotFound
-
 from django.views import View
 from django.views.generic import DetailView, TemplateView
 from django_filters.views import FilterView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from ..filters import (
-    LinkDBFilter,
-    LinkDBTableFilter, LinkColumnFilter,
-)
 from my_services.models import LinkServicesTable
 from my_updates.models import LinkUpdate
+
 from ..models import (
     DimDB,
     LinkDB,
     LinkDBTable,
     LinkColumnColumn, LinkColumn, LinkColumnName, LinkColumnStage, LinkDBTableName,
 )
+from ..filters import (
+    LinkDBFilter,
+    LinkDBTableFilter, LinkColumnFilter,
+)
+
 
 class PageNotFoundView(LoginRequiredMixin, View):
     """Обработка 404 ошибки отсутствия страницы"""
@@ -94,7 +95,6 @@ class TablesView(LoginRequiredMixin, FilterView):
 
         return context
 
-
 class TableDetailView(LoginRequiredMixin, DetailView):
     """Детализация таблицы."""
 
@@ -106,7 +106,7 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         return LinkDBTable.objects.select_related(
             'schema', 'schema__base', 'type'
         ).prefetch_related(
-            'linkcolumn_set__linkcolumnstage_set__stage'
+            'linkcolumn_set'
         )
 
     def get_context_data(self, **kwargs):
@@ -114,7 +114,19 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         table = self.object
 
         # Существующие столбцы
-        columns = table.linkcolumn_set.filter(is_active=True).order_by('unique_together', 'date_create', 'id')
+        columns = table.linkcolumn_set.filter(is_active=True).order_by(
+            'unique_together', 'date_create', 'id'
+        )
+
+        # Добавляем stage из JSON
+        for col in columns:
+            col.stages_from_json = []
+            if col.stage and isinstance(col.stage, dict):
+                # Сортируем по ключу и сохраняем список стадий
+                col.stages_from_json = [
+                    v for k, v in sorted(col.stage.items(), key=lambda x: int(x[0]))
+                ]
+
         context['columns'] = columns
 
         # Связи между столбцами
@@ -122,7 +134,7 @@ class TableDetailView(LoginRequiredMixin, DetailView):
             Q(main__in=columns) | Q(sub__in=columns)
         ).select_related('main', 'sub', 'type')
 
-        # Сервисы
+        # Связанные сервисы
         services = LinkServicesTable.objects.filter(table=table).select_related('service')
         context['services_list'] = services
         context['services_count'] = services.count()
@@ -139,7 +151,7 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         ).distinct().order_by('name__name')
         context['schedules'] = schedules
 
-        # === Новое: альтернативные имена таблицы ===
+        # Альтернативные имена таблицы
         alt_names = LinkDBTableName.objects.filter(table=table)
         context['alt_table_names'] = alt_names
 
