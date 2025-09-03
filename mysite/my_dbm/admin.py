@@ -74,16 +74,6 @@ class DimColumnNameAdmin(BaseAdmin):
     search_fields = ('name',)
 
 
-# === Inline классы ===
-class LinkColumnStageInline(admin.TabularInline):
-    model = LinkColumnStage
-    extra = 0
-    autocomplete_fields = ['stage']
-    verbose_name = 'Этап'
-    verbose_name_plural = 'Этапы'
-    fields = ('stage', 'is_active')
-
-
 class LinkDBTableNameInline(admin.TabularInline):
     model = LinkDBTableName
     extra = 0
@@ -127,7 +117,6 @@ class LinkDBTableAdmin(BaseAdmin):
 @admin.register(LinkColumn)
 class LinkColumnAdmin(BaseAdmin):
     form = LinkColumnForm
-    inlines = [LinkColumnStageInline]
     list_display = ('columns', 'table', 'type', 'is_null', 'is_key', 'is_active')
     search_fields = ('columns', 'table__name')
     list_filter = BaseAdmin.list_filter + ('type', 'is_null', 'is_key')

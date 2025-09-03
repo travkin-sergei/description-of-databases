@@ -167,8 +167,8 @@ class LinkDBTable(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"link_tables'
         unique_together = [['schema', 'type', 'name', ]]
-        verbose_name = '10 Связи схем и таблиц.'
-        verbose_name_plural = '10 Связи схем и таблиц'
+        verbose_name = '10 Таблица.'
+        verbose_name_plural = '10 Таблицы'
 
 
 class DimDBTableNameType(BaseClass):
@@ -276,19 +276,3 @@ class LinkColumnName(BaseClass):
         unique_together = [['column', 'name', ]]
         verbose_name = '14 Связь столбцов и имен столбцов.'
         verbose_name_plural = '14 Связь столбцов и имен столбцов.'
-
-
-class LinkColumnStage(BaseClass):
-    """Связи столбцов и стендов разработки."""
-
-    stage = models.ForeignKey(DimStage, on_delete=models.CASCADE, )
-    column = models.ForeignKey(LinkColumn, on_delete=models.CASCADE, )
-
-    def __str__(self):
-        return f'{self.stage}-{self.column}'
-
-    class Meta:
-        db_table = f'{db_schema}\".\"link_columns_stage'
-        unique_together = [['stage', 'column', ]]
-        verbose_name = '11 Связь столбца на стенде.'
-        verbose_name_plural = '11 Связь столбца на стенде.'

@@ -12,7 +12,7 @@ from ..models import (
     DimDB,
     LinkDB,
     LinkDBTable,
-    LinkColumnColumn, LinkColumn, LinkColumnName, LinkColumnStage, LinkDBTableName,
+    LinkColumnColumn, LinkColumn, LinkColumnName, LinkDBTableName,
 )
 from ..filters import (
     LinkDBFilter,
@@ -215,7 +215,6 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
                 'table__type'
             ).prefetch_related(
                 'linkcolumnname_set__name',
-                'linkcolumnstage_set__stage'
             )
         )
 
@@ -233,9 +232,6 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
         column_names = LinkColumnName.objects.filter(column=column).select_related('name')
         context['column_names'] = column_names
 
-        # Стадии стендов
-        stages = LinkColumnStage.objects.filter(column=column).select_related('stage')
-        context['stages'] = stages
 
         # Обновления
         schedules = LinkUpdate.objects.filter(
