@@ -67,6 +67,8 @@ class DatabasesView(LoginRequiredMixin, FilterView):
 
 
 class TablesView(LoginRequiredMixin, FilterView):
+    """Таблица """
+
     model = LinkDBTable
     template_name = 'my_dbm/tables.html'
     context_object_name = 'tables'
@@ -74,14 +76,12 @@ class TablesView(LoginRequiredMixin, FilterView):
     filterset_class = LinkDBTableFilter
 
     def get_queryset(self):
-        return (
+        qs = (
             LinkDBTable.objects
-            .filter(is_active=True)
-            .select_related(
-                'schema',
-                'schema__base',
-                'type'
-            ).all())
+            .select_related('schema', 'schema__base', 'type')
+        )
+        # фильтрацию по is_active лучше доверить filterset_class
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -93,7 +93,12 @@ class TablesView(LoginRequiredMixin, FilterView):
         if get_params:
             context['query_string'] = get_params.urlencode()
 
+        # Эти флаги нужны шаблону для переключения состояний
+        context['form_submitted'] = bool(self.request.GET)
+        context['has_filter_params'] = any(v for k, v in self.request.GET.items() if k != 'page')
+
         return context
+
 
 class TableDetailView(LoginRequiredMixin, DetailView):
     """Детализация таблицы."""
