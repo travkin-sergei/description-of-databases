@@ -22,6 +22,7 @@ urlpatterns = [
     path('services/', include('my_services.urls')),
     path('request/', include('my_request.urls')),
     path('updates/', include('my_updates.urls')),
+    path('query/', include('my_query_path.urls')),
 
 ]
 

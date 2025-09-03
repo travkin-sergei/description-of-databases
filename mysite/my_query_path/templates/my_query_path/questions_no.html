@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Карточка с сообщением -->
+            <div class="card shadow-lg border-yellow rounded-4">
+                <div class="card-header card-header-black text-center py-4 rounded-top-4">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Вопросы не найдены
+                    </h2>
+                </div>
+
+                <div class="card-body p-5 text-center bg-light">
+                    <!-- Иконка -->
+                    <div class="mb-4">
+                        <i class="fas fa-inbox text-yellow" style="font-size: 4rem;"></i>
+                    </div>
+
+                    <!-- Текст сообщения -->
+                    <h4 class="text-dark mb-3">Вопросы пока не добавлены</h4>
+                    <p class="text-muted fs-5 mb-4">
+                        Для начала работы с опросом необходимо добавить вопросы через административную панель.
+                    </p>
+
+                    <!-- Дополнительная информация -->
+                    <div class="alert alert-warning-black border-yellow rounded-3 mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle me-3 fs-4 text-yellow"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1 text-dark">Что делать?</h6>
+                                <p class="mb-0 text-dark">Зайдите в админку и создайте хотя бы один вопрос с вариантами ответов</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки действий -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="/admin" class="btn btn-yellow-red btn-lg rounded-pill px-4">
+                            <i class="fas fa-cog me-2"></i>
+                            Перейти в админку
+                        </a>
+                        <a href="/" class="btn btn-outline-dark btn-lg rounded-pill px-4">
+                            <i class="fas fa-home me-2"></i>
+                            На главную
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Стили для кастомизации -->
+<style>
+    .card {
+        transition: transform 0.3s ease;
+        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+        border: 2px solid #ffcc00;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(255, 204, 0, 0.15);
+    }
+
+    .card-header-black {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+        color: #ffcc00 !important;
+        border-bottom: 2px solid #ffcc00;
+    }
+
+    .bg-light {
+        background-color: #ffffff !important;
+    }
+
+    .btn-yellow-red {
+        background: linear-gradient(135deg, #ffcc00 0%, #e6b800 100%);
+        border: 2px solid #1a1a1a;
+        transition: all 0.3s ease;
+        color: #1a1a1a;
+        font-weight: bold;
+    }
+
+    .btn-yellow-red:hover {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+        border-color: #ff4757;
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        color: #1a1a1a;
+    }
+
+    .btn-outline-dark {
+        color: #1a1a1a;
+        border: 2px solid #1a1a1a;
+        background: transparent;
+        transition: all 0.3s ease;
+        font-weight: bold;
+    }
+
+    .btn-outline-dark:hover {
+        background-color: #1a1a1a;
+        border-color: #1a1a1a;
+        color: #ffcc00;
+        transform: scale(1.05);
+    }
+
+    .alert-warning-black {
+        background: linear-gradient(135deg, #fff9e6 0%, #ffe6cc 100%);
+        border: 1px solid #ffcc00;
+    }
+
+    .text-yellow {
+        color: #ffcc00 !important;
+    }
+
+    .text-dark {
+        color: #1a1a1a !important;
+    }
+
+    .border-yellow {
+        border: 2px solid #ffcc00 !important;
+    }
+
+    /* Адаптивность для мобильных */
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 2rem !important;
+        }
+
+        .btn-yellow-red,
+        .btn-outline-dark {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}

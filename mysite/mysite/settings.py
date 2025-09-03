@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'my_updates',  # обновления
     'my_dictionary',  # словарь
     'django_apscheduler',  # Шедулер в admin
+    'my_query_path', # поиск ответа
 ]
 
 MIDDLEWARE = [
