@@ -4,6 +4,7 @@ from .views import StartQuizView, QuestionView, ArticleView, AboutView
 
 app_name = "my_query_path"
 
+
 urlpatterns = [
     path('', AboutView.as_view(), name='about-app'),
     path("start", StartQuizView.as_view(), name="start"),
