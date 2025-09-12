@@ -220,20 +220,25 @@
                 <h5>{{ tables.schema.base.name }} | {{ tables.schema|upper }}-{{ tables.name|upper }}</h5>
             </div>
             <div class="data-card-body">
-                {% if alt_table_names %}
-                    <p>Альтернативные имена:</p>
-                    <ul>
-                        {% for alt in alt_table_names %}
-                        <li>{{ alt.name }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
+            {% if alt_table_names %}
+                <p>Альтернативные имена:</p>
+                <ul>
+                    {% for alt in alt_table_names %}
+                        <li>
+                            {% if alt.is_publish %}
+                                <span style="color: var(--primary-dark); background-color: var(--primary-yellow); padding: 2px 6px; border-radius: 3px;">{{ alt.name }}</span>
+                            {% else %}
+                                {{ alt.name }}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
                 {% if tables.description %}
                     <p>Описание: {{ tables.description|safe }}</p>
                 {% endif %}
             </div>
         </div>
-
         <!-- Таблица колонок -->
         <div class="data-card mt-3">
             <div class="data-card-header">

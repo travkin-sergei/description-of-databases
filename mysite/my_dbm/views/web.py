@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery
 from django.http import HttpResponseNotFound
 from django.views import View
 from django.views.generic import DetailView, TemplateView
@@ -9,7 +9,6 @@ from my_services.models import LinkServicesTable
 from my_updates.models import LinkUpdate
 
 from ..models import (
-    DimDB,
     LinkDB,
     LinkDBTable,
     LinkColumnColumn, LinkColumn, LinkColumnName, LinkDBTableName,
@@ -67,8 +66,6 @@ class DatabasesView(LoginRequiredMixin, FilterView):
 
 
 class TablesView(LoginRequiredMixin, FilterView):
-    """Таблица """
-
     model = LinkDBTable
     template_name = 'my_dbm/tables.html'
     context_object_name = 'tables'
@@ -76,27 +73,29 @@ class TablesView(LoginRequiredMixin, FilterView):
     filterset_class = LinkDBTableFilter
 
     def get_queryset(self):
+        # Подзапрос для альтернативного имени с is_publish=True
+        alt_name_subquery = LinkDBTableName.objects.filter(
+            table=OuterRef('pk'),
+            is_publish=True
+        ).values('name')[:1]
         qs = (
             LinkDBTable.objects
             .select_related('schema', 'schema__base', 'type')
+            .annotate(
+                alt_name=Subquery(alt_name_subquery)
+            )
         )
-        # фильтрацию по is_active лучше доверить filterset_class
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Сохраняем параметры фильтрации для пагинации
         get_params = self.request.GET.copy()
         if 'page' in get_params:
             del get_params['page']
         if get_params:
             context['query_string'] = get_params.urlencode()
-
-        # Эти флаги нужны шаблону для переключения состояний
         context['form_submitted'] = bool(self.request.GET)
         context['has_filter_params'] = any(v for k, v in self.request.GET.items() if k != 'page')
-
         return context
 
 
@@ -231,7 +230,6 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
         # Синонимы названий столбцов
         column_names = LinkColumnName.objects.filter(column=column).select_related('name')
         context['column_names'] = column_names
-
 
         # Обновления
         schedules = LinkUpdate.objects.filter(

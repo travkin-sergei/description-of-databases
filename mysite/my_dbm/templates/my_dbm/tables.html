@@ -363,6 +363,7 @@
                             <tbody>
                             {% for elem in tables %}
                             {% with detail_url='my_dbm:tables-detail' pk=elem.pk %}
+                            {{ elem.as_p }}
                             <tr>
                                 <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                                 <td>
@@ -379,7 +380,10 @@
                                     <a href="{% url detail_url pk=pk %}">
                                         {{ elem.name|default_if_none:"—" }}
                                     </a>
-                                    <span class="float-end">{{ elem.type|default_if_none:"—" }}</span>
+                                    <span class="float-end">
+                                        {{ elem.alt_name|default_if_none:"—" }}
+                                        ({{ elem.type|default_if_none:"—" }})
+                                    </span>
                                 </td>
                                 <td class="text-center">
                                         <span class="badge badge-yellow">
@@ -399,9 +403,7 @@
                     </form>
                 </div>
             </div>
-
             {% include 'inc/_paginator.html' %}
-
         </div>
     </div>
 </div>

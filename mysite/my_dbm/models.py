@@ -1,6 +1,6 @@
 import datetime
-
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Q
 
 db_schema = 'my_dbmatch'
 
@@ -79,8 +79,8 @@ class DimDB(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"dim_db'
         unique_together = [['name', ]]
-        verbose_name = '03 Словарь баз данных.'
-        verbose_name_plural = '03 Словарь баз данных.'
+        verbose_name = '02 Словарь баз данных.'
+        verbose_name_plural = '02 Словарь баз данных.'
 
 
 class LinkDB(BaseClass):
@@ -100,8 +100,8 @@ class LinkDB(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"link_db'
         unique_together = [['name', 'host', 'port', ]]
-        verbose_name = '04 Список баз данных.'
-        verbose_name_plural = '04 Список баз данных.'
+        verbose_name = '03 Список баз данных.'
+        verbose_name_plural = '03 Список баз данных.'
 
 
 class LinkDBSchema(BaseClass):
@@ -117,8 +117,8 @@ class LinkDBSchema(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"link_base_schemas'
         unique_together = [['base', 'schema', ]]
-        verbose_name = '05 Словарь схем баз данных.'
-        verbose_name_plural = '05 Словарь схем баз данных.'
+        verbose_name = '04 Схема базы данных.'
+        verbose_name_plural = '04 Схемы баз данных.'
 
 
 class DimDBTableType(BaseClass):
@@ -133,23 +133,8 @@ class DimDBTableType(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"dim_table_type'
         unique_together = [['name', ]]
-        verbose_name = '06 Словарь типов таблиц.'
-        verbose_name_plural = '06 Словарь типов таблиц.'
-
-
-class DimColumnName(BaseClass):
-    """Список имен столбцов"""
-
-    name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = f'{db_schema}\".\"dim_column_name'
-        unique_together = [['name', ]]
-        verbose_name = '08 Словарь имен столбцов.'
-        verbose_name_plural = '08 Словарь имен столбцов.'
+        verbose_name = '05 Словарь тип таблицы.'
+        verbose_name_plural = '05 Словарь типы таблиц.'
 
 
 class LinkDBTable(BaseClass):
@@ -186,22 +171,60 @@ class DimDBTableNameType(BaseClass):
 
 
 class LinkDBTableName(BaseClass):
-    """
-    Связи таблиц и их синонимов.
-    """
+    """Связи таблиц и их синонимов."""
 
     table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE)
     type = models.ForeignKey(DimDBTableNameType, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    is_publish = models.BooleanField(null=True, blank=True, default=False)
 
     def __str__(self):
         return f'{self.table}-{self.name}'
 
+    def save(self, *args, **kwargs):
+        # Если is_publish True, сбрасываем у других записей для той же таблицы
+        if self.is_publish:
+            with transaction.atomic():
+                # Сбросить is_publish у других записей той же таблицы
+                LinkDBTableName.objects.filter(
+                    table=self.table
+                    , is_publish=True
+                ).exclude(
+                    pk=self.pk
+                ).update(
+                    is_publish=False
+                )
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
     class Meta:
-        unique_together = [['table', 'name', ]]
-        db_table = f'{db_schema}\".\"link_tables_name'
+        unique_together = [['table', 'name']]
+        db_table = f'{db_schema}"."link_tables_name'
         verbose_name = '14 Альтернативное название таблицы.'
         verbose_name_plural = '14 Альтернативные названия таблиц.'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['table'],
+                condition=Q(is_publish=True),
+                name='unique_publish_per_table'
+            )
+        ]
+
+
+class DimColumnName(BaseClass):
+    """Список имен столбцов"""
+
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = f'{db_schema}\".\"dim_column_name'
+        unique_together = [['name', ]]
+        verbose_name = '08 Словарь имен столбцов.'
+        verbose_name_plural = '08 Словарь имен столбцов.'
 
 
 class LinkColumn(BaseClass):

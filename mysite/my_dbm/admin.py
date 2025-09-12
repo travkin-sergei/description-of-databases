@@ -1,4 +1,4 @@
-# admin.py
+# my_dbm/admin.py
 from django import forms
 from django.contrib import admin, messages
 from django_jsonform.widgets import JSONFormWidget
@@ -55,6 +55,12 @@ class DimStageAdmin(BaseAdmin):
     search_fields = ('name',)
 
 
+@admin.register(DimDBTableNameType)
+class DimDBTableNameTypeAdmin(BaseAdmin):
+    list_display = ('name', 'is_active')
+    search_fields = ('name',)
+
+
 @admin.register(DimDBTableType)
 class DimDBTableTypeAdmin(BaseAdmin):
     list_display = ('name', 'description', 'is_active')
@@ -77,7 +83,7 @@ class DimColumnNameAdmin(BaseAdmin):
 class LinkDBTableNameInline(admin.TabularInline):
     model = LinkDBTableName
     extra = 0
-    fields = ('name', 'type', 'is_active')
+    fields = ('name', 'type', 'is_publish')
     verbose_name = 'Альтернативное имя'
     verbose_name_plural = 'Альтернативные имена таблиц'
 
@@ -86,7 +92,7 @@ class LinkColumnInline(admin.TabularInline):
     model = LinkColumn
     form = LinkColumnForm  # Используем единую форму
     extra = 0
-    fields = ('is_active', 'columns', 'type', 'default', 'is_null', 'is_key', 'unique_together', 'description',)
+    fields = ('is_active','columns','type','default','is_null','is_key','unique_together','description','stage',)
     verbose_name = 'Колонка'
     verbose_name_plural = 'Колонки'
 
