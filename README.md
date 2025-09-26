@@ -35,7 +35,6 @@ python3 -c "import secrets; print(secrets.token_urlsafe())"
 ```
 
 4. в корневой директории создать файл ".env"
-
 ```commandline
 
 SECRET_KEY=django-insecure-*************************************************
