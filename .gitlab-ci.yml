@@ -1,0 +1,7 @@
+include:
+  - project: 'devops/ci-cd/deploy'
+    ref: master
+    file: 'ci/.gitlab-ci-python-app.yml'
+
+variables:
+  NAMESPACE: devops-utils
