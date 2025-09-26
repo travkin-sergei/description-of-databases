@@ -101,4 +101,3 @@ class LinkColumnFilter(django_filters.FilterSet):
             'columns',
             'description'
         ]
-
