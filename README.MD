@@ -21,10 +21,8 @@
 ## Запуск:
 
 1. Создать виртуальное окружение
-2. запустить команду pip install -r requirements.txt
-
+2. Установить зависимости
 ```bash
-
 pip install -r requirements.txt
 ```
 
