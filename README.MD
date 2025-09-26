@@ -1,139 +1,74 @@
-# Проект: "Описание инфраструктуры"
+# Программа для хранения информации о состоянии баз данных
 
-## Ответственный: Травкин С.С.
+## Приложения:
 
-## Технологии
+1. my_auth - личный кабинет
+2. my_dbm - навигатор по базам данных 
+   2.1. my_updates - список и правила обновлений таблиц в my_dbm 
+   2.2. my_request - точечные отчеты 
+3. my_dictionary - термины и определения 
+4. my_query_path - ответ по уточняющим вопросам 
+5. my_services - описание и группировка сервисов
+6. my_table_designer - дизайнер таблиц (в разработке)
 
-1. Django==5.0.7 - основной фреймворк
-2. django-filter - фильтрация данных (выборка из базы)
-3. djangorestframework==3.15.2
-4. drf-spectacular - документирвоание API
-5. django-ckeditor - редактор текста
+## Технологии:
+
++ PostgreSQL 13 и выше
++ Django 5.1.2
++ django-filter - фильтрация данных на фронте
++ подробнее смотри requirements.txt
 
 ## Запуск:
 
-## При первом запуске Заменить код, а потом вернуть как было
-```python
-# my_services/apps.py
-from django.apps import AppConfig
-
-
-class MyServicesConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'my_services'
-
-    def ready(self):
-        from .scheduler import start
-        # start()  # При первом старте отключить
-        pass  # При первом старте включить
-```
-
-
-1. Обновить pip
+1. Создать виртуальное окружение
+2. запустить команду pip install -r requirements.txt
 
 ```bash
-  python.exe -m pip install --upgrade pip
+
+pip install -r requirements.txt
 ```
 
-2. Создать виртуальное окружение
+3. сгенерировать свой SECRET_KEY
 
 ```bash
-  python -m venv .venv 
+python3 -c "import secrets; print(secrets.token_urlsafe())"
 ```
 
-3. Запустить виртуальное окружение
-
-```bash
-  .venv\\scripts\\activate 
-```
-
-4. Установить зависимости
-
-```bash
-  pip install -r requirements.txt
-```
-
-5. Перейти в папку проекта
-
-```bash
-  cd mysite
-```
-
-6. сгенерировать свой SECRET_KEY
-
-```bash
-  python3 -c "import secrets; print(secrets.token_urlsafe())"
-```
-
-7. В корневой директории создать файл ".env"
-
+4. в корневой директории создать файл ".env"
 ```commandline
+
 SECRET_KEY=django-insecure-*************************************************
-DB_NAME=reference_book
-DB_USER=postgres
-DB_PASS=123456
-DB_HOST=localhost
-DB_PORT=5432
-DB_SCHEMA=reference_book
-```
-8. Создать superuser
-```bash
-  python manage.py createsuperuser
+NAME=postgres
+USER=postgres
+PASSWORD=123456
+HOST=localhost
+PORT=5432
 ```
 
-9. Запустить локалььный сервер (для тестирования функциональности)
+5. перейти в папку mysite
 
 ```bash
-  python manage.py runserver
+
+cd mysite
 ```
 
-10. Заморозить зависимости
+6. Создать миграцию
 
 ```bash
-    pip freeze > requirements.txt
+
+python manage.py makemigrations
 ```
 
-## Список приложений:
+7. Применить миграцию
 
-1. my_data_asset - это справочник источников данных
-2. my_geo_id - это справочник гео объектов
+```bash
 
-## Структура проекта
-
-### Обязательные шаблоны (templates):
-
-1. about_application.html - Описание приложения!
-2. _nav.html - меню приложения:
-
-```html
-app_name - имя приложения.
-<li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" role="button" id="navbarDropdown" data-bs-toggle="dropdown"
-       aria-expanded="false">
-        Геообъекты
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-        <li>
-            <a class="dropdown-item" href="{% url 'app_name:about-app' %}">
-                О разделе
-            </a>
-        </li>
-    </ul>
-</li>
+python manage.py migrate
 ```
 
-templates/_inc/_nav.html в этот шаблон добавить
+8. запустить runserver
 
-```html
+```bash
 
-<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-    {% include 'app_name1/_nav.html' %}
-    {% include 'app_name2/_nav.html' %}
-    ...
-</ul>
+python manage.py runserver
 ```
-
-
-
-
-
