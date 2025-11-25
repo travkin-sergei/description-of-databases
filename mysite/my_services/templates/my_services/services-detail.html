@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block title %}{{ service.alias|default:"—" }}{% endblock title %}
+{% block body %}
+<section style="background-color: #f8f9fa;">
+    <div class="container py-5">
+        <div class="row">
+            <!-- Заголовок сервиса -->
+            <div class="col-12">
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header text-center"
+                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
+                        <h1 class="mb-0">
+                            {{ service.type.name|default:"—" }}.
+                            {{ service.alias|default:"—" }}
+                        </h1>
+                    </div>
+                </div>
+            </div>
+            <!-- Описание сервиса -->
+            <div class="col-12 mb-4">
+                <div class="card" style="border: 2px solid #ffcc00;">
+                    <div class="card-header cursor-pointer"
+                         style="background-color: #1a1a1a; color: #ffcc00;"
+                         data-bs-toggle="collapse"
+                         data-bs-target="#descriptionCollapse">
+                        <h4 class="mb-0 d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-info-circle me-2"></i>Описание сервиса</span>
+                            <i class="fas fa-chevron-down transition-all"></i>
+                        </h4>
+                    </div>
+                    <div id="descriptionCollapse" class="collapse show">
+                        <div class="card-body">
+                            {% if service.code %}
+                                <p class="mb-2"><strong>Код сервиса:</strong> {{ service.code }}</p>
+                            {% endif %}
+                            <p class="lead mb-0">
+                                {{ service.description|default:"—" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Блок ссылок -->
+            {% if grouped_links %}
+            <div class="col-12 mb-4">
+                <div class="card" style="border: 2px solid #ffcc00;">
+                    <div class="card-header cursor-pointer"
+                         style="background-color: #1a1a1a; color: #ffcc00;"
+                         data-bs-toggle="collapse"
+                         data-bs-target="#linksCollapse">
+                        <h4 class="mb-0 d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-link me-2"></i>Ссылки</span>
+                            <i class="fas fa-chevron-down transition-all"></i>
+                        </h4>
+                    </div>
+                    <div id="linksCollapse" class="collapse show">
+                        <div class="card-body p-0">
+                            <div class="accordion" id="linksAccordion">
+                                {% for stack_name, links in grouped_links.items %}
+                                <div class="accordion-item border-0">
+                                    <div class="accordion-header">
+                                        <button class="accordion-button collapsed d-flex justify-content-between align-items-center py-3"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#collapse{{ forloop.counter }}"
+                                                style="background-color: #f8f9fa;">
+                                            <strong>{{ stack_name }}</strong>
+                                            <i class="fas fa-chevron-down transition-all ms-2"></i>
+                                        </button>
+                                    </div>
+                                    <div id="collapse{{ forloop.counter }}"
+                                         class="accordion-collapse collapse"
+                                         data-bs-parent="#linksAccordion">
+                                        <div class="accordion-body pt-0">
+                                            <div class="list-group list-group-flush">
+                                                {% for link in links %}
+                                                <div class="list-group-item border-0 py-3">
+                                                    <div class="d-flex flex-column">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <i class="fas fa-external-link-alt me-2 text-muted"></i>
+                                                            <a href="{{ link.link }}"
+                                                               target="_blank"
+                                                               class="text-decoration-none flex-grow-1">
+                                                                <span class="badge bg-warning text-dark ms-2">
+                                                                    {{ link.stage }}
+                                                                </span>
+                                                                {% if link.stage %}
+                                                                {% endif %}
+                                                                <strong>{{ link.link_name|default:"Ссылка" }}</strong>
+                                                            </a>
+                                                        </div>
+                                                        {% if link.description %}
+                                                        <div class="ms-4 ps-2 text-muted small">
+                                                            {{ link.description }}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <!-- Левая колонка -->
+            <div class="col-lg-4">
+                {% if service.linkresponsibleperson_set.all %}
+                <!-- Контактные лица -->
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Контактные лица</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for person in service.linkresponsibleperson_set.all %}
+                            <li class="list-group-item bg-light">
+                                <strong>{{ person.role }}:</strong><br>
+                                {{ person.name.user.get_full_name }}<br>
+                                <small class="text-muted">{{ person.name.user.email }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                {% if as_main %}
+                <!-- Подчиненные сервисы -->
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
+                        <h5 class="mb-0"><i class="fas fa-sitemap me-2"></i>Подчиненные сервисы</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for relation in as_main %}
+                            <li class="list-group-item">
+                                <a href="{% url 'my_services:services-detail' pk=relation.sub.id %}"
+                                   class="text-decoration-none">
+                                    {{ forloop.counter }}
+                                    <small class="text-muted">({{ relation.sub.type.name }})</small>
+                                    {{ relation.sub.alias }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                {% if as_sub %}
+                <!-- Родительские сервисы -->
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
+                        <h5 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Родительские сервисы</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for relation in as_sub %}
+                            <li class="list-group-item">
+                                <a href="{% url 'my_services:services-detail' pk=relation.main.id %}"
+                                   class="text-decoration-none">
+                                    {{ forloop.counter }}
+                                    <small class="text-muted">({{ relation.main.type.name }})</small>
+                                    {{ relation.main.alias }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <!-- Таблицы сервиса -->
+            <div class="col-lg-8">
+                {% if tables_page_obj %}
+                <div class="card mb-4" style="border: 2px solid #ffcc00;">
+                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
+                        <h4 class="mb-0"><i class="fas fa-table me-2"></i>Таблицы сервиса</h4>
+                    </div>
+                    <div class="card-body">
+                        {% include 'inc/_paginator.html' with page_obj=tables_page_obj query_string=query_string %}
+                        <div class="table-responsive mt-3">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Название таблицы</th>
+                                        <th>Описание</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for table_link in tables_page_obj %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'my_dbm:tables-detail' pk=table_link.table.pk %}"
+                                               class="text-decoration-none">
+                                                {% if table_link.table.schema %}
+                                                <span class="text-muted">{{ table_link.table.schema}}.</span>
+                                                {% endif %}
+                                                {{ table_link.table.name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ table_link.table.description|default:"—" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% include 'inc/_paginator.html' with page_obj=tables_page_obj query_string=query_string %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .transition-all { transition: transform 0.3s ease; }
+    .accordion-button:not(.collapsed) .fa-chevron-down { transform: rotate(180deg); }
+    .card-header:hover { background-color: #2a2a2a !important; }
+    .accordion-button:focus { box-shadow: none; }
+    .accordion-button:not(.collapsed) { background-color: rgba(0,0,0,0.03); }
+    .list-group-item { border-left: none; border-right: none; }
+    .list-group-item:first-child { border-top: none; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация аккордеонов
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(header => {
+            header.addEventListener('click', function() {
+                const icon = this.querySelector('.fa-chevron-down');
+                if (icon) {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    icon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
