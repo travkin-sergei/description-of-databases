@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block body %}
+<style>
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .text-yellow {
+        color: #ffcc00;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+</style>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-database mr-2"></i>{{ title }}</h5>
+            </div>
+            <div class="card-body">
+                <p>Персональные запросы.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

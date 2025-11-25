@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Детализация таблицы: {{ tables.name }}{% endblock title %}
+
+{% block body %}
+<style>
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .text-yellow {
+        color: #ffcc00;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+</style>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h4 class="mb-0">
+                    <i class="fas fa-table mr-2"></i>Детализация таблицы: {{ tables.name }}
+                </h4>
+                <small>
+                    Схема: {{ tables.schema.schema }}, База: {{ tables.schema.base.name }}, Тип: {{ tables.type.name }}
+                </small>
+            </div>
+            <div class="card-body">
+                <p>{{ tables.description|default:"Описание отсутствует" }}</p>
+            </div>
+        </div>
+
+        <!-- Столбцы -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-columns mr-2"></i>Столбцы</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Имя столбца</th>
+                            <th>Тип</th>
+                            <th>Дата создания</th>
+                            <th>Активен</th>
+                            <th>Ключевой</th>
+                            <th>Описание</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col in columns %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ col.columns }}</td>
+                            <td>{{ col.type }}</td>
+                            <td>{{ col.date_create|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <span class="badge badge-yellow">
+                                    {% if col.is_active %}ДА{% else %}НЕТ{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-yellow">
+                                    {% if col.is_key %}ДА{% else %}НЕТ{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ col.description|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Столбцы не найдены</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Связи столбцов -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-link mr-2"></i>Связи столбцов</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if column_relations %}
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Главный столбец</th>
+                            <th>Подчинённый столбец</th>
+                            <th>Тип связи</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rel in column_relations %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ rel.main.columns }}</td>
+                            <td>{{ rel.sub.columns|default:"—" }}</td>
+                            <td>{{ rel.type.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center text-muted py-3">Связи столбцов отсутствуют</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Сервисы -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-cogs mr-2"></i>Связанные сервисы ({{ services_count }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if services_list %}
+                <ul class="list-group list-group-flush">
+                    {% for service in services_list %}
+                    <li class="list-group-item">
+                        {{ service.service.name }}
+                        {% if service.service.description %}
+                        <small class="text-muted"> — {{ service.service.description }}</small>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center text-muted py-3">Сервисы не найдены</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Расписания обновлений -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt mr-2"></i>Расписания обновлений</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if schedules %}
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Имя</th>
+                            <th>Расписание</th>
+                            <th>Активен</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in schedules %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ schedule.name__name }}</td>
+                            <td>{{ schedule.name__schedule|default:"—" }}</td>
+                            <td>
+                                <span class="badge badge-yellow">
+                                    {% if schedule.name__is_active %}ДА{% else %}НЕТ{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center text-muted py-3">Расписания обновлений не найдены</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}
