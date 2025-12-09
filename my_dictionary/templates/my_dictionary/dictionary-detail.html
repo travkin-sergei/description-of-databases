@@ -2,14 +2,23 @@
 {% block title %}{{ item.name }} - Детализация{% endblock title %}
 {% block body %}
 <style>
+    /* Основные цвета */
+    :root {
+        --primary-dark: #1a1a1a;
+        --primary-yellow: #ffcc00;
+        --yellow-dark: #e6b800;
+        --error-color: #dc3545;
+        --error-dark: #c82333;
+    }
+
     .table-black-yellow {
         background-color: white;
         color: #333;
     }
     .table-black-yellow thead th {
-        border-bottom: 2px solid #ffcc00;
-        background-color: #1a1a1a;
-        color: #ffcc00;
+        border-bottom: 2px solid var(--primary-yellow);
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
     }
     .table-black-yellow tbody tr:hover {
         background-color: #fff9e6 !important;
@@ -21,28 +30,29 @@
         background-color: #fffae6;
     }
     .btn-gold {
-        background-color: #ffcc00;
-        color: #1a1a1a;
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
         border: none;
         font-weight: bold;
+        transition: all 0.3s ease;
     }
     .btn-gold:hover {
-        background-color: #e6b800;
-        color: #1a1a1a;
+        background-color: var(--yellow-dark);
+        color: var(--primary-dark);
     }
     .badge-yellow {
-        background-color: #ffcc00;
-        color: #1a1a1a;
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
         font-weight: bold;
         padding: 5px 8px;
     }
     .card-header-black {
-        background-color: #1a1a1a;
-        color: #ffcc00;
-        border-bottom: 2px solid #ffcc00;
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
+        border-bottom: 2px solid var(--primary-yellow);
     }
     .border-yellow {
-        border: 1px solid #ffcc00;
+        border: 1px solid var(--primary-yellow);
     }
 
     /* Оптимальные стили для читаемости */
@@ -60,7 +70,7 @@
     /* Стили для удобного чтения текста */
     .description-block {
         background-color: #fffae6;
-        border-left: 4px solid #ffcc00;
+        border-left: 4px solid var(--primary-yellow);
         padding: 1.5rem;
         margin-bottom: 1rem;
         line-height: 1.6;
@@ -75,41 +85,60 @@
         hyphens: auto;
     }
 
-    /* Стили для значка копирования как картинки */
-    .copy-icon-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .copy-icon-img {
-        width: 32px;
-        height: 32px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        padding: 6px;
-        border-radius: 4px;
-        border: 2px solid #1a1a1a;
+    /* ИЗМЕНЕНО: Кнопка копирования с желтым контуром и текстом */
+    .copy-btn {
         background-color: transparent;
-        display: flex;
+        color: var(--primary-yellow); /* Желтый текст */
+        border: 2px solid var(--primary-yellow); /* Желтый контур */
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        text-decoration: none;
     }
 
-    .copy-icon-img:hover {
-        border-color: #ffcc00;
-        background-color: rgba(255, 204, 0, 0.1);
-        transform: scale(1.1);
+    .copy-btn:hover {
+        background-color: var(--primary-yellow); /* Желтый фон при наведении */
+        color: var(--primary-dark); /* Черный текст при наведении */
+        text-decoration: none;
     }
 
-    /* Красный цвет при копировании */
-    .copy-icon-img.copied {
-        border-color: #dc3545;
-        background-color: rgba(220, 53, 69, 0.1);
+    /* ИЗМЕНЕНО: Красный цвет при успешном копировании */
+    .copy-btn.copied {
+        background-color: var(--error-color);
+        color: white;
+        border-color: var(--error-color);
     }
 
-    .copy-icon-img.copied:hover {
-        border-color: #c82333;
+    .copy-btn.copied:hover {
+        background-color: var(--error-dark);
+        border-color: var(--error-dark);
+    }
+
+    /* Стиль для SVG иконки */
+    .copy-svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+        transition: fill 0.3s ease;
+    }
+
+    /* ИЗМЕНЕНО: Иконка желтая по умолчанию */
+    .copy-btn .copy-svg {
+        fill: var(--primary-yellow);
+    }
+
+    .copy-btn:hover .copy-svg {
+        fill: var(--primary-dark); /* Черная иконка при наведении */
+    }
+
+    .copy-btn.copied .copy-svg {
+        fill: white;
     }
 
     /* Центрирование кнопки возврата */
@@ -147,6 +176,7 @@
         display: flex;
         align-items: center;
         margin: 0;
+        color: #333;
     }
 
     /* Стиль для названия и тире без переноса строки */
@@ -157,6 +187,7 @@
     .description-name {
         font-weight: bold;
         display: inline;
+        color: #333;
     }
 
     .no-wrap-separator {
@@ -167,26 +198,7 @@
     .description-text {
         display: inline;
         white-space: pre-line;
-    }
-
-    /* Стиль для SVG иконки */
-    .copy-svg {
-        width: 20px;
-        height: 20px;
-        fill: #1a1a1a;
-        transition: fill 0.3s ease;
-    }
-
-    .copy-icon-img:hover .copy-svg {
-        fill: #ffcc00;
-    }
-
-    .copy-icon-img.copied .copy-svg {
-        fill: #dc3545;
-    }
-
-    .copy-icon-img.copied:hover .copy-svg {
-        fill: #c82333;
+        color: #333;
     }
 
     /* Адаптивность */
@@ -211,15 +223,14 @@
             width: auto;
         }
 
-        .copy-icon-img {
-            width: 30px;
-            height: 30px;
-            padding: 5px;
+        .description-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
         }
 
-        .copy-svg {
-            width: 18px;
-            height: 18px;
+        .copy-btn {
+            align-self: flex-start;
         }
     }
 
@@ -233,26 +244,14 @@
             padding: 0 10px;
         }
 
-        .copy-icon-img {
-            width: 28px;
-            height: 28px;
-            padding: 4px;
-            border-width: 1px;
+        .copy-btn {
+            padding: 4px 8px;
+            font-size: 0.8rem;
         }
 
         .copy-svg {
             width: 16px;
             height: 16px;
-        }
-
-        .description-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .copy-icon-wrapper {
-            align-self: flex-end;
         }
     }
 </style>

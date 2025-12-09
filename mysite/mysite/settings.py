@@ -175,7 +175,6 @@ SPECTACULAR_SETTINGS = {
     },
     'TAGS': [
         {'name': 'DBM', 'description': 'Эндпоинты для приложения DBM (Описание баз данных)'},
-        {'name': 'Data Sources', 'description': 'Эндпоинты для приложения Data Sources (Источников данных)'},
     ],
 }
 LOGGING = {
