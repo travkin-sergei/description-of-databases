@@ -17,7 +17,7 @@ class LinkDBFilter(django_filters.FilterSet):
     Позволяет фильтровать по базе данных, алиасу, хосту, порту, стенду и активности.
     """
 
-    db_name = CharFilter(field_name='name', lookup_expr='icontains', label='Имя базы данных')
+    db_name = CharFilter(field_name='base__name', lookup_expr='icontains', label='Имя базы данных')
     alias = CharFilter(field_name='alias', lookup_expr='icontains', label='Алиас')
     host = CharFilter(field_name='host', lookup_expr='icontains', label='Хост')
     port = CharFilter(field_name='port', lookup_expr='icontains', label='Порт')

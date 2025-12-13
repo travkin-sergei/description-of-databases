@@ -74,15 +74,6 @@ class LinkColumnNameSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-def calculate_totaldata_hash(fields_array):
-    """
-    Общая функция для расчета хэша TotalData.
-    """
-    string_fields = [str(field) if field is not None else '' for field in fields_array]
-    hash_string = '|'.join(string_fields)
-    return hashlib.sha256(hash_string.encode('utf-8')).hexdigest()
-
-
 class TotalDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = TotalData
@@ -119,7 +110,7 @@ class TotalDataSerializer(serializers.ModelSerializer):
             validated_data.get('column_name', ''),
             validated_data.get('data_type', ''),
         ]
-        return calculate_totaldata_hash(hash_fields)
+        return hash_calculate(hash_fields)
 
     def create(self, validated_data):
         """Создает запись и возвращает только hash_address."""
