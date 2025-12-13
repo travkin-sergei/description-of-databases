@@ -1,19 +1,44 @@
 import datetime
+import hashlib
+
 from django.db import models, transaction
 from django.db.models import Q
+from django.utils import timezone
+from parso.python.tree import String
 
-db_schema = 'my_dbmatch'
+db_schema = 'my_dbm'
+
+
+def hash_calculate(fields_array: list) -> String:
+    """
+    Универсальная функция для расчета хэша из массива.
+
+    Args:
+        fields_array: list - массив значений для хэширования
+
+    Returns:
+        str: SHA-256 хэш в hex формате
+    """
+    # Проверка входных данных
+    if not isinstance(fields_array, (list, tuple)):
+        raise TypeError("fields_array должен быть list или tuple")
+
+    # Преобразование в строки
+    string_fields = []
+    for field in fields_array:
+        if field is None:
+            string_fields.append('')
+        else:
+            string_fields.append(str(field))
+    # Объединение и хэширование
+    hash_string = '|'.join(string_fields)
+    return hashlib.sha256(hash_string.encode('utf-8')).hexdigest()
 
 
 class BaseClass(models.Model):
-    """"
-    Абстрактная базовая модель, содержащая общие поля для всех моделей.
-    Attributes:
-        created_at (DateTime): Дата и время создания записи (автоматически устанавливается).
-        updated_at (DateTime): Дата и время последнего обновления записи (автоматически обновляется).
-        is_active (Boolean): Флаг активности записи (по умолчанию True).
     """
-
+    Абстрактная базовая модель, содержащая общие поля для всех моделей.
+    """
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='дата создания')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='дата изменения')
     is_active = models.BooleanField(default=True, verbose_name='запись активна')
@@ -22,32 +47,103 @@ class BaseClass(models.Model):
         abstract = True
 
 
-class TotalData(BaseClass):
-    """Содержится полная загружаемая из вне."""
-
-    stage = models.CharField(max_length=255)
-    db_version = models.CharField(max_length=255)
-    db_name = models.CharField(max_length=255)
-    db_description = models.TextField(blank=True, null=True)
-    schem_name = models.CharField(max_length=255)
-    schem_description = models.TextField(blank=True, null=True)
-    tab_is_metadata = models.BooleanField(default=True, verbose_name='метаданные')
-    tab_type = models.CharField(max_length=255)
-    tab_name = models.CharField(max_length=255)
-    tab_description = models.TextField(blank=True, null=True)
-    col_date_create = models.DateTimeField(default=datetime.datetime.now)
-    col_type = models.CharField(max_length=255, null=True, )
-    col_columns = models.CharField(max_length=255, )
-    col_is_null = models.BooleanField(blank=True, null=True, db_default=True, )
-    col_is_key = models.BooleanField(db_default=False, )
-    col_unique_together = models.IntegerField(blank=True, null=True, )
-    col_default = models.TextField(blank=True, null=True, )
-    col_description = models.JSONField(blank=True, null=True)
+class TotalData(models.Model):
+    """Содержит полные загружаемые извне данные."""
+    hash_address = models.CharField(max_length=64, primary_key=True, verbose_name='Хеш сумма')
+    created_at = models.DateField(auto_now_add=True, verbose_name='дата создания')
+    updated_at = models.DateField(auto_now=True, verbose_name='дата изменения')
+    is_active = models.BooleanField(default=True, verbose_name='запись активна')
+    # -----
+    stand = models.CharField(max_length=255, blank=True, null=True, verbose_name='стенд')
+    table_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='тип таблицы')
+    group_catalog = models.CharField(max_length=255, blank=True, null=True, verbose_name='группа базы данных')
+    table_catalog = models.CharField(max_length=255, blank=True, null=True, verbose_name='имя базы данных')
+    table_schema = models.CharField(max_length=255, blank=True, null=True, verbose_name='схема таблицы')
+    table_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='имя таблицы')
+    table_comment = models.CharField(max_length=255, blank=True, null=True, verbose_name='комментарий таблицы')
+    column_number = models.CharField(max_length=255, blank=True, null=True, verbose_name='номер столбца')
+    column_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='имя столбца')
+    column_comment = models.CharField(max_length=255, blank=True, null=True, verbose_name='комментарий столбца')
+    data_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='тип данных')
+    is_nullable = models.CharField(max_length=255, blank=True, null=True, verbose_name='поле пустое')
+    is_auto = models.CharField(max_length=255, blank=True, null=True, verbose_name='автоматическое')
+    column_info = models.JSONField(blank=True, null=True, verbose_name='дополнительная информация о данных')
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_total_data'
+        db_table = f'{db_schema}\".\"set_total_data'  # Убедитесь, что db_schema определен
         verbose_name = '00 Полная информация о данных.'
         verbose_name_plural = '00 Полная информация о данных.'
+
+    def save(self, *args, **kwargs):
+        """
+        Переопределяем save для:
+        1. Генерации хэша при создании новой записи
+        2. Сохранения created_at только при создании
+        3. Обновления updated_at при каждом сохранении
+        """
+        # Определяем, создается ли новая запись
+        is_new = self._state.adding  # True если объект еще не сохранен в БД
+
+        # Если это новая запись и hash_address не задан
+        if is_new and not self.hash_address:
+            self.hash_address = self.calculate_hash()
+
+        # Если это обновление существующей записи
+        if not is_new:
+            # Обновляем updated_at вручную, если auto_now недостаточно
+            self.updated_at = timezone.now().date()
+
+        # Вызываем родительский метод save
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_or_create_with_hash(cls, **kwargs):
+        """
+        Умный метод для получения или создания записи с автоматической генерацией хэша.
+
+        Пример использования:
+        TotalData.get_or_create_with_hash(
+            stand='production',
+            table_catalog='sales_db',
+            table_schema='public',
+            # ... другие поля
+        )
+        """
+        # Извлекаем поля для хэша
+        hash_fields = [
+            kwargs.get('stand'),
+            kwargs.get('table_catalog'),
+            kwargs.get('table_schema'),
+            kwargs.get('table_type'),
+            kwargs.get('table_name'),
+            kwargs.get('column_name'),
+            kwargs.get('data_type'),
+        ]
+
+        # Генерируем хэш
+        hash_address = hash_calculate(hash_fields)
+        # Пытаемся найти существующую запись
+        try:
+            instance = cls.objects.get(hash_address=hash_address)
+
+            # Обновляем поля если запись найдена
+            for key, value in kwargs.items():
+                setattr(instance, key, value)
+
+            instance.save()
+            return instance, False  # (объект, создан_ли_новый)
+
+        except cls.DoesNotExist:
+            # Создаем новую запись
+            kwargs['hash_address'] = hash_address
+            instance = cls(**kwargs)
+            instance.save()
+            return instance, True
+
+    def update_timestamp(self):
+        """Ручное обновление updated_at."""
+        self.updated_at = timezone.now()
+        self.save(update_fields=['updated_at'])
 
 
 class DimStage(BaseClass):

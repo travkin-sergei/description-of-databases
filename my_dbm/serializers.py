@@ -1,7 +1,11 @@
 # my_dbm/serializers.py
-from drf_spectacular.utils import extend_schema
+import hashlib
 from rest_framework import serializers
-from .models import *
+from .models import (
+    DimStage, DimDB, LinkDB, LinkDBSchema, DimDBTableType, DimColumnName, LinkDBTable,
+    LinkColumn, DimTypeLink, LinkColumnColumn, LinkColumnName, TotalData,
+    hash_calculate
+)
 
 
 class DimStageSerializer(serializers.ModelSerializer):
@@ -70,7 +74,93 @@ class LinkColumnNameSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+def calculate_totaldata_hash(fields_array):
+    """
+    Общая функция для расчета хэша TotalData.
+    """
+    string_fields = [str(field) if field is not None else '' for field in fields_array]
+    hash_string = '|'.join(string_fields)
+    return hashlib.sha256(hash_string.encode('utf-8')).hexdigest()
+
+
 class TotalDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = TotalData
-        fields = '__all__'
+        fields = [
+            "stand", "table_type", "group_catalog", "table_catalog",
+            "table_schema", "table_name", "table_comment", "column_number",
+            "column_name", "column_comment", "data_type", "is_nullable",
+            "is_auto", "column_info"
+        ]
+
+    def validate(self, data):
+        """Проверка обязательных полей для хэша."""
+        required_for_hash = [
+            'stand', 'table_catalog', 'table_schema', 'table_type',
+            'table_name', 'column_name', 'data_type'
+        ]
+
+        missing_fields = [field for field in required_for_hash if not data.get(field)]
+
+        if missing_fields:
+            raise serializers.ValidationError({
+                'error': f'Для расчета хеша необходимы поля: {", ".join(missing_fields)}'
+            })
+        return data
+
+    def calculate_hash(self, validated_data):
+        """Расчет хэша из validated_data."""
+        hash_fields = [
+            validated_data.get('stand', ''),
+            validated_data.get('table_catalog', ''),
+            validated_data.get('table_schema', ''),
+            validated_data.get('table_type', ''),
+            validated_data.get('table_name', ''),
+            validated_data.get('column_name', ''),
+            validated_data.get('data_type', ''),
+        ]
+        return calculate_totaldata_hash(hash_fields)
+
+    def create(self, validated_data):
+        """Создает запись и возвращает только hash_address."""
+        # Рассчитываем хэш
+        hash_address = self.calculate_hash(validated_data)
+
+        # Создаем или обновляем запись
+        instance, created = TotalData.objects.update_or_create(
+            hash_address=hash_address,
+            defaults=validated_data
+        )
+
+        return instance  # Возвращаем объект, но to_representation покажет только hash
+
+    def update(self, instance, validated_data):
+        """Обновление записи."""
+        # Проверяем, не меняются ли ключевые поля
+        hash_fields = ['stand', 'table_catalog', 'table_schema', 'table_type',
+                       'table_name', 'column_name', 'data_type']
+
+        for field in hash_fields:
+            if field in validated_data:
+                current = getattr(instance, field, '')
+                new = validated_data[field]
+                if str(current) != str(new):
+                    raise serializers.ValidationError({
+                        field: f'Нельзя изменять поле {field} - оно влияет на хэш'
+                    })
+
+        # Обновляем разрешенные поля
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+
+        instance.save()
+        return instance
+
+    def to_representation(self, instance):
+        """
+        Возвращает ТОЛЬКО hash_address в ответе.
+        """
+        # ВАЖНО: возвращаем только hash_address
+        return {
+            'hash_address': instance.hash_address
+        }

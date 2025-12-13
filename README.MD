@@ -70,3 +70,12 @@ python manage.py migrate
 
 python manage.py runserver
 ```
+
+# 2. Проблема первого запуска.
+2.1 Создать миграции;  
+2.2. Применить миграции;  
+2.3. Создать superuser;  
+   `без первого пользователя нельзя работать в admin`
+```bash
+python manage.py createsuperuser
+```
