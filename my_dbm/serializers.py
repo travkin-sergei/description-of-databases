@@ -1,5 +1,6 @@
 # my_dbm/serializers.py
-import hashlib
+import json
+
 from rest_framework import serializers
 from .models import (
     DimStage, DimDB, LinkDB, LinkDBSchema, DimDBTableType, DimColumnName, LinkDBTable,
@@ -75,6 +76,9 @@ class LinkColumnNameSerializer(serializers.ModelSerializer):
 
 
 class TotalDataSerializer(serializers.ModelSerializer):
+    column_number = serializers.IntegerField(required=False, allow_null=True)
+    column_info = serializers.JSONField(required=False, allow_null=True)
+
     class Meta:
         model = TotalData
         fields = [
@@ -83,12 +87,26 @@ class TotalDataSerializer(serializers.ModelSerializer):
             "column_name", "column_comment", "data_type", "is_nullable",
             "is_auto", "column_info"
         ]
+        # Можно также указать extra_kwargs для настройки полей
+        extra_kwargs = {
+            'stand': {'allow_blank': True, 'allow_null': True},
+            'table_type': {'allow_blank': True, 'allow_null': True},
+            'group_catalog': {'allow_blank': True, 'allow_null': True},
+            'table_catalog': {'allow_blank': True, 'allow_null': True},
+            'table_schema': {'allow_blank': True, 'allow_null': True},
+            'table_name': {'allow_blank': True, 'allow_null': True},
+            'table_comment': {'allow_blank': True, 'allow_null': True},
+            'column_name': {'allow_blank': True, 'allow_null': True},
+            'column_comment': {'allow_blank': True, 'allow_null': True},
+            'data_type': {'allow_blank': True, 'allow_null': True},
+            'is_nullable': {'allow_blank': True, 'allow_null': True},
+            'is_auto': {'allow_blank': True, 'allow_null': True},
+        }
 
     def validate(self, data):
         """Проверка обязательных полей для хэша."""
         required_for_hash = [
-            'stand', 'table_catalog', 'table_schema', 'table_type',
-            'table_name', 'column_name', 'data_type'
+            'stand', 'table_catalog', 'table_schema', 'table_type', 'table_name', 'column_name', 'data_type'
         ]
 
         missing_fields = [field for field in required_for_hash if not data.get(field)]
@@ -98,6 +116,30 @@ class TotalDataSerializer(serializers.ModelSerializer):
                 'error': f'Для расчета хеша необходимы поля: {", ".join(missing_fields)}'
             })
         return data
+
+    def validate_column_number(self, value):
+        """Валидация для column_number."""
+        if value is not None and value < 0:
+            raise serializers.ValidationError("column_number не может быть отрицательным")
+        return value
+
+    def validate_column_info(self, value):
+        """Валидация для column_info."""
+        if value is None:
+            return None
+
+        # Если передана строка, пытаемся распарсить ее в JSON
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                raise serializers.ValidationError("column_info должен быть валидным JSON")
+
+        # Если уже словарь или список - возвращаем как есть
+        if isinstance(value, (dict, list)):
+            return value
+
+        raise serializers.ValidationError("column_info должен быть JSON объектом или массивом")
 
     def calculate_hash(self, validated_data):
         """Расчет хэша из validated_data."""
@@ -123,13 +165,14 @@ class TotalDataSerializer(serializers.ModelSerializer):
             defaults=validated_data
         )
 
-        return instance  # Возвращаем объект, но to_representation покажет только hash
+        return instance
 
     def update(self, instance, validated_data):
         """Обновление записи."""
         # Проверяем, не меняются ли ключевые поля
-        hash_fields = ['stand', 'table_catalog', 'table_schema', 'table_type',
-                       'table_name', 'column_name', 'data_type']
+        hash_fields = [
+            'stand', 'table_catalog', 'table_schema', 'table_type', 'table_name', 'column_name', 'data_type'
+        ]
 
         for field in hash_fields:
             if field in validated_data:
@@ -151,7 +194,6 @@ class TotalDataSerializer(serializers.ModelSerializer):
         """
         Возвращает ТОЛЬКО hash_address в ответе.
         """
-        # ВАЖНО: возвращаем только hash_address
         return {
             'hash_address': instance.hash_address
         }

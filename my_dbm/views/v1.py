@@ -3,7 +3,7 @@ from rest_framework import viewsets, permissions, filters
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema_view
+from drf_spectacular.utils import extend_schema_view, OpenApiResponse
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -147,6 +147,13 @@ class LinkColumnNameViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
     serializer_class = LinkColumnNameSerializer
 
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
+from rest_framework import viewsets, permissions, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+
+
 @extend_schema(
     tags=['DBM'],
     description='API v1 для работы с описанием баз данных'
@@ -174,9 +181,9 @@ class TotalDataViewSet(viewsets.ModelViewSet):
 
     # Только GET и POST методы
     http_method_names = [
-        #'get',
+        'get',
         'post',
-        # 'head', 'options'
+       # 'head', 'options'
     ]
 
     @extend_schema(
@@ -198,8 +205,161 @@ class TotalDataViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         summary="Создать запись",
+        description="""
+        Создает или обновляет запись в базе данных метаданных.
+
+        **Важно:**
+        - Хэш рассчитывается автоматически из ключевых полей
+        - Если запись с таким хэшем уже существует, она будет обновлена
+        - Возвращается только `hash_address` созданной/обновленной записи
+
+        **Обязательные поля для расчета хэша:**
+        - stand
+        - table_catalog  
+        - table_schema
+        - table_type
+        - table_name
+        - column_name
+        - data_type
+
+        **Форматы данных:**
+        - column_number: целое число (integer)
+        - column_info: JSON объект (object) или массив (array)
+        - Остальные поля: строки (string)
+        """,
         request=TotalDataSerializer,
-        responses={201: TotalDataSerializer}
+        responses={
+            201: OpenApiResponse(
+                response=TotalDataSerializer,
+                description='Запись успешно создана или обновлена'
+            ),
+            400: OpenApiResponse(
+                description='Ошибка валидации входных данных'
+            )
+        },
+        examples=[
+            OpenApiExample(
+                'Пример создания записи о таблице',
+                summary='Таблица orders',
+                description='Создание записи о таблице заказов',
+                value={
+                    "stand": "production",
+                    "table_type": "TABLE",
+                    "group_catalog": "sales",
+                    "table_catalog": "sales_db",
+                    "table_schema": "public",
+                    "table_name": "orders",
+                    "table_comment": "Таблица заказов",
+                    "column_number": 1,
+                    "column_name": "order_id",
+                    "column_comment": "Уникальный идентификатор заказа",
+                    "data_type": "INTEGER",
+                    "is_nullable": "NO",
+                    "is_auto": "YES",
+                    "column_info": {
+                        "primary_key": True,
+                        "indexed": True,
+                        "default_value": "nextval('orders_order_id_seq'::regclass)"
+                    }
+                },
+                request_only=True,
+                status_codes=['201']
+            ),
+            OpenApiExample(
+                'Пример создания записи о view',
+                summary='View customer_summary',
+                description='Создание записи о представлении',
+                value={
+                    "stand": "staging",
+                    "table_type": "VIEW",
+                    "group_catalog": "analytics",
+                    "table_catalog": "analytics_db",
+                    "table_schema": "reports",
+                    "table_name": "customer_summary",
+                    "table_comment": "Сводка по клиентам",
+                    "column_number": 3,
+                    "column_name": "total_orders",
+                    "column_comment": "Общее количество заказов",
+                    "data_type": "BIGINT",
+                    "is_nullable": "YES",
+                    "is_auto": "NO",
+                    "column_info": {
+                        "aggregated": True,
+                        "source_table": "orders",
+                        "calculation": "COUNT(*)"
+                    }
+                },
+                request_only=True,
+                status_codes=['201']
+            ),
+            OpenApiExample(
+                'Пример ответа',
+                summary='Успешное создание',
+                description='Возвращается только hash_address записи',
+                value={
+                    "hash_address": "a1b2c3d4e5f678901234567890abcdef1234567890abcdef1234567890abcdef"
+                },
+                response_only=True,
+                status_codes=['201']
+            ),
+            OpenApiExample(
+                'Пример ошибки',
+                summary='Не хватает обязательных полей',
+                description='Ошибка при отсутствии обязательных полей',
+                value={
+                    "error": "Для расчета хеша необходимы поля: stand, table_catalog"
+                },
+                response_only=True,
+                status_codes=['400']
+            )
+        ]
     )
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        """
+        Обработка создания записи.
+        Если запись с таким хэшем уже существует, она будет обновлена.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+
+    @extend_schema(
+        summary="Обновить запись",
+        description="""Обновление записи по hash_address.
+
+        **Ограничения:**
+        - Нельзя изменять поля, участвующие в расчете хэша
+        - Можно обновлять только неключевые поля
+        """,
+        request=TotalDataSerializer,
+        responses={200: TotalDataSerializer}
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Частичное обновление",
+        description="Частичное обновление записи (только указанные поля)",
+        request=TotalDataSerializer,
+        responses={200: TotalDataSerializer}
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Удалить запись",
+        description="Удаление записи по hash_address",
+        responses={
+            204: OpenApiResponse(description='Запись успешно удалена'),
+            404: OpenApiResponse(description='Запись не найдена')
+        }
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
