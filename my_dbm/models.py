@@ -1,15 +1,16 @@
 import datetime
 import hashlib
 
+from typing import List, Union
+
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
-from parso.python.tree import String
 
 db_schema = 'my_dbm'
 
 
-def hash_calculate(fields_array: list) -> String:
+def hash_calculate(fields_array: List[Union[str, int, float, None]]) -> str:
     """
     Универсальная функция для расчета хэша из массива.
 
@@ -98,18 +99,7 @@ class TotalData(models.Model):
 
     @classmethod
     def get_or_create_with_hash(cls, **kwargs):
-        """
-        Умный метод для получения или создания записи с автоматической генерацией хэша.
-
-        Пример использования:
-        TotalData.get_or_create_with_hash(
-            stand='production',
-            table_catalog='sales_db',
-            table_schema='public',
-            # ... другие поля
-        )
-        """
-        # Извлекаем поля для хэша
+        # Формируем ключи хеширования по тем же полям
         hash_fields = [
             kwargs.get('stand'),
             kwargs.get('table_catalog'),
@@ -119,26 +109,14 @@ class TotalData(models.Model):
             kwargs.get('column_name'),
             kwargs.get('data_type'),
         ]
-
-        # Генерируем хэш
         hash_address = hash_calculate(hash_fields)
-        # Пытаемся найти существующую запись
-        try:
-            instance = cls.objects.get(hash_address=hash_address)
 
-            # Обновляем поля если запись найдена
-            for key, value in kwargs.items():
-                setattr(instance, key, value)
-
-            instance.save()
-            return instance, False  # (объект, создан_ли_новый)
-
-        except cls.DoesNotExist:
-            # Создаем новую запись
-            kwargs['hash_address'] = hash_address
-            instance = cls(**kwargs)
-            instance.save()
-            return instance, True
+        # Используем update_or_create — он ищет по hash_address, обновляет по defaults
+        obj, created = cls.objects.update_or_create(
+            hash_address=hash_address,
+            defaults=kwargs
+        )
+        return obj, created
 
     def update_timestamp(self):
         """Ручное обновление updated_at."""

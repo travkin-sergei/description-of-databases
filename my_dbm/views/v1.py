@@ -241,7 +241,7 @@ class TotalDataViewSet(viewsets.ModelViewSet):
             OpenApiExample(
                 'Пример создания записи о таблице',
                 summary='Таблица orders',
-                description='Создание записи о таблице заказов',
+                description='Создание записи о стобцах таблицы',
                 value={
                     "stand": "production",
                     "table_type": "TABLE",
@@ -259,7 +259,6 @@ class TotalDataViewSet(viewsets.ModelViewSet):
                     "column_info": {
                         "primary_key": True,
                         "indexed": True,
-                        "default_value": "nextval('orders_order_id_seq'::regclass)"
                     }
                 },
                 request_only=True,
@@ -286,7 +285,6 @@ class TotalDataViewSet(viewsets.ModelViewSet):
                     "column_info": {
                         "aggregated": True,
                         "source_table": "orders",
-                        "calculation": "COUNT(*)"
                     }
                 },
                 request_only=True,

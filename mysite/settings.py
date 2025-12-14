@@ -1,8 +1,10 @@
 # settings.py
 import os
 import environ
+
 from pathlib import Path
 from django.urls import reverse_lazy
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,6 +36,7 @@ INSTALLED_APPS = [
     # кастомизация
     'django.contrib.admindocs',  # документирование кода (см. MIDDLEWARE)
     'rest_framework',  # API
+    'rest_framework.authtoken',  # authtoken
     'drf_spectacular',  # swagger
     'django_filters',  # фильтрация
     'django_summernote',  # настройка редактора в админке
@@ -47,7 +50,7 @@ INSTALLED_APPS = [
     'my_request',  # Специализированные запросы
     'my_updates',  # Обновления
     'my_dictionary',  # словарь
-    'my_query_path', # Вопрос ответ
+    'my_query_path',  # Вопрос ответ
 ]
 
 MIDDLEWARE = [
@@ -155,6 +158,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 # настройки для drf_spectacular
@@ -172,11 +181,23 @@ SPECTACULAR_SETTINGS = {
         'persistAuthorization': True,
         'docExpansion': 'none',
         'filter': False,
+        'tryItOutEnabled': True,
+        'displayRequestDuration': True,
     },
     'TAGS': [
         {'name': 'DBM', 'description': 'Эндпоинты для приложения DBM (Описание баз данных)'},
     ],
+    'SECURITY': [{
+        'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Введите: Token <ваш_токен>'
+        }
+    }],
+    'SECURITY_REQUIREMENTS': [{'Token': []}],
 }
+
 LOGGING = {
     'version': 1,
     'handlers': {
