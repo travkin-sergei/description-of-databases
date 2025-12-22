@@ -76,8 +76,9 @@ class TablesView(LoginRequiredMixin, FilterView):
         # Подзапрос для альтернативного имени с is_publish=True
         alt_name_subquery = LinkDBTableName.objects.filter(
             table=OuterRef('pk'),
-            is_publish=True
+            is_active=True
         ).values('name')[:1]
+
         result = (
             LinkDBTable.objects
             .select_related('schema', 'schema__base', 'type')
@@ -90,6 +91,7 @@ class TablesView(LoginRequiredMixin, FilterView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         get_params = self.request.GET.copy()
+
         if 'page' in get_params:
             del get_params['page']
         if get_params:

@@ -202,6 +202,7 @@
         {% if form_submitted and has_filter_params and tables %}display: block;{% else %}display: none;{% endif %}
     }
 </style>
+
 <!-- Google-стиль интерфейс (показывается при первом заходе и когда нет данных) -->
 <div class="google-style-container">
     <main class="google-style-main">
@@ -362,28 +363,34 @@
                             </thead>
                             <tbody>
                             {% for elem in tables %}
-                            {% with detail_url='my_dbm:tables-detail' pk=elem.pk %}
-                            {{ elem.as_p }}
+                            <!-- Отладочная информация (скрытая) -->
+                            <div style="display: none;">
+                                PK: {{ elem.pk }}<br>
+                                Alt name exists: {{ elem.alt_name|yesno:"Yes,No,Unknown" }}<br>
+                                Alt name value: "{{ elem.alt_name }}"<br>
+                                Type: {{ elem.type }}<br>
+                                Type name: {{ elem.type.name }}
+                            </div>
+
                             <tr>
                                 <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                                 <td>
-                                    <a href="{% url detail_url pk=pk %}">
+                                    <a href="{% url 'my_dbm:tables-detail' pk=elem.pk %}">
                                         {{ elem.schema.base.name|default_if_none:"—" }}
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="{% url detail_url pk=pk %}">
+                                    <a href="{% url 'my_dbm:tables-detail' pk=elem.pk %}">
                                         {{ elem.schema.schema|default_if_none:"—" }}
                                     </a>
                                 </td>
                                 <td>
-                                    <a href="{% url detail_url pk=pk %}">
+                                    <a href="{% url 'my_dbm:tables-detail' pk=elem.pk %}">
                                         {{ elem.name|default_if_none:"—" }}
                                     </a>
                                     <span class="float-end">
                                         {{ elem.alt_name|default_if_none:"—" }}
-                                        {{ elem.alt_name|default_if_none:"—" }}
-                                        ({{ elem.type|default_if_none:"—" }})
+                                        <small>({{ elem.type.name|default:"без типа" }})</small>
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -397,7 +404,6 @@
                                     </span>
                                 </td>
                             </tr>
-                            {% endwith %}
                             {% endfor %}
                             </tbody>
                         </table>

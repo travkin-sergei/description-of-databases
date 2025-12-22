@@ -309,10 +309,31 @@
                 <h5 class="mb-0">{{ tables.schema.base.name }} | {{ tables.schema|upper }}-{{ tables.name|upper }}</h5>
             </div>
             <div class="data-card-body">
-                <!-- ... (остальная разметка без изменений) ... -->
+
+                {% if alt_table_names %}
+                <p class="mb-2">Альтернативные имена:</p>
+                <ul class="mb-3">
+                    {% for alt in alt_table_names %}
+                    <li>
+                        {% if alt.is_publish %}
+                        <span style="color: var(--primary-dark); background-color: var(--primary-yellow); padding: 2px 6px; border-radius: 3px;">{{ alt.name }}</span>
+                        {% else %}
+                        {{ alt.name }}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if tables.description %}
+                <div class="description-container">
+                    <p class="mb-1">Описание:</p>
+                    <div id="tableDescription">
+                        {{ tables.description|safe }}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
-
         <!-- Таблица колонок -->
         <div class="data-card mt-3">
             <div class="data-card-header">
@@ -330,56 +351,56 @@
             <div class="data-card-body table-responsive p-0">
                 <table class="data-table" id="columnsTable">
                     <thead>
-                        <tr>
-                            <th>№</th>
-                            <th>Колонка</th>
-                            <th>Тип</th>
-                            <th>NULL</th>
-                            <th>Описание</th>
-                            <th>Связи</th>
-                            <th>Stage</th>
-                        </tr>
+                    <tr>
+                        <th>№</th>
+                        <th>Колонка</th>
+                        <th>Тип</th>
+                        <th>NULL</th>
+                        <th>Описание</th>
+                        <th>Связи</th>
+                        <th>Stage</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% for col in columns %}
-                        <tr>
-                            <td data-label="№">{{ forloop.counter }}</td>
-                            <td data-label="Колонка">{{ col.columns }}</td>
-                            <td data-label="Тип">{{ col.type }}</td>
-                            <td data-label="NULL">
-                                {% if col.is_null %}NULL{% else %}NOT NULL{% endif %}
-                            </td>
-                            <td data-label="Описание">
-                                {% if col.description %}
-                                    {% for key, value in col.description.items %}
-                                        <strong>{{ key }}:</strong> {{ value }}<br>
-                                    {% endfor %}
-                                {% else %}
-                                    Нет описания
-                                {% endif %}
-                            </td>
-                            <td data-label="Связи">
-                                {% for relation in column_relations %}
-                                    {% if relation.main == col %}
-                                        {% if relation.sub.pk%}
-                                            <a href="{% url 'my_dbm:tables-detail' pk=relation.sub.table.pk %}">
-                                                {{ relation.sub.table.name }}.{{ relation.sub.columns }}
-                                            </a>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                            <td data-label="Stage">
-                                {% if col.stages_from_json %}
-                                    {% for stage in col.stages_from_json %}
-                                        <span class="stage-badge">{{ stage }}</span>
-                                    {% endfor %}
-                                {% else %}
-                                    Нет
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    {% for col in columns %}
+                    <tr>
+                        <td data-label="№">{{ forloop.counter }}</td>
+                        <td data-label="Колонка">{{ col.columns }}</td>
+                        <td data-label="Тип">{{ col.type }}</td>
+                        <td data-label="NULL">
+                            {% if col.is_null %}NULL{% else %}NOT NULL{% endif %}
+                        </td>
+                        <td data-label="Описание">
+                            {% if col.description %}
+                            {% for key, value in col.description.items %}
+                            <strong>{{ key }}:</strong> {{ value }}<br>
+                            {% endfor %}
+                            {% else %}
+                            Нет описания
+                            {% endif %}
+                        </td>
+                        <td data-label="Связи">
+                            {% for relation in column_relations %}
+                            {% if relation.main == col %}
+                            {% if relation.sub.pk%}
+                            <a href="{% url 'my_dbm:tables-detail' pk=relation.sub.table.pk %}">
+                                {{ relation.sub.table.name }}.{{ relation.sub.columns }}
+                            </a>
+                            {% endif %}
+                            {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td data-label="Stage">
+                            {% if col.stages_from_json %}
+                            {% for stage in col.stages_from_json %}
+                            <span class="stage-badge">{{ stage }}</span>
+                            {% endfor %}
+                            {% else %}
+                            Нет
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
