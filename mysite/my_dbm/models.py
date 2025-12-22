@@ -174,8 +174,8 @@ class LinkDB(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"link_db'
         unique_together = [['name', 'host', 'port', ]]
-        verbose_name = '03 Список баз данных.'
-        verbose_name_plural = '03 Список баз данных.'
+        verbose_name = '03 Базы данных.'
+        verbose_name_plural = '03 Базы данных.'
 
 
 class LinkDBSchema(BaseClass):
@@ -191,8 +191,8 @@ class LinkDBSchema(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"link_base_schemas'
         unique_together = [['base', 'schema', ]]
-        verbose_name = '04 Схема базы данных.'
-        verbose_name_plural = '04 Схемы баз данных.'
+        verbose_name = '04 Схема.'
+        verbose_name_plural = '04 Схемы.'
 
 
 class DimDBTableType(BaseClass):
@@ -240,8 +240,8 @@ class DimDBTableNameType(BaseClass):
     class Meta:
         db_table = f'{db_schema}\".\"dim_db_table_name_type'
         unique_together = [['name', ]]
-        verbose_name = '08 Словарь типов наименований.'
-        verbose_name_plural = '08 Словарь типов наименований.'
+        verbose_name = '09 Словарь типов наименований.'
+        verbose_name_plural = '09 Словарь типов наименований.'
 
 
 class LinkDBTableName(BaseClass):
