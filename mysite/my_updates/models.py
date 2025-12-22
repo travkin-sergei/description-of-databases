@@ -1,9 +1,6 @@
 from django.db import models
-from my_dbm.models import (
-    BaseClass,
-    LinkColumnColumn,
-    DimTypeLink,
-)
+
+from my_dbm.models import BaseClass, LinkColumnColumn
 
 db_schema = 'my_update'
 

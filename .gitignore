@@ -1,5 +1,5 @@
 /.idea/
 /venv/
-/mysite/db.sqlite3
+/mysite/mysite/db.sqlite3
 /.env
 /.venv/

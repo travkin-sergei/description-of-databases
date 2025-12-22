@@ -1,14 +1,10 @@
 # jobs.py
 import requests
 from django.utils import timezone
-from my_services.models import DimLink
-from urllib.parse import urlparse
-
-import requests
-from django.utils import timezone
 from urllib.parse import urlparse
 from requests.exceptions import RequestException
 from django.db import transaction
+from .models import DimLink
 
 
 def check_all_links_job():

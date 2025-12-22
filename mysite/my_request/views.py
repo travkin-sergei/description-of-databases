@@ -2,7 +2,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from my_request.models import ColumnFZ, FZ
 from my_request.filters import ColumnFZFilter
 
 from django.views.generic import (

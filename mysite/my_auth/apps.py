@@ -8,4 +8,4 @@ class MyAuthConfig(AppConfig):
 
     def ready(self):
         # Импортируем сигналы при запуске приложения
-        import my_auth.signals
+        pass

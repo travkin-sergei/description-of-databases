@@ -1,4 +1,5 @@
 from django.db import models
+
 from my_dbm.models import LinkColumn
 
 db_schema = 'my_request'

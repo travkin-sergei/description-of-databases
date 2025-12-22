@@ -1,11 +1,8 @@
 # my_services/models.py
 from django.db import models
 from my_auth.models import MyProfile
-from my_dbm.models import (
-    BaseClass,
-    LinkDBTable,
-    DimStage,
-)
+
+from my_dbm.models import BaseClass, LinkDBTable, DimStage
 
 db_schema = 'my_services'
 

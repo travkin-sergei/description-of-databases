@@ -1,6 +1,5 @@
 import django_filters
-from my_request.models import ColumnFZ, FZ
-from my_dbm.models import LinkColumn
+from my_request.models import ColumnFZ
 
 
 class ColumnFZFilter(django_filters.FilterSet):

@@ -2,12 +2,13 @@
 import django_filters
 from django_filters import CharFilter, BooleanFilter, ModelChoiceFilter
 from django.db.models import Q
-from my_dbm.models import DimStage
+
 from .models import (
     DimLink,
     DimTechStack,
     DimServices, DimServicesTypes
 )
+from my_dbm.models import DimStage
 
 
 class DimServicesFilter(django_filters.FilterSet):

@@ -1,3 +1,4 @@
+# my_auth
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, TemplateView, CreateView
 from django.contrib.auth import login, authenticate
@@ -8,6 +9,7 @@ from django.contrib import messages
 
 from my_services.models import LinkResponsiblePerson
 from .models import MyProfile
+
 
 
 class MyPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
