@@ -16,8 +16,16 @@ from .forms import MyUserCreationForm
 from .models import MyProfile, UserLoginStats
 
 
-class AboutAppView(TemplateView):
-    template_name = 'my_auth/about.html'
+class AboutView(LoginRequiredMixin, TemplateView):
+    """Страница о приложении."""
+
+    template_name = 'my_auth/about-application.html'
+    title = "О приложении"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.title
+        return context
 
 
 class MyProfileView(LoginRequiredMixin, TemplateView):

@@ -2,14 +2,14 @@
 from django.urls import path
 from .views import (
     MyLoginView, MyRegisterView, MyLogoutView,
-    AdminDashboardView, ApproveUserView, RejectUserView, RegenerateTokenView, MyProfileView, AboutAppView,
+    AdminDashboardView, ApproveUserView, RejectUserView, RegenerateTokenView, MyProfileView, AboutView,
     MyPasswordChangeView, MyPasswordChangeDoneView,
 )
 
 app_name = 'my_auth'
 
 urlpatterns = [
-    path('', AboutAppView.as_view(), name='about-app'),
+    path('', AboutView.as_view(), name='about-app'),
     #
     path('login/', MyLoginView.as_view(), name='login'),
     path('logout/', MyLogoutView.as_view(), name='logout'),
