@@ -17,7 +17,7 @@ urlpatterns = [
 
     # Приложения
     path('', include('my_dbm.urls')),
-    path('accounts/', include('my_auth.urls')),
+    path('accounts/', include('my_auth.urls', namespace='my_auth')),
     path('dictionary/', include('my_dictionary.urls')),
     path('services/', include('my_services.urls')),
     path('request/', include('my_request.urls')),

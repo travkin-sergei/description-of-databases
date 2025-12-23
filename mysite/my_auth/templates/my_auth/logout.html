@@ -1,51 +1,21 @@
 {% extends 'base.html' %}
-
-{% block title %}Logout{% endblock title %}
-
-{% block body %}
-<style>
-    .btn-gold {
-        background-color: #ffcc00;
-        color: #1a1a1a;
-        border: none;
-        font-weight: bold;
-        padding: 0.5rem 2rem;
-    }
-    .btn-gold:hover {
-        background-color: #e6b800;
-        color: #1a1a1a;
-    }
-    .text-yellow {
-        color: #ffcc00;
-    }
-</style>
-
-<section class="vh-100 d-flex justify-content-center align-items-center">
-    <div class="container-fluid h-custom">
-        <div class="row d-flex justify-content-center align-items-center">
-            <div class="col-md-8 col-lg-6 col-xl-4 text-center">
-                <div class="card shadow-sm p-4" style="border: 1px solid #ffcc00;">
-                    <h2 class="text-yellow mb-4">Вы вышли из системы</h2>
-
-                    <p class="lead mb-4">
-                        Спасибо, что воспользовались нашим сервисом. Хотите войти снова?
-                    </p>
-
-                    <div class="d-flex flex-column align-items-center">
-                        <form method="post" action="{% url 'logout' %}" class="mb-3">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-gold btn-lg mb-3">
-                                <i class="fas fa-sign-out-alt me-2"></i>Выйти
-                            </button>
-                        </form>
-
-                        <a href="{% url 'login' %}" class="btn btn-outline-dark btn-lg">
-                            <i class="fas fa-sign-in-alt me-2"></i>Войти снова
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% block title %}Вход{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3>Вход</h3>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-primary">Войти</button>
+        </form>
+        <p class="mt-3">Нет аккаунта? <a href="{% url 'my_auth:register' %}">Регистрация</a></p>
+      </div>
     </div>
-</section>
-{% endblock body %}
+  </div>
+</div>
+{% endblock %}

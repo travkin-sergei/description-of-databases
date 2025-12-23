@@ -1,141 +1,186 @@
-{% extends "base.html" %}
-
-{% block title %}Профиль{% endblock %}
+<!-- templates/my_auth/profile.html -->
+{% extends 'base.html' %}
+{% block title %}Профиль {{ user.username }}{% endblock %}
 
 {% block body %}
-<style>
-    .profile-container {
-        max-width: 600px;
-        margin: 2rem auto;
-        padding: 2rem;
-        border: 2px solid #ffcc00;
-        border-radius: 10px;
-        background-color: #1a1a1a;
-        box-shadow: 0 4px 20px rgba(255, 204, 0, 0.2);
-    }
-    .profile-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .profile-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 3px solid #ffcc00;
-        object-fit: cover;
-        margin: 1rem auto;
-    }
-    .profile-info {
-        background-color: #2a2a2a;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-    }
-    .profile-info p {
-        color: #fff;
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-    }
-    .profile-info strong {
-        color: #ffcc00;
-        min-width: 160px;
-        display: inline-block;
-    }
-    .profile-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        justify-content: center;
-    }
-    .btn-gold {
-        background-color: #ffcc00;
-        color: #1a1a1a;
-        border: none;
-        font-weight: bold;
-        padding: 0.75rem 1.5rem;
-        border-radius: 6px;
-        transition: all 0.3s;
-        flex: 1;
-        min-width: 180px;
-        text-align: center;
-    }
-    .btn-gold:hover {
-        background-color: #e6b800;
-        transform: translateY(-2px);
-    }
-    .btn-dark {
-        background-color: #333;
-        color: #ffcc00;
-        border: 1px solid #ffcc00;
-    }
-    .btn-dark:hover {
-        background-color: #444;
-        color: #ffcc00;
-    }
-    .btn-red {
-        background-color: #dc3545;
-        color: white;
-    }
-    .btn-red:hover {
-        background-color: #c82333;
-    }
-    h1 {
-        color: #ffcc00;
-        margin-bottom: 1.5rem;
-    }
-</style>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+            <!-- Основная информация -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light text-center">
+                    <h3 class="mb-0"><i class="fas fa-user me-2"></i> {{ user.username }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <a href="{% url 'my_auth:password_change' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-key me-2"></i>Сменить пароль
+                        </a>
+                        {% if user.is_staff or user.is_superuser %}
+                        <a href="{% url 'my_auth:admin_dashboard' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-tools me-2"></i>Админпанель
+                        </a>
+                        {% endif %}
+                    </div>
 
-<section class="d-flex align-items-center py-5">
-    <div class="container">
-        <div class="profile-container">
-            <div class="profile-header">
-                <h1><i class="fas fa-user-circle me-2"></i>Профиль пользователя</h1>
-                <img src="{% if profile.user.avatar %}{{ profile.user.avatar.url }}{% else %}/static/img/default-avatar.jpg{% endif %}"
-                     alt="Аватар пользователя"
-                     class="profile-avatar">
+                    <div class="d-flex justify-content-center">
+                        <dl class="row mb-0 w-100">
+                            <dt class="col-sm-5 text-end">Имя пользователя</dt>
+                            <dd class="col-sm-7 fw-bold">{{ user.username }}</dd>
+
+                            <dt class="col-sm-5 text-end">Email</dt>
+                            <dd class="col-sm-7">{{ user.email|default:"—" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Имя</dt>
+                            <dd class="col-sm-7">{{ user.first_name|default:"—" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Фамилия</dt>
+                            <dd class="col-sm-7">{{ user.last_name|default:"—" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Активен</dt>
+                            <dd class="col-sm-7">
+                                {% if user.is_active %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-danger">Нет</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Суперпользователь</dt>
+                            <dd class="col-sm-7">
+                                {% if user.is_superuser %}
+                                <span class="badge bg-danger">Да</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Нет</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Персонал</dt>
+                            <dd class="col-sm-7">
+                                {% if user.is_staff %}
+                                <span class="badge bg-warning text-dark">Да</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Нет</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Дата регистрации</dt>
+                            <dd class="col-sm-7">{{ user.date_joined|date:"d.m.Y H:i" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Последний вход</dt>
+                            <dd class="col-sm-7">
+                                {{ user.last_login|date:"d.m.Y H:i" }}
+                                {% if user.last_login %}(сегодня: {{ user.last_login|timesince }} назад){% endif %}
+                            </dd>
+
+                            {% if user.profile %}
+                            <dt class="col-sm-5 text-end">Одобрен</dt>
+                            <dd class="col-sm-7">
+                                {% if user.profile.is_approved %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Ожидает</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Регистрация профиля</dt>
+                            <dd class="col-sm-7">{{ user.profile.created_at|date:"d.m.Y H:i" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Ссылка на профиль</dt>
+                            <dd class="col-sm-7 text-center">
+                                {% if user.profile.link_profile %}
+                                <a href="{{ user.profile.link_profile }}" target="_blank" class="text-primary">
+                                    {{ user.profile.link_profile|truncatechars:40 }}
+                                </a>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
             </div>
-            <div class="profile-info">
-                <h2 style="color:#ffcc00; margin-bottom:1rem;">Мои сервисы</h2>
-                {% if responsibilities %}
-                <table style="width:100%; border-collapse: collapse; margin-top:1rem;">
-                    <thead>
-                    <tr style="background-color:#ffcc00; color:#1a1a1a;">
-                        <th style="padding:0.5rem; border:1px solid #ffcc00;">Сервис</th>
-                        <th style="padding:0.5rem; border:1px solid #ffcc00;">Тип</th>
-                        <th style="padding:0.5rem; border:1px solid #ffcc00;">Роль</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for item in responsibilities %}
-                    <tr style="background-color:#2a2a2a; color:#fff;">
-                        <td style="padding:0.5rem; border:1px solid #ffcc00;">
-                            <a href="{% url 'my_services:services-detail' item.service.id %}"
-                               style="color:#ffcc00; text-decoration:none;">
-                                {{ item.service.alias }}
-                            </a>
-                        </td>
-                        <td style="padding:0.5rem; border:1px solid #ffcc00;">{{ item.service.type.name }}</td>
-                        <td style="padding:0.5rem; border:1px solid #ffcc00;">{{ item.role.name }}</td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p style="color:#fff; margin-top:1rem;">Вы пока не назначены ни в один сервис.</p>
-                {% endif %}
+
+            <!-- Статистика входов -->
+            {% if user.login_stats.exists %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-light text-center">
+                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Статистика входов</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-center">
+                        <div class="table-responsive w-100">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                <tr class="text-center">
+                                    <th>Дата</th>
+                                    <th>Входов</th>
+                                    <th>Первый вход</th>
+                                    <th>Последний вход</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for stat in user.login_stats.all|dictsortreversed:"login_date" %}
+                                <tr class="text-center">
+                                    <td>{{ stat.login_date|date:"d.m.Y" }}</td>
+                                    <td><span class="badge bg-primary">{{ stat.login_count }}</span></td>
+                                    <td>{{ stat.first_login_at|time:"H:i:s" }}</td>
+                                    <td>{{ stat.last_login_at|time:"H:i:s" }}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted mt-3 mb-0">
+                        <small>*</small>
+                    </p>
+                </div>
             </div>
-            <div class="profile-actions">
-                <a href="#" class="btn btn-gold">
-                    <i class="fas fa-edit me-2"></i>Редактировать
-                </a>
-                <a href="{% url 'my_auth:password_change' %}" class="btn btn-dark">
-                    <i class="fas fa-key me-2"></i>Сменить пароль
-                </a>
-                <a href="{% url 'my_auth:logout' %}" class="btn btn-red">
-                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
-                </a>
-            </div>
+            {% endif %}
         </div>
     </div>
-</section>
+</div>
+
+<style>
+    .card {
+        border-radius: 8px;
+        margin: 0 auto;
+    }
+    .card-header {
+        border-bottom: 2px solid #f0f0f0;
+    }
+    dt {
+        font-weight: 600;
+        color: #555;
+        padding-right: 15px;
+    }
+    dd {
+        margin-bottom: 0.5rem;
+        padding-left: 15px;
+    }
+    .btn {
+        min-width: 180px;
+    }
+    @media (max-width: 768px) {
+        dt, dd {
+            text-align: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        .col-sm-5, .col-sm-7 {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        dt {
+            margin-top: 10px;
+            padding-bottom: 5px;
+        }
+        .btn {
+            min-width: 160px;
+        }
+    }
+</style>
 {% endblock %}

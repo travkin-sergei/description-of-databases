@@ -147,12 +147,10 @@ LOGIN_REDIRECT_URL = reverse_lazy("my_auth:profile")
 LOGIN_URL = reverse_lazy("my_auth:login")
 LOGOUT_REDIRECT_URL = reverse_lazy("my_auth:login")
 
-# Убедитесь, что есть этот параметр
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# settings.py
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],

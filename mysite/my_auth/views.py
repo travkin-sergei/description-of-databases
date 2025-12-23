@@ -1,15 +1,32 @@
-# my_auth
+# my_auth/views.py
 from django.urls import reverse_lazy
-from django.views.generic import DetailView, TemplateView, CreateView
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView
+from django.views.generic import CreateView, RedirectView
+from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404
 
-from my_services.models import LinkResponsiblePerson
-from .models import MyProfile
+from datetime import timedelta
+from rest_framework.authtoken.models import Token
 
+from .forms import MyUserCreationForm
+from .models import MyProfile, UserLoginStats
+
+
+class AboutAppView(TemplateView):
+    template_name = 'my_auth/about.html'
+
+
+class MyProfileView(LoginRequiredMixin, TemplateView):
+    template_name = 'my_auth/profile.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['login_stats'] = self.request.user.login_stats.order_by('-login_date')
+        return context
 
 
 class MyPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
@@ -19,82 +36,108 @@ class MyPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     success_url = reverse_lazy('my_auth:password_change_done')  # Исправлено на подчёркивания
 
 
-class AboutAppView(TemplateView):
-    """Информационная страница о приложении."""
-
-    template_name = "my_auth/about-application.html"
-
-
 class MyPasswordChangeDoneView(LoginRequiredMixin, PasswordChangeDoneView):
     """Сообщение об успешном изменении пароля"""
 
     template_name = 'my_auth/password-change-done.html'
 
 
-class MyProfileView(LoginRequiredMixin, DetailView):
-    """Просмотр профиля пользователя с сервисами и ролями"""
-    model = MyProfile
-    template_name = 'my_auth/profile.html'
-    context_object_name = 'profile'
-
-    def get_object(self):
-        # Получаем или создаем профиль, если его нет
-        profile, created = MyProfile.objects.get_or_create(user=self.request.user)
-        if created:
-            messages.info(self.request, "Профиль был автоматически создан")
-        return profile
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        profile = self.get_object()
-        # Получаем все сервисы, где участвует текущий пользователь
-        context['responsibilities'] = (
-            LinkResponsiblePerson.objects
-            .select_related("service", "role")
-            .filter(name=profile)
-            .order_by("service__alias")
-        )
-        return context
-
-
 class MyLoginView(LoginView):
-    """Идентификация пользователя."""
-
     template_name = 'my_auth/login.html'
-    redirect_authenticated_user = True
-    next_page = reverse_lazy('my_dbm:tables')  # После входа в аккаунт перенаправление в приложение my_dba
 
-    def form_invalid(self, form):
-        messages.error(self.request, 'Неверное имя пользователя или пароль')
-        return super().form_invalid(form)
+    def form_valid(self, form):
+        user = form.get_user()
+        if user.is_superuser:
+            return super().form_valid(form)
+        try:
+            profile = user.profile
+        except MyProfile.DoesNotExist:
+            messages.error(self.request, "Ошибка профиля. Обратитесь к администратору.")
+            return self.render_to_response(self.get_context_data(form=form))
+        if not profile.is_approved:
+            messages.error(self.request, "Ваш аккаунт ещё не одобрен администратором.")
+            return self.render_to_response(self.get_context_data(form=form))
+        return super().form_valid(form)
 
 
 class MyRegisterView(CreateView):
-    """Регистрация пользователя."""
-
-    form_class = UserCreationForm  # Стандартная форма регистрации Django
-    template_name = 'my_auth/register.html'  # Путь к шаблону
-    success_url = reverse_lazy('my_auth:login')  # Перенаправление после успешной регистрации
+    form_class = MyUserCreationForm
+    template_name = 'my_auth/register.html'
+    success_url = reverse_lazy('my_auth:login')
 
     def form_valid(self, form):
-        # Сохраняем пользователя
         response = super().form_valid(form)
-
-        # Автоматически входим после регистрации
-        username = form.cleaned_data.get('username')
-        password = form.cleaned_data.get('password1')
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            login(self.request, user)
-            messages.success(self.request, 'Регистрация прошла успешно!')
-        else:
-            messages.error(self.request, 'Ошибка входа после регистрации')
-
+        messages.success(self.request, "Регистрация прошла успешно. Ожидайте одобрения администратора.")
         return response
 
 
 class MyLogoutView(LogoutView):
-    """Выход из профиля"""
+    next_page = 'my_auth:login'
 
-    next_page = reverse_lazy("my_auth:login")
+
+class AdminDashboardView(UserPassesTestMixin, TemplateView):
+    template_name = 'my_auth/admin_dashboard.html'
+    login_url = '/accounts/login/'
+
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        profiles = MyProfile.objects.select_related('user').order_by('-id')
+        now = timezone.now()
+        today = now.date()
+        week_ago = now - timedelta(days=7)
+
+        context.update({
+            'profiles': profiles,
+            'total': User.objects.count(),
+            'approved': profiles.filter(is_approved=True).count(),
+            'pending': profiles.filter(is_approved=False).count(),
+            'logins_today': UserLoginStats.objects.filter(login_date=today).count(),
+            'logins_week': UserLoginStats.objects.filter(login_date__gte=week_ago.date()).count(),
+            'tokens': Token.objects.select_related('user'),
+        })
+        return context
+
+
+class ApproveUserView(UserPassesTestMixin, RedirectView):
+    pattern_name = 'my_auth:admin_dashboard'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_redirect_url(self, *args, **kwargs):
+        profile = get_object_or_404(MyProfile, user_id=kwargs['user_id'])
+        profile.is_approved = True
+        profile.save()
+        messages.success(self.request, f"✅ {profile.user.username} одобрен.")
+        return super().get_redirect_url()
+
+
+class RejectUserView(UserPassesTestMixin, RedirectView):
+    pattern_name = 'my_auth:admin_dashboard'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_redirect_url(self, *args, **kwargs):
+        profile = get_object_or_404(MyProfile, user_id=kwargs['user_id'])
+        profile.is_approved = False
+        profile.save()
+        messages.warning(self.request, f"⚠️ {profile.user.username} отклонён.")
+        return super().get_redirect_url()
+
+
+class RegenerateTokenView(UserPassesTestMixin, RedirectView):
+    pattern_name = 'my_auth:admin_dashboard'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_redirect_url(self, *args, **kwargs):
+        user = get_object_or_404(User, id=kwargs['user_id'])
+        Token.objects.filter(user=user).delete()
+        Token.objects.create(user=user)
+        messages.info(self.request, f"🔄 Токен для {user.username} обновлён.")
+        return super().get_redirect_url()
