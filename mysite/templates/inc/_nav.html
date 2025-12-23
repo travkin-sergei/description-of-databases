@@ -59,17 +59,17 @@
                         </li>
                     </ul>
                 </li>
-                {% include 'my_dbm/_nav.html' %}
-                {% include 'my_services/_nav.html' %}
-                {% include 'my_request/_nav.html' %}
-                {% include 'my_updates/_nav.html' %}
-                {% include 'my_dictionary/_nav.html' %}
-                {% include 'my_query_path/_nav.html' %}
-                {% include 'my_auth/_nav.html' %}
+                {% include 'app_dbm/_nav.html' %}
+                {% include 'app_services/_nav.html' %}
+                {% include 'app_request/_nav.html' %}
+                {% include 'app_updates/_nav.html' %}
+                {% include 'app_dictionary/_nav.html' %}
+                {% include 'app_query_path/_nav.html' %}
+                {% include 'app_auth/_nav.html' %}
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <form method="post" action="{% url 'my_auth:logout' %}" class="d-inline">
+                    <form method="post" action="{% url 'app_auth:logout' %}" class="d-inline">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-gold">
                             <i class="fas fa-sign-out-alt me-2"></i>Выйти

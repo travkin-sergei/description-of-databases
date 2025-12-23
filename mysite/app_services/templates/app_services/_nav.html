@@ -1,0 +1,66 @@
+<style>
+    /* Общий стиль для красной подсветки */
+    .hover-red:hover {
+        background-color: #ff0000 !important;
+        color: white !important;
+    }
+
+    /* Для выпадающего меню (dropdown) */
+    .dropdown-item:hover {
+        background-color: #ff0000 !important;
+        color: white !important;
+    }
+
+    /* Для кнопки выпадающего меню (dropdown-toggle) */
+    .dropdown-toggle:hover {
+        background-color: #ff0000 !important;
+        color: white !important;
+    }
+
+    /* Для навигационных ссылок (nav-link) */
+    .nav-link:hover {
+        background-color: #ff0000 !important;
+        color: white !important;
+    }
+
+    /* Для кнопок (btn) */
+    .btn:hover {
+        background-color: #ff0000 !important;
+        color: white !important;
+        border-color: #ff0000 !important;
+    }
+
+    /* Для пагинации (page-link) */
+    .page-link:hover {
+        background-color: #ff0000 !important;
+        color: white !important;
+        border-color: #ff0000 !important;
+    }
+</style>
+
+<ul class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle"
+       href="#"
+       href="#"
+       role="button"
+       id="navbarDropdown"
+       data-bs-toggle="dropdown"
+       aria-expanded="false"
+       style="color: white;">
+        Сервисы
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="background-color: black;">
+        <li>
+            <a class="dropdown-item" href="{% url 'app_services:services' %}" style="color: white;">Сервисы</a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="{% url 'app_services:dim-link' %}" style="color: white;">Ссылки</a>
+        </li>
+        <li>
+            <hr class="dropdown-divider" style="background-color: white;">
+        </li>
+        <li>
+            <a class="dropdown-item" href="{% url 'app_services:about-app' %}" style="color: white;">О разделе</a>
+        </li>
+    </ul>
+</ul>

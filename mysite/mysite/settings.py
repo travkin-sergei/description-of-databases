@@ -40,16 +40,16 @@ INSTALLED_APPS = [
     'django_filters',  # фильтрация
     'django_summernote',  # настройка редактора в админке
     'import_export',  # загрузка данных через admin.py
-    'django_jsonform',  # работа с json в admin.py my_dbm
+    'django_jsonform',  # работа с json в admin.py app_dbm
     'django_apscheduler',  # Шедулер в admin
     # ----------
-    'my_auth',  # Авторизация
-    'my_dbm',  # База данных
-    'my_services',  # Сервисов
-    'my_request',  # Специализированные запросы
-    'my_updates',  # Обновления
-    'my_dictionary',  # словарь
-    'my_query_path',  # Вопрос ответ
+    'app_auth',  # Авторизация
+    'app_dbm',  # База данных
+    'app_services',  # Сервисов
+    'app_request',  # Специализированные запросы
+    'app_updates',  # Обновления
+    'app_dictionary',  # словарь
+    'app_query_path',  # Вопрос ответ
 ]
 
 MIDDLEWARE = [
@@ -143,9 +143,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = reverse_lazy("my_auth:profile")
-LOGIN_URL = reverse_lazy("my_auth:login")
-LOGOUT_REDIRECT_URL = reverse_lazy("my_auth:login")
+LOGIN_REDIRECT_URL = reverse_lazy("app_auth:profile")
+LOGIN_URL = reverse_lazy("app_auth:login")
+LOGOUT_REDIRECT_URL = reverse_lazy("app_auth:login")
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -203,7 +203,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'my_services': {
+        'app_services': {
             'handlers': ['console'],
             'level': 'DEBUG',
         },

@@ -16,13 +16,13 @@ urlpatterns = [
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),  # ReDoc
 
     # Приложения
-    path('', include('my_dbm.urls')),
-    path('accounts/', include('my_auth.urls', namespace='my_auth')),
-    path('dictionary/', include('my_dictionary.urls')),
-    path('services/', include('my_services.urls')),
-    path('request/', include('my_request.urls')),
-    path('updates/', include('my_updates.urls')),
-    path('query/', include('my_query_path.urls')),
+    path('', include('app_dbm.urls')),
+    path('accounts/', include('app_auth.urls', namespace='app_auth')),
+    path('dictionary/', include('app_dictionary.urls')),
+    path('services/', include('app_services.urls')),
+    path('request/', include('app_request.urls')),
+    path('updates/', include('app_updates.urls')),
+    path('query/', include('app_query_path.urls')),
 
 ]
 

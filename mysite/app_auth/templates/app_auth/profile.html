@@ -1,0 +1,186 @@
+<!-- templates/app_auth/profile.html -->
+{% extends 'base.html' %}
+{% block title %}Профиль {{ user.username }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+            <!-- Основная информация -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light text-center">
+                    <h3 class="mb-0"><i class="fas fa-user me-2"></i> {{ user.username }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <a href="{% url 'app_auth:password_change' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-key me-2"></i>Сменить пароль
+                        </a>
+                        {% if user.is_staff or user.is_superuser %}
+                        <a href="{% url 'app_auth:admin_dashboard' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-tools me-2"></i>Админпанель
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-center">
+                        <dl class="row mb-0 w-100">
+                            <dt class="col-sm-5 text-end">Имя пользователя</dt>
+                            <dd class="col-sm-7 fw-bold">{{ user.username }}</dd>
+
+                            <dt class="col-sm-5 text-end">Email</dt>
+                            <dd class="col-sm-7">{{ user.email|default:"—" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Имя</dt>
+                            <dd class="col-sm-7">{{ user.first_name|default:"—" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Фамилия</dt>
+                            <dd class="col-sm-7">{{ user.last_name|default:"—" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Активен</dt>
+                            <dd class="col-sm-7">
+                                {% if user.is_active %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-danger">Нет</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Суперпользователь</dt>
+                            <dd class="col-sm-7">
+                                {% if user.is_superuser %}
+                                <span class="badge bg-danger">Да</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Нет</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Персонал</dt>
+                            <dd class="col-sm-7">
+                                {% if user.is_staff %}
+                                <span class="badge bg-warning text-dark">Да</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Нет</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Дата регистрации</dt>
+                            <dd class="col-sm-7">{{ user.date_joined|date:"d.m.Y H:i" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Последний вход</dt>
+                            <dd class="col-sm-7">
+                                {{ user.last_login|date:"d.m.Y H:i" }}
+                                {% if user.last_login %}(сегодня: {{ user.last_login|timesince }} назад){% endif %}
+                            </dd>
+
+                            {% if user.profile %}
+                            <dt class="col-sm-5 text-end">Одобрен</dt>
+                            <dd class="col-sm-7">
+                                {% if user.profile.is_approved %}
+                                <span class="badge bg-success">Да</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Ожидает</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-5 text-end">Регистрация профиля</dt>
+                            <dd class="col-sm-7">{{ user.profile.created_at|date:"d.m.Y H:i" }}</dd>
+
+                            <dt class="col-sm-5 text-end">Ссылка на профиль</dt>
+                            <dd class="col-sm-7 text-center">
+                                {% if user.profile.link_profile %}
+                                <a href="{{ user.profile.link_profile }}" target="_blank" class="text-primary">
+                                    {{ user.profile.link_profile|truncatechars:40 }}
+                                </a>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статистика входов -->
+            {% if user.login_stats.exists %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-light text-center">
+                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Статистика входов</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-center">
+                        <div class="table-responsive w-100">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                <tr class="text-center">
+                                    <th>Дата</th>
+                                    <th>Входов</th>
+                                    <th>Первый вход</th>
+                                    <th>Последний вход</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for stat in user.login_stats.all|dictsortreversed:"login_date" %}
+                                <tr class="text-center">
+                                    <td>{{ stat.login_date|date:"d.m.Y" }}</td>
+                                    <td><span class="badge bg-primary">{{ stat.login_count }}</span></td>
+                                    <td>{{ stat.first_login_at|time:"H:i:s" }}</td>
+                                    <td>{{ stat.last_login_at|time:"H:i:s" }}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted mt-3 mb-0">
+                        <small>*</small>
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 8px;
+        margin: 0 auto;
+    }
+    .card-header {
+        border-bottom: 2px solid #f0f0f0;
+    }
+    dt {
+        font-weight: 600;
+        color: #555;
+        padding-right: 15px;
+    }
+    dd {
+        margin-bottom: 0.5rem;
+        padding-left: 15px;
+    }
+    .btn {
+        min-width: 180px;
+    }
+    @media (max-width: 768px) {
+        dt, dd {
+            text-align: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        .col-sm-5, .col-sm-7 {
+            width: 100%;
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        dt {
+            margin-top: 10px;
+            padding-bottom: 5px;
+        }
+        .btn {
+            min-width: 160px;
+        }
+    }
+</style>
+{% endblock %}

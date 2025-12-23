@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block body %}
+<style>
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+        width: 100%;
+        margin: 0;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 90%;
+        margin: 0 auto;
+        padding: 0;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 100%;
+            padding: 0 10px;
+        }
+    }
+    .detail-card {
+        margin-bottom: 20px;
+    }
+    .related-links-table {
+        margin-top: 20px;
+        width: 100%;
+    }
+    .tables-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .table-wrapper {
+        flex: 1 1 calc(50% - 20px);
+        min-width: 300px;
+        margin: 0;
+        padding: 0;
+    }
+    .relation-title {
+        text-align: center;
+        margin-bottom: 15px;
+        font-weight: bold;
+        color: #1a1a1a;
+    }
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    /* Новые стили для разделенных карточек */
+    .separate-card {
+        margin-bottom: 25px;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    .card-content-padding {
+        padding: 20px;
+    }
+</style>
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        <!-- Карточка с основной информацией -->
+        <div class="card border-yellow separate-card">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0">
+                    <i class="fas fa-server mr-2"></i>Метод обновления: {{ update_method.name }}
+                </h5>
+            </div>
+            <div class="card-body card-content-padding">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Название:</strong> {{ update_method.name }}</p>
+                        <p><strong>Расписание:</strong> {{ update_method.schedule|default:"Не указано" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Ссылка на код:</strong>
+                            {% if update_method.link_code %}
+                            <a href="{{ update_method.link_code }}" target="_blank">{{ update_method.link_code }}</a>
+                            {% else %}
+                            Не указана
+                            {% endif %}
+                        </p>
+                        <p><strong>Статус:</strong>
+                            <span class="badge badge-yellow">
+                                {% if update_method.is_active %}Активен{% else %}Неактивен{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Карточка со связанными столбцами -->
+        {% if related_links %}
+        <div class="card border-yellow separate-card">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0">
+                    <i class="fas fa-link mr-2"></i>Связанные столбцы
+                </h5>
+            </div>
+            <div class="card-body card-content-padding">
+                <div class="tables-container">
+                    <div class="table-wrapper">
+                        <table class="table table-black-yellow table-hover">
+                            <thead>
+                            <tr>
+                                <th colspan="6" class="text-center">Заполняемая таблица</th>
+                                <th></th>
+                                <th colspan="6" class="text-center">Источник</th>
+                            </tr>
+                            <tr>
+                                <th width="5%" class="text-center">№</th>
+                                <th>База</th>
+                                <th>Схема</th>
+                                <th>Таблица</th>
+                                <th>Столбец</th>
+                                <th>PK</th>
+                                <th></th>
+                                <th>PK</th>
+                                <th>Столбец</th>
+                                <th>Таблица</th>
+                                <th>Схема</th>
+                                <th>База</th>
+                                <th width="5%" class="text-center">№</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for link in related_links %}
+                            <tr>
+                                <th class="text-center">{{ forloop.counter }}</th>
+                                <td>{{ link.column.main.table.schema.base.name }}</td>
+                                <td>{{ link.column.main.table.schema.schema }}</td>
+                                <td><a href="{% url 'my_dbm:tables-detail' pk=link.column.main.table.pk %}">{{ link.column.main.table.name }}</a></td>
+                                <td>{{ link.column.main.columns }}</td>
+                                <td>{{ link.column.main.pk }}</td>
+                                <td>|</td>
+                                <td>{{ link.column.sub.pk }}</td>
+                                <td>{{ link.column.sub.columns }}</td>
+                                <td>{{ link.column.sub.table.name }}</td>
+                                <td>{{ link.column.sub.table.schema.schema }}</td>
+                                <td>{{ link.column.sub.table.schema.base.name }}</td>
+                                <th class="text-center">{{ forloop.counter }}</th>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Карточка с кнопкой возврата -->
+        <div class="card border-yellow separate-card">
+            <div class="card-body text-center card-content-padding">
+                <a href="{% url 'app_updates:updates' %}" class="btn btn-gold">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Назад к списку
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}
