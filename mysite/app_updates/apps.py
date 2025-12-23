@@ -1,3 +1,4 @@
+# app_updates/app.py
 from django.apps import AppConfig
 
 

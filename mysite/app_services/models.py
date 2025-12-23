@@ -1,10 +1,21 @@
 # app_services/models.py
 from django.db import models
-from app_auth.models import MyProfile
 
+from app_auth.models import MyProfile
 from app_dbm.models import BaseClass, LinkDBTable, DimStage
 
 db_schema = 'app_services'
+
+
+class DimSchedule(models.Model):
+    """Пример полей (замените на ваши реальные поля)"""
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
 
 
 class DimServicesTypes(BaseClass):

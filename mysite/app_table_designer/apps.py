@@ -1,3 +1,4 @@
+# app_table_designer/app.py
 from django.apps import AppConfig
 
 

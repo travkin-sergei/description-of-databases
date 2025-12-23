@@ -1,5 +1,6 @@
-import sys
+# app_services/apps.py
 from django.apps import AppConfig
+from django.core.signals import request_started
 
 
 class MyServicesConfig(AppConfig):
@@ -7,13 +8,17 @@ class MyServicesConfig(AppConfig):
     name = 'app_services'
 
     def ready(self):
+        # Подключаем обработчик к сигналу первого запроса
+        request_started.connect(self.on_first_request)
+
+    def on_first_request(self, **kwargs):
         """
-        При запуске любой команды manage.py Django сначала инициализирует все приложения, вызывая их методы ready().
-        В app_services/apps.py метод ready() содержит вызов start(), который выполняет запрос к модели DimSchedule.
-        Однако таблица для этой модели создаётся только при применении миграций, которые выполняются после инициализации приложений.
-        Поэтому возникает ошибка UndefinedTable: отношение "app_services.dim_schedule" не существует.
+        Выполняется при первом HTTP‑запросе к серверу.
+        К этому моменту Django гарантированно готов.
         """
-        if 'migrate' in sys.argv or 'makemigrations' in sys.argv:
-            return
+        # Импортируем и запускаем scheduler
         from .scheduler import start
         start()
+
+        # Отключаем сигнал, чтобы не срабатывал на каждый запрос
+        request_started.disconnect(self.on_first_request)

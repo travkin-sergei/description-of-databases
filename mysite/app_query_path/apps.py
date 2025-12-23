@@ -1,3 +1,4 @@
+# app_query_path/apps.py
 from django.apps import AppConfig
 
 
