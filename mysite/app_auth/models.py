@@ -1,7 +1,9 @@
 # app_auth/models.py
 from django.db import models
-from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils import timezone
 
 db_schema = 'app_auth'
 
@@ -102,3 +104,23 @@ class UserLoginStats(models.Model):
         self.login_count += 1
         self.last_login_at = timezone.now()
         self.save(update_fields=['login_count', 'last_login_at'])
+
+
+@receiver(post_save, sender=MyProfile)
+def create_initial_login_stats(sender, instance, created, **kwargs):
+    """
+    Создаёт начальную запись в UserLoginStats при создании MyProfile.
+    Запись создаётся на текущую дату со счётчиком входов = 0 (или 1 — по желанию).
+    """
+    if created:
+        today = timezone.now().date()
+        # Проверим, не существует ли уже запись за сегодня — на случай дублирования
+        UserLoginStats.objects.get_or_create(
+            user=instance.user,
+            login_date=today,
+            defaults={
+                'login_count': 0,  # или 1, если вы считаете создание профиля = первым входом
+                'first_login_at': instance.created_at,
+                'last_login_at': instance.created_at,
+            }
+        )

@@ -1,12 +1,14 @@
 # app_auth/urls.py
 from django.urls import path
+
+from .models import db_schema
 from .view.web import (
     MyLoginView, MyRegisterView, MyLogoutView,
     AdminDashboardView, ApproveUserView, RejectUserView, RegenerateTokenView, MyProfileView, AboutView,
     MyPasswordChangeView, MyPasswordChangeDoneView,
 )
 
-app_name = 'app_auth'
+app_name = db_schema
 
 urlpatterns = [
     path('', AboutView.as_view(), name='about-app'),
