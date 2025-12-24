@@ -127,10 +127,10 @@
                             <td>
                                 <div class="search-row">
                                     <input type="text"
-                                           name="fz__name"
+                                           name="group_name__name"
                                            class="form-control form-control-dark"
                                            placeholder="Поиск по закону..."
-                                           value="{{ request.GET.fz__name }}">
+                                           value="{{ request.GET.group_name__name }}">
                                     <button type="submit" class="btn btn-gold">
                                         <i class="fas fa-search mr-1"></i>Найти
                                     </button>
@@ -139,32 +139,32 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for item in fz_list %}
+                        {% for item in group_name_list %}
                         <tr>
                             <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                             <td>
-                                <a href="{% url 'app_request:fz-detail' item.pk %}" >
+                                <a href="{% url 'app_request:group_name-detail' item.pk %}" >
                                     {{ item.column.table.schema.base.name|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:fz-detail' item.pk %}" >
+                                <a href="{% url 'app_request:group_name-detail' item.pk %}" >
                                     {{ item.column.table.schema.schema|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:fz-detail' item.pk %}" >
+                                <a href="{% url 'app_request:group_name-detail' item.pk %}" >
                                     {{ item.column.table.name|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:fz-detail' item.pk %}" >
+                                <a href="{% url 'app_request:group_name-detail' item.pk %}" >
                                     {{ item.column.columns|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:fz-detail' item.pk %}" >
-                                    {{ item.fz.name|default_if_none:"—" }}
+                                <a href="{% url 'app_request:group_name-detail' item.pk %}" >
+                                    {{ item.group_name.name|default_if_none:"—" }}
                                 </a>
                             </td>
                         </tr>

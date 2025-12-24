@@ -1,8 +1,12 @@
 import django_filters
-from .models import ColumnFZ
+
+from .models import ColumnGroup
 
 
-class ColumnFZFilter(django_filters.FilterSet):
+class ColumnGroupFilter(django_filters.FilterSet):
+    """
+    Фильтрация по 152 ФЗ
+    """
     column__table__schema__base__name = django_filters.CharFilter(
         lookup_expr='icontains',
         label='База данных'
@@ -25,7 +29,7 @@ class ColumnFZFilter(django_filters.FilterSet):
     )
 
     class Meta:
-        model = ColumnFZ
+        model = ColumnGroup
         fields = [
             'column__table__schema__base__name',
             'column__table__schema__schema',

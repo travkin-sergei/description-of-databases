@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import FZ, ColumnFZ
+from .models import ColumnGroupName, ColumnGroup
 
 
-@admin.register(FZ)
-class FZAdmin(admin.ModelAdmin):
+@admin.register(ColumnGroupName)
+class ColumnGroupNameAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at', 'updated_at', 'is_active')
     search_fields = ('name',)
     list_filter = ('is_active',)
@@ -13,13 +13,13 @@ class FZAdmin(admin.ModelAdmin):
     verbose_name_plural = 'Законы'
 
 
-@admin.register(ColumnFZ)
-class ColumnFZAdmin(admin.ModelAdmin):
-    list_display = ('column', 'fz', 'created_at', 'updated_at', 'is_active')
-    raw_id_fields = ('column', 'fz',)
-    search_fields = ('column__name', 'fz__name')
-    list_filter = ('is_active',)
-    ordering = ('column', 'fz')
+@admin.register(ColumnGroup)
+class ColumnGroupAdmin(admin.ModelAdmin):
+    list_display = ('column', 'group_name','created_at', 'updated_at', 'is_active')
+    raw_id_fields = ('column', 'group_name',)
+    search_fields = ('column__name','group_name',)
+    list_filter = ('is_active','group_name',)
+    ordering = ('column','group_name',)
 
     verbose_name = 'Столбец и Закон'
     verbose_name_plural = 'Столбцы и Законы'

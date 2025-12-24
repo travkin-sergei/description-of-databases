@@ -1,5 +1,6 @@
 # app_request/models.py
 from django.db import models
+
 from app_dbm.models import LinkColumn
 
 db_schema = 'app_request'
@@ -22,31 +23,32 @@ class BaseClass(models.Model):
         abstract = True
 
 
-class FZ(BaseClass):
+class ColumnGroupName(BaseClass):
+    """Название группировок столбцов"""
     name = models.CharField(max_length=255, verbose_name='Номер закона')
 
     def __str__(self):
         return self.name
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_fz'
+        db_table = f'{db_schema}\".\"dim_group_name'
         unique_together = [["name"]]
-        verbose_name = '01 Закон.'
-        verbose_name_plural = '01 Законы.'
+        verbose_name = '01 название групп столбцов.'
+        verbose_name_plural = '01 названия групп столбцов.'
 
 
-class ColumnFZ(BaseClass):
+class ColumnGroup(BaseClass):
     """
-    Список столбцов таблиц которые подпадают под ФЗ
+    Список столбцов таблиц и их группировка
     """
     column = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, )
-    fz = models.ForeignKey(FZ, on_delete=models.PROTECT, )
+    group_name = models.ForeignKey(ColumnGroupName, on_delete=models.PROTECT, )
 
     def __str__(self):
-        return f'{self.column}-{self.fz}'
+        return f'{self.column}-{self.group_name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_column_fz'
-        unique_together = [["column", "fz"]]
-        verbose_name = '02 столбцы и законы.'
-        verbose_name_plural = '02 столбцы и законы.'
+        db_table = f'{db_schema}\".\"link_column_group_name'
+        unique_together = [["column", "group_name"]]
+        verbose_name = '02 группа столбцов.'
+        verbose_name_plural = '02 группы столбцов.'

@@ -3,14 +3,14 @@ from django.http import HttpResponseNotFound
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .filters import ColumnFZFilter
+from .filters import ColumnGroupFilter
 from django.views.generic import (
     ListView,
     DetailView,
     TemplateView,
 )
 
-from .models import ColumnFZ
+from .models import ColumnGroup
 
 
 class PageNotFoundView(LoginRequiredMixin, View):
@@ -32,10 +32,11 @@ class AboutView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class FZListView(LoginRequiredMixin, ListView):
+class ColumnGroupListView(LoginRequiredMixin, ListView):
     """Столбцы подпадающие под ФЗ."""
-    model = ColumnFZ
-    template_name = 'app_request/fz.html'
+
+    model = ColumnGroup
+    template_name = 'app_request/group_name.html'
     context_object_name = 'fz_list'
     paginate_by = 20
 
@@ -51,7 +52,7 @@ class FZListView(LoginRequiredMixin, ListView):
                 'column__table',
             )
         )
-        self.filterset = ColumnFZFilter(self.request.GET, queryset=queryset)
+        self.filterset = ColumnGroupFilter(self.request.GET, queryset=queryset)
         return self.filterset.qs
 
     def get_context_data(self, **kwargs):
@@ -68,12 +69,12 @@ class FZListView(LoginRequiredMixin, ListView):
         return context
 
 
-class FZDetailView(LoginRequiredMixin, DetailView):
+class ColumnGroupDetailView(LoginRequiredMixin, DetailView):
     """Детализация федерального законодательства."""
 
-    model = ColumnFZ
-    template_name = 'app_request/fz-detail.html'
-    context_object_name = 'fz'
+    model = ColumnGroup
+    template_name = 'app_request/column_group-detail.html'
+    context_object_name = 'column_group'
 
     def get_queryset(self):
         return (
@@ -81,7 +82,7 @@ class FZDetailView(LoginRequiredMixin, DetailView):
             .get_queryset()
             .filter(is_active=True)
             .select_related(
-                'fz',
+                'column_group',
                 'column__table__schema__base',
                 'column__table__schema',
                 'column__table',

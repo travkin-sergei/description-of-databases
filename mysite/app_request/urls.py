@@ -2,14 +2,14 @@ from django.urls import path
 
 from .views import (
     AboutView, PageNotFoundView,
-    FZListView, FZDetailView,
+    ColumnGroupListView, ColumnGroupDetailView,
 )
 
 app_name = "app_request"
 
 urlpatterns = [
     path('', AboutView.as_view(), name='about-app'),
-    path('fz/', FZListView.as_view(), name='fz'),
-    path('fz/<int:pk>/', FZDetailView.as_view(), name='fz-detail'),
+    path('group-name/', ColumnGroupListView.as_view(), name='group_name'),
+    path('group-name/<int:pk>/', ColumnGroupDetailView.as_view(), name='group_name-detail'),
 ]
 handler404 = PageNotFoundView.as_view()
