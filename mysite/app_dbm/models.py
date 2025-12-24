@@ -228,6 +228,7 @@ class LinkDBTable(BaseClass):
         unique_together = [['schema', 'type', 'name', ]]
         verbose_name = '10 Таблица.'
         verbose_name_plural = '10 Таблицы'
+        ordering = ['schema']
 
 
 class DimDBTableNameType(BaseClass):
@@ -242,6 +243,7 @@ class DimDBTableNameType(BaseClass):
         unique_together = [['name', ]]
         verbose_name = '09 Словарь типов наименований.'
         verbose_name_plural = '09 Словарь типов наименований.'
+        ordering = ['name']
 
 
 class LinkDBTableName(BaseClass):
@@ -284,7 +286,7 @@ class LinkDBTableName(BaseClass):
                 name='unique_publish_per_table'
             )
         ]
-
+        ordering = ['name']
 
 class DimColumnName(BaseClass):
     """Список имен столбцов"""
@@ -299,7 +301,7 @@ class DimColumnName(BaseClass):
         unique_together = [['name', ]]
         verbose_name = '08 Словарь имен столбцов.'
         verbose_name_plural = '08 Словарь имен столбцов.'
-
+        ordering = ['name']
 
 class LinkColumn(BaseClass):
     """Связи таблиц типов данных и столбцов."""
@@ -327,7 +329,7 @@ class LinkColumn(BaseClass):
         unique_together = [['table', 'columns']]
         verbose_name = '11 Столбец.'
         verbose_name_plural = '11 Столбцы.'
-
+        ordering = ['columns']
 
 class DimTypeLink(BaseClass):
     name = models.CharField(max_length=255, )
@@ -340,7 +342,7 @@ class DimTypeLink(BaseClass):
         unique_together = [['name', ]]
         verbose_name = '12 Справочник типов связей.'
         verbose_name_plural = '12 Справочник типов связей.'
-
+        ordering = ['name']
 
 class LinkColumnColumn(BaseClass):
     """Связи столбцов между собой."""
@@ -357,6 +359,7 @@ class LinkColumnColumn(BaseClass):
         unique_together = [['main', 'sub', 'type']]
         verbose_name = '13 Связи столбцов.'
         verbose_name_plural = '13 Связи столбцов.'
+        ordering = ['main']
         constraints = [
             models.UniqueConstraint(
                 fields=['main', 'sub', 'type'],
@@ -389,3 +392,4 @@ class LinkColumnName(BaseClass):
         unique_together = [['column', 'name', ]]
         verbose_name = '14 Связь столбцов и имен столбцов.'
         verbose_name_plural = '14 Связь столбцов и имен столбцов.'
+        ordering = ['name']

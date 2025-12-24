@@ -92,7 +92,7 @@ class LinkColumnInline(admin.TabularInline):
     model = LinkColumn
     form = LinkColumnForm  # Используем единую форму
     extra = 0
-    fields = ('is_active', 'columns', 'type', 'default', 'is_null', 'is_key', 'unique_together', 'description',
+    fields = ('is_active', 'columns', 'type', 'is_null', 'is_key', 'unique_together', 'description','default',
               'stage',)
     verbose_name = 'Колонка'
     verbose_name_plural = 'Колонки'

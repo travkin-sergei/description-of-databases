@@ -33,6 +33,7 @@ class DimCategory(BaseClass):
         unique_together = [["name"]]
         verbose_name = '01 Категории.'
         verbose_name_plural = '01 Категории.'
+        ordering = ['name']
 
 
 class DimDictionary(BaseClass):
@@ -50,7 +51,7 @@ class DimDictionary(BaseClass):
         unique_together = [["name", "category"]]
         verbose_name = '02 Словарь.'
         verbose_name_plural = '02 Словарь.'
-
+        ordering = ['name']
 
 class LinkDictionaryName(BaseClass):
     """Синонимы названий слов."""
@@ -70,3 +71,4 @@ class LinkDictionaryName(BaseClass):
         unique_together = [['name', 'synonym', ]]
         verbose_name = '03 Связь столбцов и синонимом.'
         verbose_name_plural = '03 Связь столбцов и синонимов.'
+        ordering = ['name']

@@ -170,17 +170,35 @@
                             {% for link in related_links %}
                             <tr>
                                 <th class="text-center">{{ forloop.counter }}</th>
-                                <td>{{ link.column.main.table.schema.base.name }}</td>
-                                <td>{{ link.column.main.table.schema.schema }}</td>
-                                <td><a href="{% url 'my_dbm:tables-detail' pk=link.column.main.table.pk %}">{{ link.column.main.table.name }}</a></td>
-                                <td>{{ link.column.main.columns }}</td>
-                                <td>{{ link.column.main.pk }}</td>
+                                {% with main=link.column.main sub=link.column.sub %}
+                                <td>{{ main.table.schema.base.name|default:"—" }}</td>
+                                <td>{{ main.table.schema.schema|default:"—" }}</td>
+                                <td>
+                                    {% if main.table %}
+                                    <a href="{% url 'app_dbm:tables-detail' pk=main.table.pk %}">
+                                        {{ main.table.name }}
+                                    </a>
+                                    {% else %}
+                                    —
+                                    {% endif %}
+                                </td>
+                                <td>{{ main.columns|default:"—" }}</td>
+                                <td>{{ main.pk|default:"—" }}</td>
                                 <td>|</td>
-                                <td>{{ link.column.sub.pk }}</td>
-                                <td>{{ link.column.sub.columns }}</td>
-                                <td>{{ link.column.sub.table.name }}</td>
-                                <td>{{ link.column.sub.table.schema.schema }}</td>
-                                <td>{{ link.column.sub.table.schema.base.name }}</td>
+                                <td>{{ sub.pk|default:"—" }}</td>
+                                <td>{{ sub.columns|default:"—" }}</td>
+                                <td>
+                                    {% if sub.table %}
+                                    <a href="{% url 'app_dbm:tables-detail' pk=sub.table.pk %}">
+                                        {{ sub.table.name }}
+                                    </a>
+                                    {% else %}
+                                    —
+                                    {% endif %}
+                                </td>
+                                <td>{{ sub.table.schema.schema|default:"—" }}</td>
+                                <td>{{ sub.table.schema.base.name|default:"—" }}</td>
+                                {% endwith %}
                                 <th class="text-center">{{ forloop.counter }}</th>
                             </tr>
                             {% endfor %}

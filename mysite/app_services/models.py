@@ -33,6 +33,7 @@ class DimServicesTypes(BaseClass):
         ]
         verbose_name = '02 Типы сервисов.'
         verbose_name_plural = '02 Типы сервисов.'
+        ordering = ['name']
 
 
 class DimServices(BaseClass):
@@ -60,6 +61,7 @@ class DimServices(BaseClass):
         ]
         verbose_name = '07 Список сервисов.'
         verbose_name_plural = '07 Список сервисов.'
+        ordering = ['alias']
 
 
 class LinkServicesServices(BaseClass):
@@ -205,6 +207,7 @@ class DimLink(BaseClass):
         ]
         verbose_name = '09 ссылки.'
         verbose_name_plural = '09 ссылки.'
+        ordering = ['link']
 
 
 class LinkCheckSchedule(models.Model):

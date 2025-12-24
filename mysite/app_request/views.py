@@ -46,7 +46,7 @@ class ColumnGroupListView(LoginRequiredMixin, ListView):
             .get_queryset()
             .filter(is_active=True)
             .select_related(
-                'fz',
+                'column',
                 'column__table__schema__base',
                 'column__table__schema',
                 'column__table',
