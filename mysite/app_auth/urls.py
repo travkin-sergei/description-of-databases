@@ -20,9 +20,11 @@ urlpatterns = [
     # Пароли
     path('password-change/', MyPasswordChangeView.as_view(), name='password_change'),
     path('password-change/done/', MyPasswordChangeDoneView.as_view(), name='password_change_done'),
+
     # Админпанель — всё на одной странице
     path('admin-dashboard/', AdminDashboardView.as_view(), name='admin_dashboard'),
     path('admin-approve/<int:user_id>/', ApproveUserView.as_view(), name='approve_user'),
     path('admin-reject/<int:user_id>/', RejectUserView.as_view(), name='reject_user'),
     path('admin-token/<int:user_id>/', RegenerateTokenView.as_view(), name='regenerate_token'),
+
 ]

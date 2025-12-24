@@ -5,13 +5,13 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView
-from django.views.generic import CreateView, RedirectView
-from django.views.generic import TemplateView
+from django.views.generic import CreateView, RedirectView, TemplateView
 from django.shortcuts import get_object_or_404
 
 from datetime import timedelta
 from rest_framework.authtoken.models import Token
 
+from app_auth.models import MyProfile
 from ..forms import MyUserCreationForm
 from ..models import MyProfile, UserLoginStats
 
@@ -33,7 +33,34 @@ class MyProfileView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['login_stats'] = self.request.user.login_stats.order_by('-login_date')
+
+        # Текущий пользователь
+        user = self.request.user
+
+        # Загружаем профиль пользователя
+        try:
+            profile = user.profile
+        except MyProfile.DoesNotExist:
+            profile = None
+            context['services_roles'] = []
+        else:
+            # Получаем все записи LinkResponsiblePerson для этого профиля
+            responsibilities = profile.linkresponsibleperson_set.select_related(
+                'service__type', 'role'
+            ).all()
+
+            # Формируем список сервисов и ролей
+            services_roles = []
+            for resp in responsibilities:
+                services_roles.append({
+                    'service_alias': resp.service.alias,
+                    'service_type': resp.service.type.name,
+                    'role_name': resp.role.name,
+                })
+            context['services_roles'] = services_roles
+
+        context['profile'] = profile
+        context['login_stats'] = user.login_stats.order_by('-login_date')
         return context
 
 
@@ -97,15 +124,17 @@ class AdminDashboardView(UserPassesTestMixin, TemplateView):
         today = now.date()
         week_ago = now - timedelta(days=7)
 
-        context.update({
-            'profiles': profiles,
-            'total': User.objects.count(),
-            'approved': profiles.filter(is_approved=True).count(),
-            'pending': profiles.filter(is_approved=False).count(),
-            'logins_today': UserLoginStats.objects.filter(login_date=today).count(),
-            'logins_week': UserLoginStats.objects.filter(login_date__gte=week_ago.date()).count(),
-            'tokens': Token.objects.select_related('user'),
-        })
+        context.update(
+            {
+                'profiles': profiles,
+                'total': User.objects.count(),
+                'approved': profiles.filter(is_approved=True).count(),
+                'pending': profiles.filter(is_approved=False).count(),
+                'logins_today': UserLoginStats.objects.filter(login_date=today).count(),
+                'logins_week': UserLoginStats.objects.filter(login_date__gte=week_ago.date()).count(),
+                'tokens': Token.objects.select_related('user'),
+            }
+        )
         return context
 
 
