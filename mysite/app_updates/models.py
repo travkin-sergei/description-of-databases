@@ -19,6 +19,7 @@ class DimUpdateMethod(BaseClass):
         db_table = f'{db_schema}\".\"dim_update_method'
         verbose_name = '01 method update'
         verbose_name_plural = '01 method update'
+        ordering = ['name']
 
 
 class LinkUpdate(BaseClass):
@@ -40,3 +41,4 @@ class LinkUpdate(BaseClass):
         unique_together = [['name', 'column']]
         verbose_name = '02 Детали обновления'
         verbose_name_plural = '02 Детали обновления'
+        ordering = ['name']
