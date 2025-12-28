@@ -45,10 +45,10 @@ INSTALLED_APPS = [
     # ----------
     'app_auth',  # Авторизация
     'app_dbm',  # База данных
+    'app_dictionary',  # словарь
     'app_services',  # Сервисов
     'app_request',  # Специализированные запросы
     'app_updates',  # Обновления
-    'app_dictionary',  # словарь
     'app_query_path',  # Вопрос ответ
 ]
 
@@ -84,6 +84,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
+AUTH_USER_MODEL = 'app_auth.MyProfile'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -98,12 +99,11 @@ DATABASES = {
         'HOST': env('HOST'),
         'PORT': env('PORT'),
         'OPTIONS': {
-            'options': '-c search_path=_django,public'
-        }
+            'options': '-c search_path=_django'
+        },
+        'SCHEMA': '_django',
     }
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -148,8 +148,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = reverse_lazy("app_auth:profile")
 LOGIN_URL = reverse_lazy("app_auth:login")
+LOGIN_REDIRECT_URL = reverse_lazy("app_auth:profile")
 LOGOUT_REDIRECT_URL = reverse_lazy("app_auth:login")
 
 AUTHENTICATION_BACKENDS = [
@@ -207,10 +207,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
     },
-    'loggers': {
-        'app_services': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
+    # 'loggers': {
+    #     'app_services': {
+    #         'handlers': ['console'],
+    #         'level': 'DEBUG',
+    #     },
+    # },
 }

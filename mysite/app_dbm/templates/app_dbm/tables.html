@@ -250,20 +250,20 @@
                 <select name="is_active" class="search-select-google">
                     <option value="">Статус активности</option>
                     <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>
-                        Активные
+                    Активные
                     </option>
-                    <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
-                        Неактивные
+                    <option value = "false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
+                    Неактивные
                     </option>
                 </select>
 
                 <select name="is_metadata" class="search-select-google">
-                    <option value="">Метаданные</option>
-                    <option value="true" {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
+                    <option value = "">Метаданные</option>
+                    <option value = "true" {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
                         С метаданными
                     </option>
                     <option value="false" {% if request.GET.is_metadata == 'false' %}selected{% endif %}>
-                        Без метаданных
+                    Без метаданных
                     </option>
                 </select>
             </div>
@@ -363,15 +363,8 @@
                             </thead>
                             <tbody>
                             {% for elem in tables %}
-                            <!-- Отладочная информация (скрытая) -->
-                            <div style="display: none;">
-                                PK: {{ elem.pk }}<br>
-                                Alt name exists: {{ elem.alt_name|yesno:"Yes,No,Unknown" }}<br>
-                                Alt name value: "{{ elem.alt_name }}"<br>
-                                Type: {{ elem.type }}<br>
-                                Type name: {{ elem.type.name }}
-                            </div>
-
+                            {% with detail_url='app_dbm:tables-detail' pk=elem.pk %}
+                            {{ elem.as_p }}
                             <tr>
                                 <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                                 <td>
@@ -404,6 +397,7 @@
                                     </span>
                                 </td>
                             </tr>
+                            {% endwith %}
                             {% endfor %}
                             </tbody>
                         </table>

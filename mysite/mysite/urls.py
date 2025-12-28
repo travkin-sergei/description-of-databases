@@ -9,10 +9,10 @@ urlpatterns = [
     path('summernote/', include('django_summernote.urls')),  # настройка редактора в админке
     path('admin/doc/', include('django.contrib.admindocs.urls')),  # Документация
     path('admin/', admin.site.urls),
-
+    #
     # Общая схема и документация
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),  # Открытая схема API
-    path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),  # Swagger
+    path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),  # Swagge
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),  # ReDoc
 
     # Приложения

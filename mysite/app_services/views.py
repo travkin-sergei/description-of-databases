@@ -1,13 +1,15 @@
-# app_services
+# app_services/view.py
 from collections import defaultdict
 from django_filters.views import FilterView
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q  # <-- ДОБАВЬТЕ Q здесь
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.http import HttpResponseNotFound
 from django.views import View
 from django.views.generic import TemplateView, DetailView, ListView
+
 from app_dbm.models import DimStage
+
 from .filters import DimServicesFilter, DimLinkFilter
 from .models import (
     DimServices,
@@ -172,4 +174,28 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
             del get_params['page']
         if get_params:
             context['query_string'] = get_params.urlencode()
+        return context
+
+class ServiceUserView(LoginRequiredMixin, FilterView):
+    model = DimServices
+    filterset_class = DimServicesFilter  # ← теперь DimServicesFilter определён
+    template_name = 'app_services/services-user.html'
+    context_object_name = 'services'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related(
+            'type',
+            'dimservicesname_set',
+            'linkresponsibleperson_set__role',
+            'linkresponsibleperson_set__name',
+        ).order_by('alias')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['debug_info'] = {
+            'total_count': DimServices.objects.count(),
+            'filtered_count': self.object_list.count(),
+            'form_data': dict(self.request.GET),
+        }
         return context

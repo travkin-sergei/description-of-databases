@@ -1,14 +1,12 @@
 # app_auth/urls.py
 from django.urls import path
-
-from .models import db_schema
 from .view.web import (
     MyLoginView, MyRegisterView, MyLogoutView,
     AdminDashboardView, ApproveUserView, RejectUserView, RegenerateTokenView, MyProfileView, AboutView,
     MyPasswordChangeView, MyPasswordChangeDoneView,
 )
 
-app_name = db_schema
+app_name = 'app_auth'  # Исправьте: должно быть строкой, а не переменной db_schema
 
 urlpatterns = [
     path('', AboutView.as_view(), name='about-app'),
@@ -26,5 +24,4 @@ urlpatterns = [
     path('admin-approve/<int:user_id>/', ApproveUserView.as_view(), name='approve_user'),
     path('admin-reject/<int:user_id>/', RejectUserView.as_view(), name='reject_user'),
     path('admin-token/<int:user_id>/', RegenerateTokenView.as_view(), name='regenerate_token'),
-
 ]

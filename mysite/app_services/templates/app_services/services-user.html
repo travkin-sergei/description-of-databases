@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% block title %}Сервисы - Ответственные{% endblock title %}
+{% block body %}
+<style>
+    /* Ваши стили остаются без изменений */
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .text-yellow {
+        color: #ffcc00;
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+    .synonyms {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .filter-row {
+        background-color: #f8f9fa !important;
+    }
+</style>
+
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        {% include 'inc/_paginator.html' %}
+
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Сервисы и ответственные</h5>
+                <div>
+                    <small class="text-warning">
+                        Показано: {{ services|length }} из {{ page_obj.paginator.count }}
+                    </small>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <form method="GET">
+                    <div class="table-responsive">
+                        <table class="table table-black-yellow table-hover mb-0">
+                            <thead>
+                            <tr>
+                                <th scope="col" width="5%" class="text-center">№</th>
+                                <th scope="col" width="15%">Тип</th>
+                                <th scope="col" width="25%">Сервис</th>
+                                <th scope="col" width="15%">Роль</th>
+                                <th scope="col" width="20%">Пользователь</th>
+                                <th scope="col" width="10%">Статус</th>
+                                <th scope="col" width="10%">Действия</th>
+                            </tr>
+                            <!-- Строка фильтров -->
+                            <tr class="filter-row">
+                                <td></td>
+                                <!-- Тип -->
+                                <td>
+                                    <select name="type" class="form-control form-control-dark">
+                                        <option value="">Все типы</option>
+                                        {% for obj in filter.form.type.field.queryset %}
+                                        <option value="{{ obj.id }}" {% if filter.form.type.value == obj.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ obj.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <!-- Поиск -->
+                                <td>
+                                    <input type="text"
+                                           name="search"
+                                           class="form-control form-control-dark"
+                                           placeholder="Поиск по названию/синониму..."
+                                           value="{{ filter.form.search.value|default_if_none:'' }}">
+                                </td>
+                                <!-- Роль -->
+                                <td>
+                                    <select name="role" class="form-control form-control-dark">
+                                        <option value="">Любая роль</option>
+                                        {% for obj in filter.form.role.field.queryset %}
+                                        <option value="{{ obj.id }}" {% if filter.form.role.value == obj.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ obj.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <!-- Пользователь -->
+                                <td>
+                                    <input type="text"
+                                           name="user"
+                                           class="form-control form-control-dark"
+                                           placeholder="ФИО или логин..."
+                                           value="{{ filter.form.user.value|default_if_none:'' }}">
+                                </td>
+                                <!-- Статус -->
+                                <td>
+                                    <select name="is_active" class="form-control form-control-dark">
+                                        <option value="">Все статусы</option>
+                                        <option value="true" {% if filter.form.is_active.value == 'true' %}selected{% endif %}>Активные</option>
+                                        <option value="false" {% if filter.form.is_active.value == 'false' %}selected{% endif %}>Неактивные</option>
+                                    </select>
+                                </td>
+                                <!-- Действия (кнопки) -->
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <button type="submit" class="btn btn-gold btn-sm">
+                                            <i class="fas fa-search mr-1"></i>Найти
+                                        </button>
+                                        {% if filter.form.is_bound %}
+                                        <a href="?" class="btn btn-outline-dark btn-sm">
+                                            <i class="fas fa-times mr-1"></i>Сбросить
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for elem in services %}
+                            <tr>
+                                <!-- № -->
+                                <th scope="row" class="text-center">
+                                    {{ page_obj.start_index|add:forloop.counter0 }}
+                                </th>
+
+                                <!-- Тип -->
+                                <td>
+                                    <div class="d-flex flex-column">
+                                            <span class="text-dark font-weight-bold">
+                                                <i class="fas fa-cog text-yellow mr-2"></i>
+                                                {{ elem.type.name|default_if_none:'Не указано'|truncatechars:30 }}
+                                            </span>
+                                    </div>
+                                </td>
+
+                                <!-- Сервис -->
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <a href="{% url 'app_services:services-detail' pk=elem.pk %}"
+                                           class="text-dark font-weight-bold mb-1">
+                                            {{ elem.alias|default_if_none:'Не указано'|truncatechars:50 }}
+                                        </a>
+                                        {% if elem.dimservicesname_set.all %}
+                                        <small class="synonyms">
+                                            <i class="fas fa-tags text-yellow mr-1"></i>
+                                            {% for name in elem.dimservicesname_set.all|slice:":2" %}
+                                            {{ name.name|truncatechars:20 }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                            {% if elem.dimservicesname_set.count > 2 %}
+                                            <span class="badge badge-light">+{{ elem.dimservicesname_set.count|add:"-2" }}</span>
+                                            {% endif %}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <!-- Роли -->
+                                <td>
+                                    {% with roles=elem.linkresponsibleperson_set.all %}
+                                    {% if roles %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for resp in roles|slice:":3" %}
+                                        <span class="badge bg-secondary"
+                                              title="{{ resp.role.name }} - {{ resp.name.username }}">
+                                                {{ resp.role.name|truncatechars:15 }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if roles.count > 3 %}
+                                        <span class="badge bg-light text-dark"
+                                              title="Еще {{ roles.count|add:'-3' }} ролей">
+                                                +{{ roles.count|add:"-3" }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted small">Нет ролей</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <!-- Пользователи -->
+                                <td>
+                                    {% with users=elem.linkresponsibleperson_set.all %}
+                                    {% if users %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for resp in users|slice:":3" %}
+                                        <span class="badge bg-info"
+                                              title="{{ resp.role.name }} - {{ resp.name.username }}">
+                                                {{ resp.name.username|truncatechars:15 }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if users.count > 3 %}
+                                        <span class="badge bg-light text-dark"
+                                              title="Еще {{ users.count|add:'-3' }} пользователей">
+                                                +{{ users.count|add:"-3" }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted small">Нет пользователей</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <!-- Статус -->
+                                <td>
+                                        <span class="badge {% if elem.is_active %}badge-yellow{% else %}badge-secondary{% endif %}">
+                                            {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
+                                        </span>
+                                </td>
+
+                                <!-- Действия -->
+                                <td>
+                                    <a href="{% url 'app_services:services-detail' pk=elem.pk %}"
+                                       class="btn btn-gold btn-sm"
+                                       title="Подробнее">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fas fa-search fa-lg mb-3 d-block"></i>
+                                    <strong>Сервисы не найдены</strong>
+                                    {% if filter.form.is_bound %}
+                                    <p class="mt-2 small">Попробуйте изменить параметры фильтрации</p>
+                                    <div class="mt-2">
+                                        <a href="?" class="btn btn-outline-dark btn-sm">
+                                            <i class="fas fa-times mr-1"></i>Сбросить фильтры
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% include 'inc/_paginator.html' %}
+    </div>
+</div>
+{% endblock %}

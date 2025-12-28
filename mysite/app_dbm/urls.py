@@ -46,5 +46,4 @@ urlpatterns = [
     path('columns/', ColumnListView.as_view(), name='columns'),
     path('columns/<int:pk>/', ColumnDetailView.as_view(), name='columns-detail'),
 ]
-
 handler404 = PageNotFoundView.as_view()

@@ -90,7 +90,7 @@ class DimServicesNameType(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_service_name_type'
+        db_table = f'{db_schema}\".\"dim_services_name_type'
         unique_together = [['name', ]]
         verbose_name = '08 Словарь типов наименований.'
         verbose_name_plural = '08 Словарь типов наименований.'

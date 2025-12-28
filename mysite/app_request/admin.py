@@ -1,5 +1,28 @@
 from django.contrib import admin
-from .models import ColumnGroupName, ColumnGroup
+from .models import ColumnGroupName, ColumnGroup, TableGroupName, TableGroup
+
+
+@admin.register(TableGroupName)
+class TableGroupNameAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at', 'updated_at', 'is_active')
+    search_fields = ('name',)
+    list_filter = ('is_active',)
+    ordering = ('name',)
+
+    verbose_name = 'Группировки'
+    verbose_name_plural = 'Группировки'
+
+
+@admin.register(TableGroup)
+class TableGroupAdmin(admin.ModelAdmin):
+    list_display = ('table', 'group_name', 'created_at', 'updated_at', 'is_active')
+    raw_id_fields = ('table', 'group_name',)
+    search_fields = ('table__name', 'group_name',)
+    list_filter = ('is_active', 'group_name',)
+    ordering = ('table', 'group_name',)
+
+    verbose_name = 'Столбец и Закон'
+    verbose_name_plural = 'Столбцы и Законы'
 
 
 @admin.register(ColumnGroupName)

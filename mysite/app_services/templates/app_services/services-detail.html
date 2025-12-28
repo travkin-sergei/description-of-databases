@@ -195,7 +195,7 @@
                                     {% for table_link in tables_page_obj %}
                                     <tr>
                                         <td>
-                                            <a href="{% url 'my_dbm:tables-detail' pk=table_link.table.pk %}"
+                                            <a href="{% url 'app_dbm:tables-detail' pk=table_link.table.pk %}"
                                                class="text-decoration-none">
                                                 {% if table_link.table.schema %}
                                                 <span class="text-muted">{{ table_link.table.schema}}.</span>

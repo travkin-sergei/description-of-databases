@@ -50,6 +50,7 @@ class BaseClass(models.Model):
 
 class TotalData(models.Model):
     """Содержит полные загружаемые извне данные."""
+
     hash_address = models.CharField(max_length=64, primary_key=True, verbose_name='Хеш сумма')
     created_at = models.DateField(auto_now_add=True, verbose_name='дата создания')
     updated_at = models.DateField(auto_now=True, verbose_name='дата изменения')
@@ -124,6 +125,7 @@ class TotalData(models.Model):
         self.save(update_fields=['updated_at'])
 
 
+# 01 Словарь слоев.
 class DimStage(BaseClass):
     """Справочник стендов разработки."""
 
@@ -140,6 +142,7 @@ class DimStage(BaseClass):
         verbose_name_plural = '01 Словарь слоев.'
 
 
+# 02 Словарь баз данных.
 class DimDB(BaseClass):
     """ Справочник баз данных."""
 
@@ -155,8 +158,10 @@ class DimDB(BaseClass):
         unique_together = [['name', ]]
         verbose_name = '02 Словарь баз данных.'
         verbose_name_plural = '02 Словарь баз данных.'
+        ordering = ['name']
 
 
+# 03 Базы данных.
 class LinkDB(BaseClass):
     """ Справочник баз данных."""
 
@@ -178,6 +183,7 @@ class LinkDB(BaseClass):
         verbose_name_plural = '03 Базы данных.'
 
 
+# 04 Схема
 class LinkDBSchema(BaseClass):
     """Таблица связи баз данных и имен схем."""
 
@@ -195,6 +201,7 @@ class LinkDBSchema(BaseClass):
         verbose_name_plural = '04 Схемы.'
 
 
+# 05 Словарь тип таблицы.
 class DimDBTableType(BaseClass):
     """Справочник типов данных."""
 
@@ -211,6 +218,41 @@ class DimDBTableType(BaseClass):
         verbose_name_plural = '05 Словарь типы таблиц.'
 
 
+# 08 Словарь имен столбцов.
+class DimColumnName(BaseClass):
+    """Список имен столбцов"""
+
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = f'{db_schema}\".\"dim_column_name'
+        unique_together = [['name', ]]
+        verbose_name = '08 Словарь имен столбцов.'
+        verbose_name_plural = '08 Словарь имен столбцов.'
+        ordering = ['name']
+
+
+# 09 Словарь типов наименований.
+class DimDBTableNameType(BaseClass):
+    """Тип имени таблицы"""
+
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = f'{db_schema}\".\"dim_db_table_name_type'
+        unique_together = [['name', ]]
+        verbose_name = '09 Словарь типов наименований.'
+        verbose_name_plural = '09 Словарь типов наименований.'
+        ordering = ['name']
+
+
+# 10 Таблица.
 class LinkDBTable(BaseClass):
     """Связи схем схем, типов таблиц и таблиц."""
 
@@ -231,21 +273,7 @@ class LinkDBTable(BaseClass):
         ordering = ['schema']
 
 
-class DimDBTableNameType(BaseClass):
-    """Тип имени таблицы"""
-    name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = f'{db_schema}\".\"dim_db_table_name_type'
-        unique_together = [['name', ]]
-        verbose_name = '09 Словарь типов наименований.'
-        verbose_name_plural = '09 Словарь типов наименований.'
-        ordering = ['name']
-
-
+# 14 Альтернативное название таблицы.
 class LinkDBTableName(BaseClass):
     """Связи таблиц и их синонимов."""
 
@@ -288,21 +316,8 @@ class LinkDBTableName(BaseClass):
         ]
         ordering = ['name']
 
-class DimColumnName(BaseClass):
-    """Список имен столбцов"""
 
-    name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = f'{db_schema}\".\"dim_column_name'
-        unique_together = [['name', ]]
-        verbose_name = '08 Словарь имен столбцов.'
-        verbose_name_plural = '08 Словарь имен столбцов.'
-        ordering = ['name']
-
+# 11 Столбец.
 class LinkColumn(BaseClass):
     """Связи таблиц типов данных и столбцов."""
 
@@ -331,6 +346,8 @@ class LinkColumn(BaseClass):
         verbose_name_plural = '11 Столбцы.'
         ordering = ['columns']
 
+
+# 12 Справочник типов связей.
 class DimTypeLink(BaseClass):
     name = models.CharField(max_length=255, )
 
@@ -344,6 +361,8 @@ class DimTypeLink(BaseClass):
         verbose_name_plural = '12 Справочник типов связей.'
         ordering = ['name']
 
+
+# 13 Связи столбцов.
 class LinkColumnColumn(BaseClass):
     """Связи столбцов между собой."""
 
@@ -378,6 +397,7 @@ class LinkColumnColumn(BaseClass):
         ]
 
 
+# 14 Связь столбцов и имен столбцов.
 class LinkColumnName(BaseClass):
     """синонимы названий столбцов."""
 
