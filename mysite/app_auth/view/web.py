@@ -57,8 +57,8 @@ class MyProfileView(LoginRequiredMixin, UpdateView):
 
 
 class MyPasswordChangeView(PasswordChangeView):
-    template_name = 'app_auth/password_change.html'
-    success_url = reverse_lazy('app_auth:password_change_done')
+    template_name = 'app_auth/password-change.html'
+    success_url = reverse_lazy('app_auth:password-change_done')
 
 
 class MyPasswordChangeDoneView(PasswordChangeDoneView):

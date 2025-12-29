@@ -82,10 +82,8 @@
                                                                target="_blank"
                                                                class="text-decoration-none flex-grow-1">
                                                                 <span class="badge bg-warning text-dark ms-2">
-                                                                    {{ link.stage }}
+                                                                    {{ link.stage.name|default:link.stage.pk }}
                                                                 </span>
-                                                                {% if link.stage %}
-                                                                {% endif %}
                                                                 <strong>{{ link.link_name|default:"Ссылка" }}</strong>
                                                             </a>
                                                         </div>
@@ -110,7 +108,7 @@
             {% endif %}
             <!-- Левая колонка -->
             <div class="col-lg-4">
-                {% if service.linkresponsibleperson_set.all %}
+                {% if responsible_persons %}
                 <!-- Контактные лица -->
                 <div class="card mb-4" style="border: 2px solid #ffcc00;">
                     <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
@@ -118,14 +116,30 @@
                     </div>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
-                            {% for person in service.linkresponsibleperson_set.all %}
-                            <li class="list-group-item bg-light">
-                                <strong>{{ person.role }}:</strong><br>
-                                {{ person.name.user.get_full_name }}<br>
-                                <small class="text-muted">{{ person.name.user.email }}</small>
-                            </li>
-                            {% endfor %}
-                        </ul>
+                        {% for person in responsible_persons %}
+                        <li class="list-group-item bg-light">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex align-items-center">
+                                    <strong class="me-2">{{ person.role.name }}:</strong>
+                                    {% if person.name.link_profile %}
+                                    <a href="{{ person.name.link_profile }}"
+                                       target="_blank"
+                                       class="text-decoration-none"
+                                       title="Профиль пользователя">
+                                        {{ person.name.get_full_name|default:person.name.username }}
+                                        <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
+                                    </a>
+                                    {% else %}
+                                    <span>{{ person.name.get_full_name|default:person.name.username }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if person.name.email %}
+                                <small class="text-muted ms-4">{{ person.name.email }}</small>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
                     </div>
                 </div>
                 {% endif %}

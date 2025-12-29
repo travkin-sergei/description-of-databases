@@ -92,19 +92,19 @@
                         <table class="table table-black-yellow table-hover mb-0">
                             <thead>
                             <tr>
-                                <th scope="col" width="5%" class="text-center">№</th>
-                                <th scope="col" width="15%">Тип</th>
-                                <th scope="col" width="25%">Сервис</th>
-                                <th scope="col" width="15%">Роль</th>
-                                <th scope="col" width="20%">Пользователь</th>
-                                <th scope="col" width="20%">Статус</th>
+                                <th scope="col" width="5%" class="text-center align-middle">№</th>
+                                <th scope="col" width="15%" class="align-middle">Тип</th>
+                                <th scope="col" width="25%" class="align-middle">Сервис</th>
+                                <th scope="col" width="15%" class="align-middle">Роль</th>
+                                <th scope="col" width="20%" class="align-middle">Пользователь</th>
+                                <th scope="col" width="20%" class="align-middle">Статус</th>
                                 <!-- Убрали заголовок столбца "Действия" -->
                             </tr>
                             <!-- Строка фильтров -->
                             <tr class="filter-row">
-                                <td></td>
+                                <td class="align-middle"></td>
                                 <!-- Тип -->
-                                <td>
+                                <td class="align-middle">
                                     <select name="type" class="form-control form-control-dark">
                                         <option value="">Все типы</option>
                                         {% for obj in filter.form.type.field.queryset %}
@@ -115,7 +115,7 @@
                                     </select>
                                 </td>
                                 <!-- Поиск -->
-                                <td>
+                                <td class="align-middle">
                                     <input type="text"
                                            name="search"
                                            class="form-control form-control-dark"
@@ -123,7 +123,7 @@
                                            value="{{ filter.form.search.value|default_if_none:'' }}">
                                 </td>
                                 <!-- Роль -->
-                                <td>
+                                <td class="align-middle">
                                     <select name="role" class="form-control form-control-dark">
                                         <option value="">Любая роль</option>
                                         {% for obj in filter.form.role.field.queryset %}
@@ -134,7 +134,7 @@
                                     </select>
                                 </td>
                                 <!-- Пользователь -->
-                                <td>
+                                <td class="align-middle">
                                     <input type="text"
                                            name="user"
                                            class="form-control form-control-dark"
@@ -142,7 +142,7 @@
                                            value="{{ filter.form.user.value|default_if_none:'' }}">
                                 </td>
                                 <!-- Статус и кнопки фильтрации -->
-                                <td>
+                                <td class="align-middle">
                                     <div class="d-flex">
                                         <select name="is_active" class="form-control form-control-dark mr-2">
                                             <option value="">Все статусы</option>
@@ -165,12 +165,12 @@
                             {% for elem in services %}
                             <tr>
                                 <!-- № -->
-                                <th scope="row" class="text-center">
+                                <th scope="row" class="text-center align-middle">
                                     {{ page_obj.start_index|add:forloop.counter0 }}
                                 </th>
 
                                 <!-- Тип -->
-                                <td>
+                                <td class="align-middle">
                                     <div class="d-flex flex-column">
                                             <span class="text-dark font-weight-bold">
                                                 <i class="fas fa-cog text-yellow mr-2"></i>
@@ -180,7 +180,7 @@
                                 </td>
 
                                 <!-- Сервис -->
-                                <td>
+                                <td class="align-middle">
                                     <div class="d-flex flex-column">
                                         <a href="{% url 'app_services:services-detail' pk=elem.pk %}"
                                            class="text-dark font-weight-bold mb-1">
@@ -200,47 +200,47 @@
                                     </div>
                                 </td>
                                 <!-- Роли -->
-                                <td>
+                                <td class="align-middle">
                                     {% with roles=elem.linkresponsibleperson_set.all %}
                                     {% if roles %}
-                                    <div class="d-flex flex-wrap gap-1">
-                                        {% for resp in roles|slice:":3" %}
-                                        {{ resp.role.name|truncatechars:15 }}
-                                        {% endfor %}
-                                        {% if roles.count > 3 %}
-                                        <span class="badge bg-light text-dark"
-                                              title="Еще {{ roles.count|add:'-3' }} ролей">
-                                                +{{ roles.count|add:"-3" }}
-                                            </span>
-                                        {% endif %}
-                                    </div>
+                                        <div>
+                                            {% for resp in roles|slice:":3" %}
+                                                <div class="text-muted small">{{ resp.role.name|truncatechars:15 }}</div>
+                                            {% endfor %}
+                                            {% if roles.count > 3 %}
+                                                <div class="badge bg-light text-dark"
+                                                     title="Еще {{ roles.count|add:'-3' }} ролей">
+                                                    +{{ roles.count|add:"-3" }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                     {% else %}
-                                    <span class="text-muted small">Нет ролей</span>
+                                        <div class="text-muted small">Нет ролей</div>
                                     {% endif %}
-                                    {% endwith %}
+                                {% endwith %}
                                 </td>
                                 <!-- Пользователи -->
-                                <td>
+                                <td class="align-middle">
                                     {% with users=elem.linkresponsibleperson_set.all %}
-                                    {% if users %}
-                                    <div class="d-flex flex-wrap gap-1">
-                                        {% for resp in users|slice:":3" %}
-                                        {{ resp.name.username|truncatechars:15 }}
-                                        {% endfor %}
-                                        {% if users.count > 3 %}
-                                        <span class="badge bg-light text-dark"
-                                              title="Еще {{ users.count|add:'-3' }} пользователей">
-                                                +{{ users.count|add:"-3" }}
-                                            </span>
+                                        {% if users %}
+                                            <div>
+                                                {% for resp in users|slice:":3" %}
+                                                    <div class="text-muted small">{{ resp.name.username|truncatechars:15 }}</div>
+                                                {% endfor %}
+                                                {% if users.count > 3 %}
+                                                    <span class="badge bg-light text-dark ms-1"
+                                                         title="Еще {{ users.count|add:'-3' }} пользователей">
+                                                        +{{ users.count|add:"-3" }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <div class="text-muted small">Нет пользователей</div>
                                         {% endif %}
-                                    </div>
-                                    {% else %}
-                                    <span class="text-muted small">Нет пользователей</span>
-                                    {% endif %}
                                     {% endwith %}
                                 </td>
                                 <!-- Статус -->
-                                <td>
+                                <td class="align-middle">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="badge {% if elem.is_active %}badge-yellow{% else %}badge-secondary{% endif %}">
                                             {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
@@ -251,7 +251,7 @@
                             {% empty %}
                             <tr>
                                 <!-- Увеличиваем colspan с 7 на 6, так как убрали один столбец -->
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="6" class="text-center text-muted py-4 align-middle">
                                     <i class="fas fa-search fa-lg mb-3 d-block"></i>
                                     <strong>Сервисы не найдены</strong>
                                     {% if filter.form.is_bound %}

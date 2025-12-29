@@ -3,16 +3,14 @@ from django.contrib.auth.admin import UserAdmin
 from .models import MyProfile, RegistrationRequest
 
 
-class MyUserAdmin(UserAdmin):
+@admin.register(MyProfile)
+class MyUserAdmin(admin.ModelAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ('Дополнительно', {'fields': ('link_profile',)}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Дополнительно', {'fields': ('link_profile',)}),
     )
-
-
-admin.site.register(MyProfile, MyUserAdmin)
 
 
 @admin.register(RegistrationRequest)
