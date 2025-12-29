@@ -46,14 +46,40 @@ class DatabasesView(LoginRequiredMixin, FilterView):
     template_name = 'app_dbm/databases.html'
     context_object_name = 'databases'
     paginate_by = 20
+    limit = 100  # Ограничение в 100 записей
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.select_related('stage').order_by('alias')
+        queryset = queryset.select_related('stage').order_by('alias')
+
+        # Применяем фильтры
+        self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
+
+        # Ограничиваем результат до limit записей
+        filtered_qs = self.filterset.qs
+        limited_qs = filtered_qs[:self.limit]
+
+        return limited_qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_count'] = LinkDB.objects.count()
+
+        # Полный queryset для подсчета
+        full_queryset = LinkDB.objects.select_related('stage')
+        filterset_for_count = self.filterset_class(self.request.GET, queryset=full_queryset)
+        filtered_for_count = filterset_for_count.qs
+        total_count = filtered_for_count.count()
+
+        # Количество на текущей странице
+        if context.get('page_obj'):
+            displayed_count = len(context['page_obj'].object_list)
+        else:
+            displayed_count = min(total_count, self.limit)
+
+        context['total_count'] = total_count
+        context['limited_count'] = min(total_count, self.limit)
+        context['is_limited'] = total_count > self.limit
+        context['displayed_count'] = displayed_count
 
         # Параметры фильтрации для пагинации
         get_params = self.request.GET.copy()
@@ -61,6 +87,9 @@ class DatabasesView(LoginRequiredMixin, FilterView):
             del get_params['page']
         if get_params:
             context['query_string'] = get_params.urlencode()
+
+        context['form_submitted'] = bool(self.request.GET)
+        context['has_filter_params'] = any(v for k, v in self.request.GET.items() if k != 'page')
 
         return context
 
@@ -71,6 +100,7 @@ class TablesView(LoginRequiredMixin, FilterView):
     context_object_name = 'tables'
     paginate_by = 20
     filterset_class = LinkDBTableFilter
+    limit = 100  # Ограничение в 100 записей
 
     def get_queryset(self):
         # Подзапрос для альтернативного имени с is_publish=True
@@ -79,14 +109,22 @@ class TablesView(LoginRequiredMixin, FilterView):
             is_active=True
         ).values('name')[:1]
 
-        result = (
+        queryset = (
             LinkDBTable.objects
             .select_related('schema', 'schema__base', 'type')
             .annotate(
                 alt_name=Subquery(alt_name_subquery)
             )
         )
-        return result
+
+        # Применяем фильтры
+        self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
+
+        # Ограничиваем результат до limit записей
+        filtered_qs = self.filterset.qs
+        limited_qs = filtered_qs[:self.limit]
+
+        return limited_qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -96,8 +134,40 @@ class TablesView(LoginRequiredMixin, FilterView):
             del get_params['page']
         if get_params:
             context['query_string'] = get_params.urlencode()
+
         context['form_submitted'] = bool(self.request.GET)
         context['has_filter_params'] = any(v for k, v in self.request.GET.items() if k != 'page')
+
+        # СОЗДАЕМ ОТДЕЛЬНЫЙ QUERYSET ДЛЯ ПОДСЧЕТА ОБЩЕГО КОЛИЧЕСТВА
+        alt_name_subquery = LinkDBTableName.objects.filter(
+            table=OuterRef('pk'),
+            is_active=True
+        ).values('name')[:1]
+
+        full_queryset = (
+            LinkDBTable.objects
+            .select_related('schema', 'schema__base', 'type')
+            .annotate(
+                alt_name=Subquery(alt_name_subquery)
+            )
+        )
+
+        # Применяем те же фильтры, но БЕЗ ограничения
+        filterset_for_count = self.filterset_class(self.request.GET, queryset=full_queryset)
+        filtered_for_count = filterset_for_count.qs
+        total_count = filtered_for_count.count()
+
+        # Количество отображаемых записей (с учетом пагинации)
+        if context.get('page_obj'):
+            displayed_count = len(context['page_obj'].object_list)
+        else:
+            displayed_count = min(total_count, self.limit)
+
+        context['total_count'] = total_count
+        context['limited_count'] = min(total_count, self.limit)
+        context['is_limited'] = total_count > self.limit
+        context['displayed_count'] = displayed_count
+
         return context
 
 
@@ -172,21 +242,51 @@ class ColumnListView(LoginRequiredMixin, FilterView):
     template_name = 'app_dbm/columns.html'
     context_object_name = 'columns'
     paginate_by = 20
+    limit = 100  # Ограничение в 100 записей
 
     def get_queryset(self):
-        return (
-            LinkColumn.objects
-            .filter(is_active=True)
-            .select_related(
-                'table',
-                'table__schema',
-                'table__schema__base',
-                'table__type',
-            ).order_by('table__name', 'columns')
-        )
+        # Получаем базовый queryset
+        queryset = LinkColumn.objects.filter(is_active=True).select_related(
+            'table',
+            'table__schema',
+            'table__schema__base',
+            'table__type',
+        ).order_by('table__name', 'columns')
+
+        # Применяем фильтры
+        self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
+
+        # Ограничиваем результат до limit записей
+        filtered_qs = self.filterset.qs
+        limited_qs = filtered_qs[:self.limit]
+
+        return limited_qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Полный queryset для подсчета
+        full_queryset = LinkColumn.objects.filter(is_active=True).select_related(
+            'table',
+            'table__schema',
+            'table__schema__base',
+            'table__type',
+        ).order_by('table__name', 'columns')
+
+        filterset_for_count = self.filterset_class(self.request.GET, queryset=full_queryset)
+        filtered_for_count = filterset_for_count.qs
+        total_count = filtered_for_count.count()
+
+        # Количество на текущей странице
+        if context.get('page_obj'):
+            displayed_count = len(context['page_obj'].object_list)
+        else:
+            displayed_count = min(total_count, self.limit)
+
+        context['total_count'] = total_count
+        context['limited_count'] = min(total_count, self.limit)
+        context['is_limited'] = total_count > self.limit
+        context['displayed_count'] = displayed_count
 
         # Для пагинации с сохранением параметров фильтрации
         get_params = self.request.GET.copy()

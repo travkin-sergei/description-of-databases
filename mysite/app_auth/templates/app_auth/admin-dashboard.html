@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Панель администратора</h1>
+
+<!-- Форма создания пользователя -->
+<h2>Создать пользователя вручную</h2>
+<form method="post" action="{% url 'app_auth:create_user_manually' %}">
+    {% csrf_token %}
+    {{ create_user_form.as_p }}
+    <button type="submit">Создать пользователя</button>
+</form>
+
+<!-- Заявки на регистрацию -->
+<h2>Заявки на регистрацию</h2>
+{% for request in pending_requests %}
+    <div>
+        <p>Email: {{ request.email }}</p>
+        <p>Описание: {{ request.description }}</p>
+        <p>Дата: {{ request.created_at }}</p>
+        <form method="post" action="{% url 'app_auth:approve_request' request.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Одобрить</button>
+        </form>
+        <form method="post" action="{% url 'app_auth:reject_request' request.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Отклонить</button>
+        </form>
+    </div>
+{% empty %}
+    <p>Нет заявок</p>
+{% endfor %}
+{% endblock %}

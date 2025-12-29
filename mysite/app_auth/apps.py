@@ -8,5 +8,6 @@ class AppAuthConfig(AppConfig):
     verbose_name = 'Авторизация и профили'
 
     def ready(self):
-        from .signals import update_login_stats
-        user_logged_in.connect(update_login_stats)
+        # from .signals import update_login_stats
+        # user_logged_in.connect(update_login_stats)
+        pass

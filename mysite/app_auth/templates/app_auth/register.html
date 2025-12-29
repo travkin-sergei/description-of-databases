@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Регистрация{% endblock %}
+{% block title %}Заявка на регистрацию{% endblock %}
 
 {% block body %}
 <style>
@@ -27,6 +27,10 @@
         background-color: #ffcc00;
         color: #1a1a1a;
     }
+    .form-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
 </style>
 
 <section class="vh-100 d-flex justify-content-center align-items-center register-container">
@@ -34,10 +38,12 @@
         <div class="row d-flex justify-content-center align-items-center">
             <div class="col-md-9 col-lg-6 col-xl-5 text-center">
                 <h1 class="display-4">Description of databases</h1>
-                <h2 class="display-5">Регистрация</h2>
+                <h2 class="display-5">Заявка на регистрацию</h2>
                 <p class="lead">
-                    Создайте аккаунт для доступа к метаданным баз данных.<br>
-                    <small class="text-muted">После регистрации администратор должен одобрить ваш аккаунт.</small>
+                    Оставьте заявку для получения доступа к метаданным баз данных.<br>
+                    <small class="text-muted">
+                        Администратор создаст вам аккаунт и отправит логин и пароль на указанный email.
+                    </small>
                 </p>
             </div>
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
@@ -56,67 +62,63 @@
 
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
-                                {{ form.non_field_errors }}
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
                             </div>
                         {% endif %}
 
-                        <div class="form-outline mb-4">
-                            <input type="text"
-                                   id="id_username"
-                                   class="form-control form-control-lg {% if form.username.errors %}is-invalid{% endif %}"
-                                   placeholder="Введите имя пользователя"
-                                   name="username"
-                                   value="{{ form.username.value|default:'' }}"
-                                   required>
-                            <label class="form-label" for="id_username">Имя пользователя</label>
-                            {% if form.username.errors %}
-                                <div class="invalid-feedback">{{ form.username.errors|join:", " }}</div>
-                            {% endif %}
-                        </div>
-
+                        <!-- Поле Email -->
                         <div class="form-outline mb-4">
                             <input type="email"
                                    id="id_email"
                                    class="form-control form-control-lg {% if form.email.errors %}is-invalid{% endif %}"
-                                   placeholder="Введите email"
+                                   placeholder="example@domain.com"
                                    name="email"
                                    value="{{ form.email.value|default:'' }}"
                                    required>
-                            <label class="form-label" for="id_email">Email</label>
+                            <label class="form-label" for="id_email">Email адрес</label>
                             {% if form.email.errors %}
                                 <div class="invalid-feedback">{{ form.email.errors|join:", " }}</div>
                             {% endif %}
+                            <small class="form-text">На этот email будут отправлены учетные данные</small>
                         </div>
 
+                        <!-- Поле Подтверждение Email -->
                         <div class="form-outline mb-4">
-                            <input type="password"
-                                   id="id_password1"
-                                   class="form-control form-control-lg {% if form.password1.errors %}is-invalid{% endif %}"
-                                   placeholder="Придумайте пароль"
-                                   name="password1"
+                            <input type="email"
+                                   id="id_confirm_email"
+                                   class="form-control form-control-lg {% if form.confirm_email.errors %}is-invalid{% endif %}"
+                                   placeholder="example@domain.com"
+                                   name="confirm_email"
+                                   value="{{ form.confirm_email.value|default:'' }}"
                                    required>
-                            <label class="form-label" for="id_password1">Пароль</label>
-                            {% if form.password1.errors %}
-                                <div class="invalid-feedback">{{ form.password1.errors|join:", " }}</div>
+                            <label class="form-label" for="id_confirm_email">Подтверждение Email</label>
+                            {% if form.confirm_email.errors %}
+                                <div class="invalid-feedback">{{ form.confirm_email.errors|join:", " }}</div>
                             {% endif %}
+                            <small class="form-text">Повторите email для проверки</small>
                         </div>
 
+                        <!-- Поле Описание -->
                         <div class="form-outline mb-4">
-                            <input type="password"
-                                   id="id_password2"
-                                   class="form-control form-control-lg {% if form.password2.errors %}is-invalid{% endif %}"
-                                   placeholder="Повторите пароль"
-                                   name="password2"
-                                   required>
-                            <label class="form-label" for="id_password2">Подтверждение пароля</label>
-                            {% if form.password2.errors %}
-                                <div class="invalid-feedback">{{ form.password2.errors|join:", " }}</div>
+                            <textarea
+                                id="id_description"
+                                class="form-control form-control-lg {% if form.description.errors %}is-invalid{% endif %}"
+                                placeholder="Опишите цель использования системы"
+                                name="description"
+                                rows="4"
+                                required>{{ form.description.value|default:'' }}</textarea>
+                            <label class="form-label" for="id_description">Цель использования</label>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback">{{ form.description.errors|join:", " }}</div>
                             {% endif %}
+                            <small class="form-text">Кратко опишите, для чего вам нужен доступ к системе</small>
                         </div>
 
                         <div class="text-center">
                             <button type="submit" class="btn btn-custom btn-lg btn-block py-3 w-100">
-                                Зарегистрироваться
+                                Отправить заявку
                             </button>
                         </div>
                     </form>
@@ -124,8 +126,15 @@
                     <div class="text-center mt-4">
                         <a href="{% url 'app_auth:login' %}"
                            class="btn btn-outline-custom btn-lg py-2 px-4">
-                            <i class="fas fa-sign-in-alt me-2"></i>Уже есть аккаунт?
+                            <i class="fas fa-sign-in-alt me-2"></i>Уже есть аккаунт? Войти
                         </a>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            После отправки заявки администратор рассмотрит её
+                            и создаст вам аккаунт в течение 1-2 рабочих дней
+                        </small>
                     </div>
                 </div>
             </div>

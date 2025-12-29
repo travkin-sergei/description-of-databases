@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ title }}{% endblock title %}
-
 {% block body %}
+
 <style>
     /* Базовые стили */
     .table-black-yellow {
@@ -67,329 +66,175 @@
         }
     }
 
-    /* Стили для Google-подобного интерфейса */
-    .google-style-container {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .google-style-header {
-        padding: 20px 0;
-        text-align: center;
-        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-        color: #ffcc00;
-    }
-
-    .google-style-main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 40px 20px;
-        background: white;
-    }
-
-    .google-logo {
-        font-size: 4rem;
-        font-weight: bold;
-        margin-bottom: 30px;
-        background: linear-gradient(45deg, #4285f4, #34a853, #fbbc05, #ea4335);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .no-data-logo {
-        font-size: 3rem;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #ff6b6b;
-        text-align: center;
-    }
-
-    .search-form-google {
-        width: 100%;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .search-title {
-        text-align: center;
-        color: #1a1a1a;
-        margin-bottom: 30px;
-        font-size: 1.5rem;
-    }
-
-    .no-data-title {
-        text-align: center;
-        color: #ff6b6b;
-        margin-bottom: 20px;
-        font-size: 1.3rem;
-    }
-
-    .search-input-google {
-        width: 100%;
-        padding: 15px 20px;
-        font-size: 1.1rem;
+    /* Стили для предупреждения */
+    .limit-warning {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
         border: 2px solid #ffcc00;
-        border-radius: 50px;
-        outline: none;
-        box-shadow: 0 2px 10px rgba(255, 204, 0, 0.2);
+        border-radius: 10px;
+        padding: 15px;
         margin-bottom: 20px;
-        transition: all 0.3s ease;
+        color: #856404;
     }
-
-    .search-input-google:focus {
-        box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
-        border-color: #e6b800;
+    .limit-warning i {
+        color: #ff6b6b;
+        margin-right: 10px;
     }
-
-    .search-filters {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-
-    .search-select-google {
-        padding: 10px 15px;
-        border: 2px solid #ffcc00;
-        border-radius: 25px;
-        background: white;
-        outline: none;
-        transition: all 0.3s ease;
-    }
-
-    .search-select-google:focus {
-        border-color: #e6b800;
-        box-shadow: 0 2px 8px rgba(255, 204, 0, 0.2);
-    }
-
-    .search-button-google {
-        padding: 12px 30px;
-        font-size: 1.1rem;
-        border-radius: 25px;
-        background: linear-gradient(135deg, #ffcc00, #e6b800);
+    .limit-count {
+        font-weight: bold;
         color: #1a1a1a;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 10px rgba(255, 204, 0, 0.3);
+        background-color: #ffcc00;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin: 0 5px;
     }
 
-    .search-button-google:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
-    }
-
-    .search-footer {
-        text-align: center;
-        margin-top: 30px;
-        color: #666;
-        font-size: 0.9rem;
-    }
-
-    /* Показываем/скрываем контейнеры в зависимости от наличия данных */
-    .google-style-container {
-        {% if form_submitted and has_filter_params and tables %}display: none;{% else %}display: flex;{% endif %}
-        min-height: 100vh;
-        flex-direction: column;
-    }
-
-    .main-content-container {
-        {% if form_submitted and has_filter_params and tables %}display: block;{% else %}display: none;{% endif %}
+    /* Стиль для информационного блока при поиске */
+    .search-info-panel {
+        background: linear-gradient(135deg, #e9f7fe, #d1ecf1);
+        border: 2px solid #17a2b8;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
     }
 </style>
 
-<!-- Google-стиль интерфейс (показывается при первом заходе и когда нет данных) -->
-<div class="google-style-container">
-    <main class="google-style-main">
-        {% if form_submitted and has_filter_params and not tables %}
-        <!-- Сообщение об отсутствии данных -->
-        <div class="no-data-logo">
-            <i class="fas fa-search"></i>
-            <div>Данные не найдены</div>
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        <!-- Предупреждение об ограничении - показывается когда найдено более 1000 записей -->
+        {% if is_limited %}
+        <div class="limit-warning">
+            <div class="align-items-center text-center">
+                <p>
+                    Показаны первые {{ limited_count }} из {{ total_count }} найденных записей.
+                    Для получения точных результатов уточните параметры поиска.
+                </p>
+            </div>
         </div>
-        <div class="no-data-title">
-            По вашему запросу не найдено ни одной таблицы
-        </div>
-        {% else %}
-        <!-- Обычный логотип -->
-        <div class="google-logo">DB Search</div>
         {% endif %}
-
-        <form method="GET" class="search-form-google" action="{{ request.path }}">
-            {% if not form_submitted or not has_filter_params or tables %}
-            <h2 class="search-title">Найдите таблицы в базе данных</h2>
-            {% else %}
-            <h2 class="search-title">Попробуйте изменить параметры поиска</h2>
-            {% endif %}
-
-            <input type="text"
-                   name="table_name"
-                   class="search-input-google"
-                   placeholder="Введите название таблицы..."
-                   value="{{ request.GET.table_name }}"
-                   autofocus>
-
-            <div class="search-filters">
-                <input type="text"
-                       name="table_catalog"
-                       class="search-input-google"
-                       placeholder="База данных..."
-                       value="{{ request.GET.table_catalog }}">
-
-                <input type="text"
-                       name="schema"
-                       class="search-input-google"
-                       placeholder="Схема..."
-                       value="{{ request.GET.schema }}">
-
-                <select name="is_active" class="search-select-google">
-                    <option value="">Статус активности</option>
-                    <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>
-                    Активные
-                    </option>
-                    <option value = "false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
-                    Неактивные
-                    </option>
-                </select>
-
-                <select name="is_metadata" class="search-select-google">
-                    <option value = "">Метаданные</option>
-                    <option value = "true" {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
-                        С метаданными
-                    </option>
-                    <option value="false" {% if request.GET.is_metadata == 'false' %}selected{% endif %}>
-                    Без метаданных
-                    </option>
-                </select>
-            </div>
-            <div style="text-align: center;">
-                <button type="submit" class="search-button-google">
-                    <i class="fas fa-search mr-2"></i>Поиск таблиц
-                </button>
-            </div>
-        </form>
-
-        <div class="search-footer">
-            <p>Для защиты производительности данные загружаются только при явном запросе</p>
-        </div>
-    </main>
-</div>
-
-<!-- Обычный интерфейс с результатами (показывается когда есть данные) -->
-<div class="main-content-container">
-    <div class="container-fluid bg-white py-3">
-        <div class="three-quarters-width">
-
-            {% include 'inc/_paginator.html' %}
-
-            <div class="card border-yellow mb-4">
-                <div class="card-header card-header-black">
-                    <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Результаты поиска таблиц</h5>
+        <!-- Пагинация сверху -->
+        {% include 'inc/_paginator.html' %}
+        <!-- Основная таблица с фильтрами -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Поиск таблиц</h5>
+                    {% if form_submitted %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="fas fa-search me-1"></i>Поиск выполнен
+                    </span>
+                    {% endif %}
                 </div>
-                <div class="card-body p-0">
-                    <form method="GET" action="{{ request.path }}">
-                        <table class="table table-black-yellow table-hover mb-0">
-                            <thead>
-                            <tr>
-                                <th width="5%" class="text-center">№</th>
-                                <th>table_catalog</th>
-                                <th>schema</th>
-                                <th>table_name</th>
-                                <th width="5%">is_active</th>
-                                <th width="10%">is_metadata</th>
-                            </tr>
-                            <tr style="background-color: #f8f9fa;">
-                                <td></td>
-                                <td>
-                                    <input type="text"
-                                           name="table_catalog"
-                                           class="form-control form-control-dark"
-                                           placeholder="Поиск баз данных..."
-                                           value="{{ request.GET.table_catalog }}">
-                                </td>
-                                <td>
-                                    <input type="text"
-                                           name="schema"
-                                           class="form-control form-control-dark"
-                                           placeholder="Поиск схем..."
-                                           value="{{ request.GET.schema }}">
-                                </td>
-                                <td>
-                                    <input type="text"
-                                           name="table_name"
-                                           class="form-control form-control-dark"
-                                           placeholder="Поиск таблиц..."
-                                           value="{{ request.GET.table_name }}">
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        <select name="is_active" class="form-control form-control-dark mr-2">
-                                            <option value="">Все</option>
-                                            <option value="true"
-                                                    {% if request.GET.is_active == 'true' %}selected{% endif %}>
-                                            Активные
-                                            </option>
-                                            <option value="false"
-                                                    {% if request.GET.is_active == 'false' %}selected{% endif %}>
-                                            Неактивные
-                                            </option>
-                                        </select>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="d-flex">
-                                        <select name="is_metadata" class="form-control form-control-dark mr-2">
-                                            <option value="">Все</option>
-                                            <option value="true"
-                                                    {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
-                                            Активные
-                                            </option>
-                                            <option value="false"
-                                                    {% if request.GET.is_metadata == 'false' %}selected{% endif %}>
-                                            Неактивные
-                                            </option>
-                                        </select>
-                                        <button type="submit" class="btn btn-gold">
-                                            <i class="fas fa-search mr-1"></i>Найти
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            </thead>
-                            <tbody>
+            </div>
+            <div class="card-body p-0">
+                <form method="GET" action="{{ request.path }}">
+                    <table class="table table-black-yellow table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th width="5%" class="text-center">№</th>
+                            <th>table_catalog</th>
+                            <th>schema</th>
+                            <th>table_name</th>
+                            <th width="5%">is_active</th>
+                            <th width="10%">is_metadata</th>
+                        </tr>
+                        <!-- Строка с фильтрами -->
+                        <tr style="background-color: #f8f9fa;">
+                            <td></td>
+                            <td>
+                                <input type="text"
+                                       name="table_catalog"
+                                       class="form-control form-control-dark"
+                                       placeholder="База данных..."
+                                       value="{{ request.GET.table_catalog }}"
+                                       autocomplete="off">
+                            </td>
+                            <td>
+                                <input type="text"
+                                       name="schema"
+                                       class="form-control form-control-dark"
+                                       placeholder="Схема..."
+                                       value="{{ request.GET.schema }}"
+                                       autocomplete="off">
+                            </td>
+                            <td>
+                                <input type="text"
+                                       name="table_name"
+                                       class="form-control form-control-dark"
+                                       placeholder="Название таблицы..."
+                                       value="{{ request.GET.table_name }}"
+                                       autocomplete="off">
+                            </td>
+                            <td>
+                                <select name="is_active" class="form-control form-control-dark">
+                                    <option value="">Статус</option>
+                                    <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>
+                                        Активные
+                                    </option>
+                                    <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
+                                        Неактивные
+                                    </option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <select name="is_metadata" class="form-control form-control-dark mr-2">
+                                        <option value="">Метаданные</option>
+                                        <option value="true" {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
+                                            С метаданными
+                                        </option>
+                                        <option value="false" {% if request.GET.is_metadata == 'false' %}selected{% endif %}>
+                                            Без метаданных
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-gold">
+                                        <i class="fas fa-search mr-1"></i>Поиск
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% if tables %}
                             {% for elem in tables %}
-                            {% with detail_url='app_dbm:tables-detail' pk=elem.pk %}
-                            {{ elem.as_p }}
                             <tr>
                                 <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                                 <td>
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}">
+                                    {% if elem.pk %}
+                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
                                         {{ elem.schema.base.name|default_if_none:"—" }}
                                     </a>
+                                    {% else %}
+                                    {{ elem.schema.base.name|default_if_none:"—" }}
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}">
+                                    {% if elem.pk %}
+                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
                                         {{ elem.schema.schema|default_if_none:"—" }}
                                     </a>
+                                    {% else %}
+                                    {{ elem.schema.schema|default_if_none:"—" }}
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}">
+                                    {% if elem.pk %}
+                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark fw-bold">
                                         {{ elem.name|default_if_none:"—" }}
                                     </a>
-                                    <span class="float-end">
-                                        {{ elem.alt_name|default_if_none:"—" }}
-                                        <small>({{ elem.type.name|default:"без типа" }})</small>
+                                    {% else %}
+                                    <span class="fw-bold">{{ elem.name|default_if_none:"—" }}</span>
+                                    {% endif %}
+                                    {% if elem.alt_name %}
+                                    <span class="float-end text-muted small">
+                                        <i class="fas fa-tag me-1"></i>{{ elem.alt_name }}
+                                        <small class="ms-2">({{ elem.type.name|default:"без типа" }})</small>
                                     </span>
+                                    {% endif %}
                                 </td>
                                 <td class="text-center">
-                                        <span class="badge badge-yellow">
-                                            {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
-                                        </span>
+                                    <span class="badge badge-yellow">
+                                        {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
+                                    </span>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge badge-yellow">
@@ -397,15 +242,74 @@
                                     </span>
                                 </td>
                             </tr>
-                            {% endwith %}
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </form>
+                        {% else %}
+                            <!-- Сообщение когда нет данных -->
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-search fa-2x mb-3 text-warning"></i>
+                                        <h5 class="mb-3">Поиск таблиц</h5>
+                                        <p class="mb-3">Введите параметры поиска и нажмите кнопку "Поиск"</p>
+
+                                        {% if form_submitted %}
+                                        <!-- Сообщение когда поиск выполнен, но ничего не найдено -->
+                                        <div class="alert alert-warning mt-3" style="max-width: 500px; margin: 0 auto;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-1">Ничего не найдено</h6>
+                                                    <p class="mb-0 small">По вашему запросу не найдено ни одной таблицы.<br>
+                                                    Попробуйте изменить параметры поиска.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <!-- Советы по поиску -->
+                                        <div class="alert alert-info mt-3" style="max-width: 500px; margin: 0 auto;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-lightbulb fa-2x me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-1">Советы по поиску:</h6>
+                                                    <ul class="mb-0 small">
+                                                        <li>Используйте частичные названия (например: "user" для поиска "user_profile")</li>
+                                                        <li>Поиск по базе данных или схеме</li>
+                                                        <li>Фильтруйте по активности или наличию метаданных</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+
+        <!-- Пагинация снизу -->
+        {% if tables %}
+            {% include 'inc/_paginator.html' %}
+
+            <!-- Дополнительное предупреждение если есть следующая страница и ограничение -->
+            {% if is_limited and page_obj.has_next %}
+            <div class="alert alert-warning mt-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                    <div>
+                        <h6 class="mb-1"><strong>Внимание!</strong></h6>
+                        <p class="mb-0">
+                            Из-за ограничения в 1000 записей не все страницы могут быть доступны.<br>
+                            Уточните параметры поиска для получения полных результатов.
+                        </p>
+                    </div>
                 </div>
             </div>
-            {% include 'inc/_paginator.html' %}
-        </div>
+            {% endif %}
+        {% endif %}
     </div>
 </div>
 {% endblock body %}

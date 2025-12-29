@@ -1,12 +1,11 @@
 # app_services/filters.py
 import django_filters
-from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django_filters.views import FilterView
-from django.db.models import CharField
-from django.db.models.functions import Cast
+
 from app_auth.models import MyProfile
 from app_dbm.models import DimStage
+
 from .models import (
     DimServices, DimServicesTypes, DimLink, DimRoles, DimTechStack,
 )

@@ -1,4 +1,3 @@
-# app_auth/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -6,18 +5,7 @@ db_schema = 'app_auth'
 
 
 class MyProfile(AbstractUser):
-    GENDER_CHOICES = [
-        (1, 'Мужской'),
-        (0, 'Женский'),
-        (None, 'нет данных'),  # None для "нет данных"
-    ]
-
-    gender = models.IntegerField(
-        choices=GENDER_CHOICES,
-        blank=True,
-        null=True,
-        verbose_name='Пол'
-    )
+    """Мой профиль пользователя."""
     link_profile = models.URLField(blank=True, null=True, verbose_name='Ссылка на профиль')
 
     class Meta:
@@ -28,23 +16,39 @@ class MyProfile(AbstractUser):
     def __str__(self):
         return self.username
 
-    class Meta:
-        db_table = f'{db_schema}\".\"my_profile'
 
+class RegistrationRequest(models.Model):
+    """Заявка на регистрацию. Только почта и описание."""
+    STATUS_CHOICES = [
+        (None, 'Ожидает'),
+        (True, 'Одобрена'),
+        (False, 'Отклонена'),
+    ]
 
-class LoginStat(models.Model):
-    user = models.ForeignKey(MyProfile, on_delete=models.CASCADE, related_name='login_stats',
-                             verbose_name='Пользователь')
-    login_date = models.DateField(verbose_name='Дата входа')
-    login_count = models.PositiveIntegerField(default=1, verbose_name='Количество входов за день')
-    first_login_at = models.DateTimeField(null=True, blank=True, verbose_name='Первый вход в этот день')
-    last_login_at = models.DateTimeField(null=True, blank=True, verbose_name='Последний вход в этот день')
+    email = models.EmailField(unique=True, verbose_name='Email')
+    description = models.CharField(max_length=255, verbose_name='Цель доступа')
+    status = models.BooleanField(
+        choices=STATUS_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name='Статус'
+    )
 
-    class Meta:
-        db_table = f'{db_schema}\".\"login_stat'
-        verbose_name = 'Статистика входов'
-        verbose_name_plural = 'Статистики входов'
-        unique_together = ('user', 'login_date')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
 
     def __str__(self):
-        return f'{self.user.username} — {self.login_date} ({self.login_count} входов)'
+        return f'{self.email}'
+
+    def get_status_display(self):
+        """Получить отображаемое значение статуса"""
+        if self.status is None:
+            return 'Ожидает'
+        elif self.status is True:
+            return 'Одобрена'
+        else:  # status is False
+            return 'Отклонена'
+
+    class Meta:
+        db_table = f'{db_schema}\".\"registration_request'
+        verbose_name = 'Заявка на регистрацию'
+        verbose_name_plural = 'Заявки на регистрацию'
