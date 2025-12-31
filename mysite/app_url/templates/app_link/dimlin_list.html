@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Список ссылок</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .active { color: green; }
+        .inactive { color: gray; }
+        .pagination { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Список ссылок</h1>
+
+    <div style="margin-bottom: 20px;">
+        Всего: {{ total_count }} | Активных: {{ active_count }}
+        <br>
+        <a href="{% url 'about' %}">О проекте</a> |
+        <a href="{% url 'statistics' %}">Статистика</a>
+    </div>
+
+    {% if links %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>URL</th>
+                <th>Добавлена</th>
+                <th>Статус</th>
+            </tr>
+            {% for link in links %}
+            <tr>
+                <td>{{ link.id }}</td>
+                <td>
+                    <a href="{{ link.original_url }}" target="_blank">
+                        {{ link.original_url|truncatechars:50 }}
+                    </a>
+                </td>
+                <td>{{ link.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    {% if link.is_active %}
+                        <span class="active">✓ Активна</span>
+                    {% else %}
+                        <span class="inactive">✗ Неактивна</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">← Назад</a>
+            {% endif %}
+
+            <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Вперед →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <p>Нет ссылок для отображения.</p>
+    {% endif %}
+</body>
+</html>

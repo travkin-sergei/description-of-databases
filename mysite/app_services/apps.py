@@ -3,22 +3,19 @@ from django.apps import AppConfig
 from django.core.signals import request_started
 
 
-class MyServicesConfig(AppConfig):
+class AppServicesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app_services'
 
     def ready(self):
-        # Подключаем обработчик к сигналу первого запроса
-        request_started.connect(self.on_first_request)
+        """Создаем схему с именем приложения"""
+        from django.db import connection
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{self.name}";')
+        except:
+            pass
 
-    def on_first_request(self, **kwargs):
-        """
-        Выполняется при первом HTTP‑запросе к серверу.
-        К этому моменту Django гарантированно готов.
-        """
-        # Импортируем и запускаем scheduler
-        from .scheduler import start
-        start()
 
-        # Отключаем сигнал, чтобы не срабатывал на каждый запрос
-        request_started.disconnect(self.on_first_request)
+
+app = AppServicesConfig.name

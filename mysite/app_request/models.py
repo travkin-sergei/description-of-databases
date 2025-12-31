@@ -3,24 +3,8 @@ from django.db import models
 
 from app_dbm.models import LinkColumn
 
-db_schema = 'app_request'
-
-
-class BaseClass(models.Model):
-    """"
-    Абстрактная базовая модель, содержащая общие поля для всех моделей.
-    Attributes:
-        created_at (DateTime): Дата и время создания записи (автоматически устанавливается).
-        updated_at (DateTime): Дата и время последнего обновления записи (автоматически обновляется).
-        is_active (Boolean): Флаг активности записи (по умолчанию True).
-    """
-
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='дата создания')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='дата изменения')
-    is_active = models.BooleanField(default=True, verbose_name='запись активна')
-
-    class Meta:
-        abstract = True
+from .apps import app
+from _common.base_models import BaseClass
 
 
 class TableGroupName(BaseClass):
@@ -31,7 +15,7 @@ class TableGroupName(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_table_group'
+        db_table = f'{app}\".\"dim_table_group'
         unique_together = [["name"]]
         verbose_name = '01 название групп таблиц.'
         verbose_name_plural = '01 названия групп таблиц.'
@@ -48,7 +32,7 @@ class TableGroup(BaseClass):
         return f'{self.table}-{self.group_name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_table_group'
+        db_table = f'{app}\".\"link_table_group'
         unique_together = [["table", "group_name"]]
         verbose_name = '02 группа таблиц.'
         verbose_name_plural = '02 группы таблиц.'
@@ -62,7 +46,7 @@ class ColumnGroupName(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_columns_group'
+        db_table = f'{app}\".\"dim_columns_group'
         unique_together = [["name"]]
         verbose_name = '03 название групп столбцов.'
         verbose_name_plural = '03 названия групп столбцов.'
@@ -79,7 +63,7 @@ class ColumnGroup(BaseClass):
         return f'{self.column}-{self.group_name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_column_group'
+        db_table = f'{app}\".\"link_column_group'
         unique_together = [["column", "group_name"]]
         verbose_name = '04 группа столбцов.'
         verbose_name_plural = '03 группы столбцов.'

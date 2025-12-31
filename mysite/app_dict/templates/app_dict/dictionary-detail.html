@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.name }} - Детализация{% endblock title %}
+{% block body %}
+<style>
+    /* Основные цвета */
+    :root {
+        --primary-dark: #1a1a1a;
+        --primary-yellow: #ffcc00;
+        --yellow-dark: #e6b800;
+        --error-color: #dc3545;
+        --error-dark: #c82333;
+    }
+
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid var(--primary-yellow);
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .btn-gold {
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        border: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .btn-gold:hover {
+        background-color: var(--yellow-dark);
+        color: var(--primary-dark);
+    }
+    .badge-yellow {
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .card-header-black {
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
+        border-bottom: 2px solid var(--primary-yellow);
+    }
+    .border-yellow {
+        border: 1px solid var(--primary-yellow);
+    }
+
+    /* Оптимальные стили для читаемости */
+    .optimal-width-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .readable-card {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* Стили для удобного чтения текста */
+    .description-block {
+        background-color: #fffae6;
+        border-left: 4px solid var(--primary-yellow);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.6;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    /* Оптимальная ширина текста для чтения */
+    .optimal-text-width {
+        text-align: justify;
+        text-justify: inter-word;
+        hyphens: auto;
+    }
+
+    /* ИЗМЕНЕНО: Кнопка копирования с желтым контуром и текстом */
+    .copy-btn {
+        background-color: transparent;
+        color: var(--primary-yellow); /* Желтый текст */
+        border: 2px solid var(--primary-yellow); /* Желтый контур */
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+
+    .copy-btn:hover {
+        background-color: var(--primary-yellow); /* Желтый фон при наведении */
+        color: var(--primary-dark); /* Черный текст при наведении */
+        text-decoration: none;
+    }
+
+    /* ИЗМЕНЕНО: Красный цвет при успешном копировании */
+    .copy-btn.copied {
+        background-color: var(--error-color);
+        color: white;
+        border-color: var(--error-color);
+    }
+
+    .copy-btn.copied:hover {
+        background-color: var(--error-dark);
+        border-color: var(--error-dark);
+    }
+
+    /* Стиль для SVG иконки */
+    .copy-svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+        transition: fill 0.3s ease;
+    }
+
+    /* ИЗМЕНЕНО: Иконка желтая по умолчанию */
+    .copy-btn .copy-svg {
+        fill: var(--primary-yellow);
+    }
+
+    .copy-btn:hover .copy-svg {
+        fill: var(--primary-dark); /* Черная иконка при наведении */
+    }
+
+    .copy-btn.copied .copy-svg {
+        fill: white;
+    }
+
+    /* Центрирование кнопки возврата */
+    .center-button {
+        display: flex;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+
+    /* Улучшенные стили для таблицы */
+    .table-fixed {
+        table-layout: fixed;
+    }
+
+    .table-fixed th:first-child {
+        width: 30%;
+    }
+
+    .table-fixed td:last-child {
+        width: 70%;
+        word-break: break-word;
+    }
+
+    /* Заголовок с иконкой */
+    .description-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .description-title {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        color: #333;
+    }
+
+    /* Стиль для названия и тире без переноса строки */
+    .inline-description {
+        display: block;
+    }
+
+    .description-name {
+        font-weight: bold;
+        display: inline;
+        color: #333;
+    }
+
+    .no-wrap-separator {
+        white-space: nowrap;
+        display: inline;
+    }
+
+    .description-text {
+        display: inline;
+        white-space: pre-line;
+        color: #333;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 1200px) {
+        .readable-card {
+            max-width: 800px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .readable-card {
+            max-width: 95%;
+            margin: 0 auto;
+        }
+
+        .optimal-text-width {
+            text-align: left;
+        }
+
+        .table-fixed th:first-child,
+        .table-fixed td:last-child {
+            width: auto;
+        }
+
+        .description-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            align-self: flex-start;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .description-block {
+            padding: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .optimal-width-container {
+            padding: 0 10px;
+        }
+
+        .copy-btn {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+
+        .copy-svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+</style>
+
+<div class="container-fluid bg-white py-4">
+    <div class="optimal-width-container">
+        <!-- Основная карточка с информацией -->
+        <div class="card border-yellow mb-4 readable-card">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="fas fa-book me-2"></i>
+                    {{ item.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Кнопка возврата по центру -->
+                <div class="center-button">
+                    <a href="{% url 'app_dict:dict' %}"
+                       class="btn btn-gold">
+                        <i class="fas fa-arrow-left me-2"></i> Вернуться к списку
+                    </a>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <table class="table table-black-yellow table-fixed">
+                                <tbody>
+                                <tr>
+                                    <th>Категория</th>
+                                    <td>
+                                        <span>
+                                            <i class="fas fa-tag me-1"></i>
+                                            {{ item.category.name }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок с описанием -->
+                {% if item.description %}
+                <div class="mb-4">
+                    <div class="description-header">
+                        <h5 class="description-title">
+                            <i class="fas fa-align-left me-2"></i>
+                            Описание
+                        </h5>
+                        <div class="copy-icon-wrapper">
+                            <div class="copy-icon-img copy-description-btn"
+                                 title="Копировать описание">
+                                <!-- SVG иконка копирования -->
+                                <svg class="copy-svg" viewBox="0 0 24 24">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="description-block optimal-text-width" id="descriptionText">
+                        <div class="inline-description">
+                            <strong class="description-name">{{ item.name }}</strong>
+                            <span class="no-wrap-separator"> - </span>
+                            <span class="description-text">{{ item.description|linebreaksbr }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const copyIcon = document.querySelector('.copy-description-btn');
+        const descriptionBlock = document.getElementById('descriptionText');
+
+        if (copyIcon && descriptionBlock) {
+            copyIcon.addEventListener('click', function() {
+                // Получаем полный текст из описания
+                let textToCopy = descriptionBlock.innerText || descriptionBlock.textContent;
+
+                // Если текст пустой, пытаемся получить другим способом
+                if (!textToCopy.trim()) {
+                    textToCopy = descriptionBlock.textContent;
+                }
+
+                // Удаляем лишние пробелы и переносы в начале и конце
+                textToCopy = textToCopy.trim();
+
+                // Используем современный Clipboard API
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        // Успешное копирование - меняем SVG на галочку
+                        const svg = copyIcon.querySelector('.copy-svg');
+                        if (svg) {
+                            const originalSvg = svg.innerHTML;
+                            // Меняем на SVG галочку
+                            svg.innerHTML = '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>';
+                            copyIcon.classList.add('copied');
+                            copyIcon.title = 'Скопировано!';
+
+                            // Возвращаем исходную иконку через 2 секунды
+                            setTimeout(() => {
+                                svg.innerHTML = originalSvg;
+                                copyIcon.classList.remove('copied');
+                                copyIcon.title = 'Копировать описание';
+                            }, 2000);
+                        }
+                    })
+                    .catch(err => {
+                        // Fallback для старых браузеров
+                        console.error('Ошибка копирования: ', err);
+
+                        // Создаем временный textarea для копирования
+                        const textArea = document.createElement('textarea');
+                        textArea.value = textToCopy;
+                        textArea.style.position = 'fixed';
+                        textArea.style.left = '-999999px';
+                        textArea.style.top = '-999999px';
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+
+                        try {
+                            const successful = document.execCommand('copy');
+                            if (successful) {
+                                const svg = copyIcon.querySelector('.copy-svg');
+                                if (svg) {
+                                    const originalSvg = svg.innerHTML;
+                                    svg.innerHTML = '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>';
+                                    copyIcon.classList.add('copied');
+                                    copyIcon.title = 'Скопировано!';
+
+                                    setTimeout(() => {
+                                        svg.innerHTML = originalSvg;
+                                        copyIcon.classList.remove('copied');
+                                        copyIcon.title = 'Копировать описание';
+                                    }, 2000);
+                                }
+                            } else {
+                                alert('Не удалось скопировать текст. Пожалуйста, скопируйте вручную.');
+                            }
+                        } catch (err) {
+                            console.error('Fallback error: ', err);
+                            alert('Не удалось скопировать текст. Пожалуйста, скопируйте вручную.');
+                        }
+
+                        document.body.removeChild(textArea);
+                    });
+            });
+        }
+
+        // Также добавим возможность копирования по нажатию Ctrl+C на блоке описания
+        descriptionBlock?.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'c') {
+                const selection = window.getSelection();
+                if (!selection.toString().trim()) {
+                    e.preventDefault();
+                    copyIcon.click();
+                }
+            }
+        });
+    });
+</script>
+{% endblock body %}

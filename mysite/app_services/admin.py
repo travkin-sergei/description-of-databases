@@ -1,9 +1,10 @@
-# admin.py
+# app_services/admin.py
 from django.contrib import admin
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
-    DimTechStack, DimLink, LinkServicesServices, LinkCheckSchedule, DimServicesNameType
+    DimTechStack, LinksUrlService, LinkServicesServices,
+    DimServicesNameType, LinkDoc  # Добавлен LinkDoc
 )
 from django_apscheduler.models import DjangoJobExecution
 from django_apscheduler.admin import DjangoJobExecutionAdmin
@@ -31,6 +32,7 @@ class DimServicesNameInline(admin.TabularInline):
     extra = 0
     fields = ('name', 'type')
     show_change_link = True
+    autocomplete_fields = ('type',)
 
 
 class LinkResponsiblePersonInline(admin.TabularInline):
@@ -39,6 +41,7 @@ class LinkResponsiblePersonInline(admin.TabularInline):
     fields = ('role', 'name')
     show_change_link = True
     raw_id_fields = ('name',)
+    autocomplete_fields = ('role',)
 
 
 class LinkServicesTableInline(admin.TabularInline):
@@ -49,11 +52,20 @@ class LinkServicesTableInline(admin.TabularInline):
     raw_id_fields = ('table',)
 
 
-class LinkLinkInline(admin.TabularInline):
-    model = DimLink
+class LinksUrlServiceInline(admin.TabularInline):
+    model = LinksUrlService
     extra = 0
-    fields = ('is_active', 'link', 'link_name', 'stack', 'stage', 'description')
+    fields = ('url', 'link_name', 'stage', 'stack', 'description')
     show_change_link = True
+    autocomplete_fields = ('url', 'stage', 'stack')
+
+
+class LinkDocInline(admin.TabularInline):  # Новый инлайн для связи документов
+    model = LinkDoc
+    extra = 0
+    fields = ('doc',)
+    show_change_link = True
+    autocomplete_fields = ('doc',)
 
 
 # ——————— ModelAdmins ———————
@@ -68,23 +80,24 @@ class DimServicesTypesAdmin(admin.ModelAdmin):
 class DimServicesAdmin(admin.ModelAdmin):
     list_display = ('id', 'alias', 'type',)
     list_filter = ('type',)
-    search_fields = ('alias', 'description', 'dimservicesname__name')  # Это уже есть у вас
+    search_fields = ('alias', 'description', 'dimservicesname__name')
     ordering = ('alias',)
     inlines = [
         DimServicesNameInline,
         LinkResponsiblePersonInline,
+        LinkDocInline,
         LinkServicesTableInline,
-        LinkLinkInline,
+        LinksUrlServiceInline,
     ]
     autocomplete_fields = ('type',)
 
 
 @admin.register(DimServicesName)
 class DimServicesNameAdmin(admin.ModelAdmin):
-    list_display = ('id', 'alias', 'name')
+    list_display = ('id', 'alias', 'name', 'type')
     search_fields = ('name', 'alias__alias')
     ordering = ('name',)
-    autocomplete_fields = ('alias',)
+    autocomplete_fields = ('alias', 'type')
 
 
 @admin.register(DimRoles)
@@ -126,13 +139,13 @@ class DimTechStackAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
-@admin.register(DimLink)
-class DimLinkAdmin(admin.ModelAdmin):
-    list_display = ('link', 'link_name', 'last_checked', 'status_code', 'is_active')
-    list_filter = ('is_active', 'last_checked', 'service')
-    search_fields = ('link', 'link_name')
-    readonly_fields = ('last_checked',)
-    autocomplete_fields = ('service',)  # Добавьте эту строку
+@admin.register(LinksUrlService)
+class LinksUrlServiceAdmin(admin.ModelAdmin):
+    list_display = ('url', 'service', 'link_name', 'stage', 'stack')
+    list_filter = ('service', 'stage', 'stack')
+    search_fields = ('url__url', 'link_name', 'service__alias', 'description')
+    ordering = ('url',)
+    autocomplete_fields = ('url', 'service', 'stage', 'stack')
 
 
 @admin.register(LinkServicesServices)
@@ -156,57 +169,16 @@ class LinkServicesServicesAdmin(admin.ModelAdmin):
 @admin.register(DimServicesNameType)
 class DimServicesNameTypeAdmin(admin.ModelAdmin):
     list_display = ('name',)
+    search_fields = ('name',)
 
 
-@admin.register(LinkCheckSchedule)
-class LinkCheckScheduleAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'is_active',)
+@admin.register(LinkDoc)
+class LinkDocAdmin(admin.ModelAdmin):
+    list_display = ('id', 'services', 'doc')
+    list_filter = ('services',)
+    search_fields = ('services__alias', 'doc__number', 'doc__description')
+    ordering = ('services', 'doc')
+    autocomplete_fields = ('services', 'doc')
 
-    def save_model(self, request, obj, form, change):
-        from apscheduler.triggers.cron import CronTrigger
-        from apscheduler.jobstores.base import JobLookupError
-        from .scheduler import scheduler, check_all_links_job
-
-        super().save_model(request, obj, form, change)
-
-        # Удаляем предыдущую задачу, если есть
-        try:
-            scheduler.remove_job('link_checker')
-        except JobLookupError:
-            pass
-
-        if obj.is_active:
-            parts = obj.cron_expression.split()
-            if len(parts) != 7:
-                # Можно вывести сообщение об ошибке в админке или лог
-                print(f"Ошибка: cron_expression должен содержать 7 частей, а получил {len(parts)}")
-                return
-
-            second, minute, hour, day, month, day_of_week, year = parts
-
-            trigger = CronTrigger(
-                second=second,
-                minute=minute,
-                hour=hour,
-                day=day,
-                month=month,
-                day_of_week=day_of_week,
-                year=year,
-            )
-
-            scheduler.add_job(
-                check_all_links_job,
-                trigger=trigger,
-                id='link_checker',
-                replace_existing=True,
-            )
-
-            obj.next_run = None
-            obj.save()
-
-    def run_manually(self, request, queryset):
-        from .scheduler import check_all_links_job
-        check_all_links_job()
-        self.message_user(request, "Проверка ссылок запущена вручную")
-
-    run_manually.short_description = "Запустить проверку сейчас"
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('services', 'doc')

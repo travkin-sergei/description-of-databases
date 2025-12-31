@@ -19,6 +19,9 @@ from .views.web import (
     DatabasesView, TablesView, TableDetailView,
     ColumnListView, ColumnDetailView
 )
+from .apps import app
+
+app_name = app
 
 router = DefaultRouter()
 # router.register(r'dim-stage', DimStageViewSet)
@@ -35,12 +38,12 @@ router = DefaultRouter()
 # router.register(r'link-column-stage', LinkColumnStageViewSet)
 router.register(r'total-data', TotalDataViewSet)
 
-app_name = "app_dbm"
-
 urlpatterns = [
+    # API
     path('api/', include(router.urls)),
-    path('', AboutView.as_view(), name='about-app'),
-    path('databases/', DatabasesView.as_view(), name='databases'),
+    # WEB
+    path('about-app/', AboutView.as_view(), name='about-app'),
+    path('', DatabasesView.as_view(), name='databases'),
     path('tables/', TablesView.as_view(), name='tables'),
     path('tables/<int:pk>/', TableDetailView.as_view(), name='tables-detail'),
     path('columns/', ColumnListView.as_view(), name='columns'),

@@ -7,7 +7,7 @@ from app_auth.models import MyProfile
 from app_dbm.models import DimStage
 
 from .models import (
-    DimServices, DimServicesTypes, DimLink, DimRoles, DimTechStack,
+    DimServices, DimServicesTypes, DimRoles, DimTechStack, LinksUrlService,
 )
 
 
@@ -45,11 +45,10 @@ class DimServicesFilter(django_filters.FilterSet):
         if not value or not value.strip():
             return queryset
 
-        # ✅ Подставьте ИМЯ ПОЛЯ из вывода shell (скорее всего 'username')
-        USERNAME_FIELD = 'username'  # ← ЗАМЕНИТЕ НА РЕАЛЬНОЕ ИМЯ ПОЛЯ!
-
+        # Ищем пользователей по имени пользователя (username)
+        # MyProfile имеет связь с User через поле user
         profile_ids = MyProfile.objects.filter(
-            **{f'{USERNAME_FIELD}__icontains': value}
+            user__username__icontains=value
         ).values_list('id', flat=True)
 
         return queryset.filter(
@@ -64,58 +63,45 @@ class DimServicesFilter(django_filters.FilterSet):
         ).distinct()
 
 
-class DimLinkFilter(django_filters.FilterSet):
-    """Фильтры ссылок."""
+class LinksUrlServiceFilter(django_filters.FilterSet):
+    """Фильтры ссылок сервисов."""
 
-    link = django_filters.CharFilter(lookup_expr='icontains', label='Ссылка содержит')
-    link_name = django_filters.CharFilter(lookup_expr='icontains', label='Название ссылки содержит')
-    description = django_filters.CharFilter(lookup_expr='icontains', label='Описание ссылки содержит')
-    status_code = django_filters.CharFilter(lookup_expr='icontains', label='Статус код')
+    # Фильтр по URL через связанную модель DimUrl
+    url = django_filters.CharFilter(
+        field_name='url__url',  # доступ к полю url в модели DimUrl
+        lookup_expr='icontains',
+        label='URL содержит'
+    )
 
+    link_name = django_filters.CharFilter(
+        lookup_expr='icontains',
+        label='Название ссылки содержит'
+    )
+
+    description = django_filters.CharFilter(
+        lookup_expr='icontains',
+        label='Описание содержит'
+    )
+
+    # Фильтры по ForeignKey полям
     stack = django_filters.ModelChoiceFilter(
         queryset=DimTechStack.objects.all(),
-        label='Технологический стек',
-        field_name='stack',
-        to_field_name='id',
+        label='Технологический стек'
     )
 
     stage = django_filters.ModelChoiceFilter(
         queryset=DimStage.objects.all(),
-        label='Стадия проекта',
-        field_name='stage',
-        to_field_name='id'
+        label='Стадия проекта'
+    )
+
+    service = django_filters.ModelChoiceFilter(
+        queryset=DimServices.objects.all(),
+        label='Сервис'
     )
 
     class Meta:
-        model = DimLink
-        fields = ['link', 'link_name', 'stack', 'stage', 'service', 'status_code', 'description']
-
-
-class DimLinkFilter(django_filters.FilterSet):
-    """Фильтры ссылок."""
-
-    link = django_filters.CharFilter(lookup_expr='icontains', label='Ссылка содержит')
-    link_name = django_filters.CharFilter(lookup_expr='icontains', label='Название ссылки содержит')
-    description = django_filters.CharFilter(lookup_expr='icontains', label='Описание ссылки содержит')
-    status_code = django_filters.CharFilter(lookup_expr='icontains', label='Статус код')
-
-    stack = django_filters.ModelChoiceFilter(
-        queryset=DimTechStack.objects.all(),
-        label='Технологический стек',
-        field_name='stack',
-        to_field_name='id',
-    )
-
-    stage = django_filters.ModelChoiceFilter(
-        queryset=DimStage.objects.all(),
-        label='Стадия проекта',
-        field_name='stage',
-        to_field_name='id'
-    )
-
-    class Meta:
-        model = DimLink
-        fields = ['link', 'link_name', 'stack', 'stage', 'service', 'status_code', 'description', ]
+        model = LinksUrlService
+        fields = ['url', 'link_name', 'stack', 'stage', 'service', 'description']
 
 
 class ServiceUserView(LoginRequiredMixin, FilterView):

@@ -1,10 +1,11 @@
 # app_query_path/models.py
 from django.db import models
 
-db_schema = 'app_query_path'
+from .apps import app
+from _common.base_models import BaseClass
 
 
-class Article(models.Model):
+class Article(BaseClass):
     title = models.CharField(max_length=255)
     content = models.TextField()
 
@@ -12,12 +13,12 @@ class Article(models.Model):
         return self.title
 
     class Meta:
-        db_table = f'{db_schema}\".\"article'
+        db_table = f'{app}\".\"article'
         verbose_name = '01 Статья'
         verbose_name_plural = '01 Статьи'
 
 
-class Question(models.Model):
+class Question(BaseClass):
     text = models.CharField(max_length=255)
     is_start = models.BooleanField(default=False)
 
@@ -25,12 +26,12 @@ class Question(models.Model):
         return self.text
 
     class Meta:
-        db_table = f'{db_schema}\".\"question'
+        db_table = f'{app}\".\"question'
         verbose_name = '02 Вопрос'
         verbose_name_plural = '02 Вопрос'
 
 
-class AnswerOption(models.Model):
+class AnswerOption(BaseClass):
     question = models.ForeignKey(Question, related_name="options", on_delete=models.CASCADE)
     text = models.CharField(max_length=255)
     # Какая статья связана с этим вариантом
@@ -48,6 +49,6 @@ class AnswerOption(models.Model):
         return f"{self.question.text} → {self.text}"
 
     class Meta:
-        db_table = f'{db_schema}\".\"answer_option'
+        db_table = f'{app}\".\"answer_option'
         verbose_name = '03 Вариант ответа'
         verbose_name_plural = '03 Вариант ответа'

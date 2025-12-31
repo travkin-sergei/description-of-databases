@@ -45,17 +45,19 @@ INSTALLED_APPS = [
     # ----------
     'app_auth',  # Авторизация
     'app_dbm',  # База данных
-    'app_dictionary',  # словарь
-    'app_services',  # Сервисов
-    'app_request',  # Специализированные запросы
-    'app_updates',  # Обновления
+    'app_dict',  # Словарь
+    'app_doc',  # Документы
     'app_query_path',  # Вопрос ответ
+    'app_request',  # Специализированные запросы
+    'app_services',  # Сервисов
+    'app_updates',  # Обновления
+    'app_url',  # Url ссылки
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    # 'django.middleware._common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -81,6 +83,7 @@ TEMPLATES = [
         },
     },
 ]
+FERNET_KEYS = [os.getenv('FERNET_KEY')]
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
@@ -88,7 +91,6 @@ AUTH_USER_MODEL = 'app_auth.MyProfile'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASE_ROUTERS = ['db_router.DjangoSystemRouter']
 
 DATABASES = {
     'default': {
@@ -207,10 +209,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
     },
-    # 'loggers': {
-    #     'app_services': {
-    #         'handlers': ['console'],
-    #         'level': 'DEBUG',
-    #     },
-    # },
+    'loggers': {
+        'app_services': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
 }

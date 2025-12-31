@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Статистика</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 20px 0; }
+        .stat-card { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
+        .stat-value { font-size: 32px; font-weight: bold; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Статистика ссылок</h1>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div>Всего ссылок</div>
+            <div class="stat-value">{{ total_links }}</div>
+        </div>
+        <div class="stat-card">
+            <div>Активных</div>
+            <div class="stat-value">{{ active_links }}</div>
+        </div>
+        <div class="stat-card">
+            <div>Неактивных</div>
+            <div class="stat-value">{{ inactive_links }}</div>
+        </div>
+    </div>
+
+    <h2>Распределение по частоте проверки</h2>
+    {% if links_by_frequency %}
+        <table>
+            <tr>
+                <th>Частота проверки</th>
+                <th>Количество ссылок</th>
+            </tr>
+            {% for item in links_by_frequency %}
+            <tr>
+                <td>{{ item.frequency.name }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>Нет данных о частоте проверки.</p>
+    {% endif %}
+
+    <h2>Последние добавленные ссылки</h2>
+    {% if recent_links %}
+        <table>
+            <tr>
+                <th>URL</th>
+                <th>Дата добавления</th>
+                <th>Статус</th>
+            </tr>
+            {% for link in recent_links %}
+            <tr>
+                <td>{{ link.original_url|truncatechars:60 }}</td>
+                <td>{{ link.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{% if link.is_active %}Активна{% else %}Неактивна{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    <p style="margin-top: 30px;">
+        <a href="{% url 'dimlin_list' %}">← Назад к списку</a> |
+        <a href="{% url 'about' %}">О проекте</a>
+    </p>
+</body>
+</html>

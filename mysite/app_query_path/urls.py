@@ -1,12 +1,16 @@
 # app_query_path/urls.py
 from django.urls import path
-from . import views
 
-app_name = 'app_query_path'
+from .views.web import AboutView, StartQuizView, QuestionView, ArticleView
+from .apps import app
+
+app_name = app
 
 urlpatterns = [
-    path('about/', views.AboutView.as_view(), name='about'),
-    path('start/', views.StartQuizView.as_view(), name='start_quiz'),
-    path('question/<int:pk>/', views.QuestionView.as_view(), name='question'),
-    path('article/<int:pk>/', views.ArticleView.as_view(), name='article'),
+    # API
+    # WEB
+    path('about-app/', AboutView.as_view(), name='about-app'),
+    path('start/', StartQuizView.as_view(), name='start_quiz'),
+    path('question/<int:pk>/', QuestionView.as_view(), name='question'),
+    path('article/<int:pk>/', ArticleView.as_view(), name='article'),
 ]

@@ -1,15 +1,18 @@
 from django.urls import path
 
-from .views import (
+from .views.web import (
     AboutView, PageNotFoundView,
     ColumnGroupListView, ColumnGroupDetailView,
     TableGroupListView, TableGroupDetailView,
 )
+from .apps import app
 
-app_name = "app_request"
+app_name = app
 
 urlpatterns = [
-    path('', AboutView.as_view(), name='about-app'),
+    # API
+    # WEB
+    path('about-app/', AboutView.as_view(), name='about-app'),
     path('column-group/', ColumnGroupListView.as_view(), name='column-group-name'),
     path('column-group/<int:pk>/', ColumnGroupDetailView.as_view(), name='column-group-name-detail'),
     path('table-group/', TableGroupListView.as_view(), name='table-group-name'),

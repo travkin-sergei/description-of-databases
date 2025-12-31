@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Детали ссылки</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        .detail-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 800px;
+        }
+        .field { margin: 10px 0; }
+        .field-name { font-weight: bold; }
+        .field-value { margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Детали ссылки</h1>
+
+    <div class="detail-card">
+        <div class="field">
+            <span class="field-name">ID:</span>
+            <span class="field-value">{{ link.id }}</span>
+        </div>
+
+        <div class="field">
+            <span class="field-name">Оригинальный URL:</span>
+            <div class="field-value">
+                <a href="{{ link.original_url }}" target="_blank">
+                    {{ link.original_url }}
+                </a>
+            </div>
+        </div>
+
+        <div class="field">
+            <span class="field-name">Нормализованный хэш:</span>
+            <div class="field-value" style="font-family: monospace; font-size: 12px;">
+                {{ link.url_hash }}
+            </div>
+        </div>
+
+        <div class="field">
+            <span class="field-name">Дата создания:</span>
+            <span class="field-value">{{ link.created_at|date:"Y-m-d H:i:s" }}</span>
+        </div>
+
+        <div class="field">
+            <span class="field-name">Дата обновления:</span>
+            <span class="field-value">{{ link.updated_at|date:"Y-m-d H:i:s" }}</span>
+        </div>
+
+        <div class="field">
+            <span class="field-name">Статус:</span>
+            <span class="field-value">
+                {% if link.is_active %}
+                    <span style="color: green;">Активна</span>
+                {% else %}
+                    <span style="color: gray;">Неактивна</span>
+                {% endif %}
+            </span>
+        </div>
+
+        {% if link.check_frequency %}
+        <div class="field">
+            <span class="field-name">Частота проверки:</span>
+            <span class="field-value">{{ link.check_frequency.name }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <p style="margin-top: 30px;">
+        <a href="{% url 'dimlin_list' %}">← Назад к списку</a>
+    </p>
+</body>
+</html>

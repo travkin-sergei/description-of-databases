@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .apps import app
 from .view.web import (
     MyLoginView, MyRegisterView, MyLogoutView,
     AdminDashboardView, ApproveRequestView, RejectRequestView,
@@ -7,14 +8,16 @@ from .view.web import (
     MyPasswordChangeView, MyPasswordChangeDoneView,
 )
 
-app_name = 'app_auth'
+app_name = app
 
 urlpatterns = [
-    path('', AboutView.as_view(), name='about-app'),
+    # API
+    # WEB
+    path('', MyProfileView.as_view(), name='profile'),
+    path('about-app/', AboutView.as_view(), name='about-app'),
     path('login/', MyLoginView.as_view(), name='login'),
     path('logout/', MyLogoutView.as_view(), name='logout'),
     path('register/', MyRegisterView.as_view(), name='register'),
-    path('profile/', MyProfileView.as_view(), name='profile'),
     path('password-change/', MyPasswordChangeView.as_view(), name='password_change'),
     path('password-change/done/', MyPasswordChangeDoneView.as_view(), name='password_change_done'),
 

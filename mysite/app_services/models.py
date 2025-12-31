@@ -2,20 +2,12 @@
 from django.db import models
 
 from app_auth.models import MyProfile
-from app_dbm.models import BaseClass, LinkDBTable, DimStage
+from app_url.models import DimUrl
+from app_dbm.models import LinkDBTable, DimStage
+from app_doc.models import DimDoc
+from _common.base_models import BaseClass
 
-db_schema = 'app_services'
-
-
-class DimSchedule(models.Model):
-    """Пример полей (замените на ваши реальные поля)"""
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=100)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
+from .apps import app
 
 
 class DimServicesTypes(BaseClass):
@@ -23,11 +15,8 @@ class DimServicesTypes(BaseClass):
 
     name = models.CharField(max_length=255)
 
-    def __str__(self):
-        return f'{self.name}'
-
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services_type'
+        db_table = f'{app}\".\"dim_services_type'
         unique_together = [
             ['name', ]
         ]
@@ -35,11 +24,13 @@ class DimServicesTypes(BaseClass):
         verbose_name_plural = '02 Типы сервисов.'
         ordering = ['name']
 
+    def __str__(self):
+        return f'{self.name}'
+
 
 class DimServices(BaseClass):
     """Список сервисов."""
 
-    code = models.CharField(max_length=255, blank=True, null=True, verbose_name="код сервиса.")
     alias = models.CharField(max_length=255)
     type = models.ForeignKey(DimServicesTypes, on_delete=models.PROTECT)
     description = models.TextField(blank=True, null=True)
@@ -55,7 +46,7 @@ class DimServices(BaseClass):
         return f'{self.alias}-{self.type}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services'
+        db_table = f'{app}\".\"dim_services'
         unique_together = [
             ['alias', 'type', ]
         ]
@@ -74,7 +65,7 @@ class LinkServicesServices(BaseClass):
         return f'{self.main}-{self.sub}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_services_services'
+        db_table = f'{app}\".\"link_services_services'
         unique_together = [
             ['main', 'sub', ]
         ]
@@ -90,7 +81,7 @@ class DimServicesNameType(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services_name_type'
+        db_table = f'{app}\".\"dim_services_name_type'
         unique_together = [['name', ]]
         verbose_name = '08 Словарь типов наименований.'
         verbose_name_plural = '08 Словарь типов наименований.'
@@ -107,7 +98,7 @@ class DimServicesName(BaseClass):
         return f'{self.alias}-{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services_name'
+        db_table = f'{app}\".\"dim_services_name'
         unique_together = [
             ['alias', 'name', ]
         ]
@@ -124,7 +115,7 @@ class DimRoles(BaseClass):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_roles'
+        db_table = f'{app}\".\"dim_roles'
         unique_together = [
             ['name', ]
         ]
@@ -143,7 +134,7 @@ class LinkResponsiblePerson(BaseClass):
         return f'{self.service}-{self.role}-{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_responsible_person'
+        db_table = f'{app}\".\"link_responsible_person'
         unique_together = [
             ['service', 'role', 'name', ]
         ]
@@ -161,7 +152,7 @@ class LinkServicesTable(BaseClass):
         return f'{self.service}-{self.table}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_service_table'
+        db_table = f'{app}\".\"link_service_table'
         unique_together = [
             ['service', 'table', ]
         ]
@@ -170,14 +161,14 @@ class LinkServicesTable(BaseClass):
 
 
 class DimTechStack(BaseClass):
-    name = models.CharField()
+    name = models.CharField(max_length=255)  # Исправлено: добавлен max_length
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_tech_stack'
+        db_table = f'{app}\".\"link_tech_stack'
         unique_together = [
             ['name', ]
         ]
@@ -185,45 +176,40 @@ class DimTechStack(BaseClass):
         verbose_name_plural = '06 Технологии.'
 
 
-class DimLink(BaseClass):
-    """Ссылка на git репозиторий."""
+class LinksUrlService(BaseClass):
+    """Отнесение URL к сервису."""
 
-    link = models.URLField(blank=True, null=True)
-    link_name = models.CharField(max_length=255)
-    stack = models.ForeignKey(DimTechStack, on_delete=models.PROTECT, blank=True, null=True)
-    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
+    url = models.ForeignKey(DimUrl, on_delete=models.PROTECT, blank=True, null=True)
     service = models.ForeignKey(DimServices, on_delete=models.PROTECT, blank=True, null=True)
-    last_checked = models.DateTimeField(blank=True, null=True, verbose_name='Время последней проверки')
-    status_code = models.IntegerField(blank=True, null=True, verbose_name='HTTP статус код')
+    link_name = models.CharField(max_length=255)
+    stage = models.ForeignKey(DimStage, on_delete=models.PROTECT, blank=True, null=True)
+    stack = models.ForeignKey(DimTechStack, on_delete=models.PROTECT, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.link}'
+        return f'{self.url}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_link'
+        db_table = f'{app}\".\"Link_url_service'
         unique_together = [
-            ['link', ]
+            ['url', ]
         ]
         verbose_name = '09 ссылки.'
         verbose_name_plural = '09 ссылки.'
-        ordering = ['link']
+        ordering = ['url']
 
 
-class LinkCheckSchedule(models.Model):
-    """Расписание  запросов статсуса ссылок"""
+class LinkDoc(BaseClass):
+    """Связь сервиса и документа."""
 
-    cron_expression = models.CharField(
-        max_length=100,
-        default='0 0 0 1 * * *',  # сек мин час день месяц день_неделя год
-        help_text='Формат: сек мин час день месяц день_неделя год (например, "0 1 * * * * *")'
-    )
-    is_active = models.BooleanField(default=True)
+    services = models.ForeignKey(DimServices, on_delete=models.PROTECT)
+    doc = models.ForeignKey(DimDoc, on_delete=models.PROTECT)
 
     def __str__(self):
-        return f"CRON: {self.cron_expression}"
+        return f"{self.services}-{self.doc}"
 
     class Meta:
-        db_table = f'{db_schema}"."dim_schedule'
-        verbose_name = '10 Расписание проверки ссылок (cron)'
-        verbose_name_plural = '10 Расписание проверки ссылок (cron)'
+        db_table = f'{app}"."link_doc'  # Исправлено: изменено имя таблицы с dim_schedule на link_doc
+        unique_together = [['services', 'doc', ]]
+        verbose_name = '011 Сервис и документ'
+        verbose_name_plural = '011 Сервисы и документы'

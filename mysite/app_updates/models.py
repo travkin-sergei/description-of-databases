@@ -1,8 +1,9 @@
 # app_updates/models.py
 from django.db import models
-from app_dbm.models import BaseClass, LinkColumnColumn
+from app_dbm.models import LinkColumnColumn
 
-db_schema = 'app_update'
+from .apps import app
+from _common.base_models import BaseClass
 
 
 class DimUpdateMethod(BaseClass):
@@ -16,7 +17,7 @@ class DimUpdateMethod(BaseClass):
         return f"{self.name}"
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_update_method'
+        db_table = f'{app}\".\"dim_update_method'
         verbose_name = '01 method update'
         verbose_name_plural = '01 method update'
         ordering = ['name']
@@ -37,7 +38,7 @@ class LinkUpdate(BaseClass):
         return f'{self.name}-{self.column}'
 
     class Meta:
-        db_table = f'{db_schema}"."link_update'
+        db_table = f'{app}"."link_update'
         unique_together = [['name', 'column']]
         verbose_name = '02 Детали обновления'
         verbose_name_plural = '02 Детали обновления'

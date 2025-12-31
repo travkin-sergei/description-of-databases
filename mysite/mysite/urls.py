@@ -18,12 +18,12 @@ urlpatterns = [
     # Приложения
     path('', include('app_dbm.urls')),
     path('accounts/', include('app_auth.urls', namespace='app_auth')),
-    path('dictionary/', include('app_dictionary.urls')),
+    path('dictionary/', include('app_dict.urls')),
     path('services/', include('app_services.urls')),
     path('request/', include('app_request.urls')),
     path('updates/', include('app_updates.urls')),
     path('query/', include('app_query_path.urls')),
-
+    path('link/', include('app_url.urls')),
 ]
 
 if settings.DEBUG:

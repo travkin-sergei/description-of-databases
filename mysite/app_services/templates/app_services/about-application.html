@@ -1,80 +1,414 @@
 {% extends 'base.html' %}
-
-{% block title %}{{ title }}{% endblock title %}
-
+{% block title %}{{ title|default:"О модуле Сервисы" }}{% endblock title %}
 {% block body %}
 <style>
-    .table-black-yellow {
-        background-color: white;
-        color: #333;
+    .about-container {
+        background-color: #f8f9fa;
+        min-height: 70vh;
     }
-    .table-black-yellow thead th {
-        border-bottom: 2px solid #ffcc00;
+    .card-custom {
+        border: 2px solid #ffcc00;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card-header-custom {
         background-color: #1a1a1a;
         color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
     }
-    .table-black-yellow tbody tr:hover {
-        background-color: #fff9e6 !important;
+    .feature-icon {
+        color: #ffcc00;
+        font-size: 1.5rem;
+        margin-right: 10px;
     }
-    .table-black-yellow tbody tr:nth-child(odd) {
-        background-color: white;
-    }
-    .table-black-yellow tbody tr:nth-child(even) {
+    .feature-card {
+        border-left: 4px solid #ffcc00;
         background-color: #fffae6;
+        transition: all 0.3s;
     }
-    .btn-gold {
-        background-color: #ffcc00;
-        color: #1a1a1a;
-        border: none;
-        font-weight: bold;
+    .feature-card:hover {
+        background-color: #fff9e6;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(255, 204, 0, 0.1);
     }
-    .btn-gold:hover {
-        background-color: #e6b800;
-        color: #1a1a1a;
-    }
-    .badge-yellow {
-        background-color: #ffcc00;
-        color: #1a1a1a;
-        font-weight: bold;
-        padding: 5px 8px;
-    }
-    .form-control-dark {
-        border: 1px solid #ffcc00;
-    }
-    .form-control-dark:focus {
-        border-color: #ffcc00;
-        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
-    }
-    .text-yellow {
-        color: #ffcc00;
-    }
-    .card-header-black {
+    .module-badge {
         background-color: #1a1a1a;
         color: #ffcc00;
-        border-bottom: 2px solid #ffcc00;
-    }
-    .border-yellow {
         border: 1px solid #ffcc00;
+        padding: 5px 12px;
+        font-weight: bold;
     }
-    .three-quarters-width {
-        width: 75%;
-        margin: 0 auto;
+    .list-item-custom {
+        border-bottom: 1px solid #eee;
+        padding: 10px 0;
     }
-    @media (max-width: 992px) {
-        .three-quarters-width {
-            width: 95%;
-        }
+    .list-item-custom:last-child {
+        border-bottom: none;
+    }
+    .tech-stack {
+        display: inline-block;
+        background: #1a1a1a;
+        color: #ffcc00;
+        padding: 3px 10px;
+        border-radius: 15px;
+        margin: 2px;
+        font-size: 0.85rem;
     }
 </style>
 
-<div class="container-fluid bg-white py-3">
+<div class="container-fluid about-container py-4">
     <div class="three-quarters-width">
-        <div class="card border-yellow mb-4">
-            <div class="card-header card-header-black">
-                <h5 class="mb-0"><i class="fas fa-database mr-2"></i>{{ title }}</h5>
+        <div class="card card-custom mb-4">
+            <div class="card-header card-header-black d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-server mr-2"></i>Модуль "Управление сервисами"
+                </h5>
+                <span class="badge" style="background-color: #ffcc00; color: #1a1a1a;">
+                    <i class="fas fa-cogs"></i> app_services
+                </span>
             </div>
+
             <div class="card-body">
-                <p>xxxxxxxxx.</p>
+                <!-- Основная информация -->
+                <div class="mb-5">
+                    <h2 class="mb-4" style="color: #1a1a1a; border-bottom: 2px solid #ffcc00; padding-bottom: 10px;">
+                        <i class="fas fa-info-circle feature-icon"></i>
+                        О модуле управления сервисами
+                    </h2>
+                    <p class="lead mb-4">
+                        Модуль <strong>app_services</strong> отвечает за каталогизацию и управление
+                        информационными сервисами, их связями, ответственными лицами и внешними ресурсами.
+                    </p>
+                </div>
+
+                <!-- Основные возможности модуля -->
+                <div class="mb-5">
+                    <h3 class="mb-4" style="color: #1a1a1a;">
+                        <i class="fas fa-cogs feature-icon"></i>
+                        Функциональные возможности модуля
+                    </h3>
+
+                    <div class="row">
+                        <!-- Управление сервисами -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card feature-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #1a1a1a;">
+                                        <i class="fas fa-server text-yellow"></i>
+                                        Каталог сервисов
+                                    </h5>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Полный перечень информационных сервисов</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Классификация по типам и категориям</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Синонимы и альтернативные названия</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Детальное описание и назначение</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ответственные лица -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card feature-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #1a1a1a;">
+                                        <i class="fas fa-users text-yellow"></i>
+                                        Ответственные лица
+                                    </h5>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Назначение ответственных за сервисы</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Разграничение по ролям и обязанностям</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Контактная информация ответственных</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Ссылки на профили сотрудников</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <!-- Внешние ссылки -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card feature-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #1a1a1a;">
+                                        <i class="fas fa-link text-yellow"></i>
+                                        Внешние ресурсы
+                                    </h5>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Ссылки на документацию</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>URL адреса сервисов по стадиям</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Группировка по технологическим стекам</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Описание и назначение ссылок</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Иерархия и связи -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card feature-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title" style="color: #1a1a1a;">
+                                        <i class="fas fa-sitemap text-yellow"></i>
+                                        Иерархия сервисов
+                                    </h5>
+                                    <ul class="list-unstyled mt-3">
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Родительско-дочерние отношения</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Зависимости между сервисами</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Визуализация связей</span>
+                                        </li>
+                                        <li class="list-item-custom d-flex align-items-center">
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                            <span>Навигация по иерархии</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Основные разделы модуля -->
+                <div class="mb-5">
+                    <h3 class="mb-4" style="color: #1a1a1a;">
+                        <i class="fas fa-folder-open feature-icon"></i>
+                        Разделы модуля
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-yellow">
+                                <div class="card-header text-center" style="background-color: #fffae6; color: #1a1a1a;">
+                                    <i class="fas fa-list fa-2x mb-2" style="color: #ffcc00;"></i>
+                                    <h5 class="mb-0">Список сервисов</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        Полный каталог всех сервисов системы с возможностью фильтрации
+                                        по типу, статусу, ответственным и другим параметрам.
+                                    </p>
+                                    <a href="{% url 'app_services:services' %}" class="btn btn-sm"
+                                       style="background-color: #ffcc00; color: #1a1a1a;">
+                                        <i class="fas fa-external-link-alt mr-1"></i>Перейти
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-yellow">
+                                <div class="card-header text-center" style="background-color: #fffae6; color: #1a1a1a;">
+                                    <i class="fas fa-external-link-alt fa-2x mb-2" style="color: #ffcc00;"></i>
+                                    <h5 class="mb-0">Список ссылок</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        Все внешние ресурсы и ссылки, сгруппированные по технологическим стекам
+                                        и стадиям разработки с подробным описанием.
+                                    </p>
+                                    <a href="{% url 'app_services:dim-link' %}" class="btn btn-sm"
+                                       style="background-color: #ffcc00; color: #1a1a1a;">
+                                        <i class="fas fa-external-link-alt mr-1"></i>Перейти
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-yellow">
+                                <div class="card-header text-center" style="background-color: #fffae6; color: #1a1a1a;">
+                                    <i class="fas fa-user-tie fa-2x mb-2" style="color: #ffcc00;"></i>
+                                    <h5 class="mb-0">Ответственные</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        Просмотр и управление ответственными лицами за каждый сервис
+                                        с указанием ролей и контактной информации.
+                                    </p>
+                                    <a href="{% url 'app_services:services-user' %}" class="btn btn-sm"
+                                       style="background-color: #ffcc00; color: #1a1a1a;">
+                                        <i class="fas fa-external-link-alt mr-1"></i>Перейти
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Технологический стек модуля -->
+                <div class="mb-5">
+                    <h3 class="mb-4" style="color: #1a1a1a;">
+                        <i class="fas fa-code feature-icon"></i>
+                        Технологический стек модуля
+                    </h3>
+
+                    <div class="d-flex flex-wrap mb-3">
+                        <span class="tech-stack">
+                            <i class="fab fa-python mr-1"></i> Django 5.1
+                        </span>
+                        <span class="tech-stack">
+                            <i class="fas fa-database mr-1"></i> PostgreSQL
+                        </span>
+                        <span class="tech-stack">
+                            <i class="fas fa-filter mr-1"></i> Django-Filter
+                        </span>
+                        <span class="tech-stack">
+                            <i class="fas fa-table mr-1"></i> Bootstrap 5
+                        </span>
+                        <span class="tech-stack">
+                            <i class="fab fa-js mr-1"></i> JavaScript
+                        </span>
+                        <span class="tech-stack">
+                            <i class="fas fa-font mr-1"></i> FontAwesome
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Модели данных -->
+                <div class="mb-5">
+                    <h3 class="mb-4" style="color: #1a1a1a;">
+                        <i class="fas fa-project-diagram feature-icon"></i>
+                        Основные модели данных
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100" style="border: 1px solid #ffcc00;">
+                                <div class="card-header text-center" style="background-color: #1a1a1a; color: #ffcc00;">
+                                    <h6 class="mb-0">DimServices</h6>
+                                </div>
+                                <div class="card-body">
+                                    <small class="text-muted">Основная модель сервиса</small>
+                                    <ul class="mb-0 mt-2 small">
+                                        <li>Алиас и описание</li>
+                                        <li>Тип сервиса</li>
+                                        <li>Статус активности</li>
+                                        <li>Код сервиса</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100" style="border: 1px solid #ffcc00;">
+                                <div class="card-header text-center" style="background-color: #1a1a1a; color: #ffcc00;">
+                                    <h6 class="mb-0">DimLink</h6>
+                                </div>
+                                <div class="card-body">
+                                    <small class="text-muted">Внешние ссылки</small>
+                                    <ul class="mb-0 mt-2 small">
+                                        <li>URL адрес</li>
+                                        <li>Технологический стек</li>
+                                        <li>Стадия разработки</li>
+                                        <li>Название и описание</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100" style="border: 1px solid #ffcc00;">
+                                <div class="card-header text-center" style="background-color: #1a1a1a; color: #ffcc00;">
+                                    <h6 class="mb-0">LinkResponsiblePerson</h6>
+                                </div>
+                                <div class="card-body">
+                                    <small class="text-muted">Ответственные лица</small>
+                                    <ul class="mb-0 mt-2 small">
+                                        <li>Связь с пользователем</li>
+                                        <li>Роль ответственного</li>
+                                        <li>Статус активности</li>
+                                        <li>Дата назначения</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Зависимости от других модулей -->
+                <div class="mb-4">
+                    <h3 class="mb-4" style="color: #1a1a1a;">
+                        <i class="fas fa-code-branch feature-icon"></i>
+                        Зависимости от других модулей
+                    </h3>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="module-badge">
+                            <i class="fas fa-user-shield mr-1"></i> app_auth
+                        </span>
+                        <span class="module-badge">
+                            <i class="fas fa-database mr-1"></i> app_dbm
+                        </span>
+                    </div>
+
+                    <div class="alert alert-warning mt-3"
+                         style="background-color: #fffae6; border-color: #ffcc00; color: #1a1a1a;">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-handshake mr-2"></i>
+                            Интеграция с другими модулями
+                        </h5>
+                        <p class="mb-0">
+                            Модуль <strong>app_services</strong> интегрируется с модулем аутентификации (<strong>app_auth</strong>)
+                            для управления ответственными лицами и с модулем управления базами данных
+                            (<strong>app_dbm</strong>)
+                            для отображения таблиц, связанных с сервисами.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Футер карточки -->
+            <div class="card-footer text-center"
+                 style="background-color: #1a1a1a; color: #ffcc00; border-top: 2px solid #ffcc00;">
+                <small>
+                    <i class="fas fa-copyright mr-1"></i> {{ current_year|default:"2024" }} Модуль "Управление
+                    сервисами"
+                    | Версия {{ version|default:"1.0.0" }}
+                </small>
             </div>
         </div>
     </div>
