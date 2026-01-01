@@ -4,6 +4,7 @@ from django.apps import AppConfig
 class AppLinkConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app_url'
+    verbose_name = 'Валидация URL'
 
     def ready(self):
         """Создаем схему с именем приложения"""

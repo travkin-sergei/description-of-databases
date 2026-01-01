@@ -1,9 +1,10 @@
 # app_updates/models.py
 from django.db import models
 from app_dbm.models import LinkColumnColumn
+from app_url.models import DimUrl
+from _common.base_models import BaseClass
 
 from .apps import app
-from _common.base_models import BaseClass
 
 
 class DimUpdateMethod(BaseClass):
@@ -11,15 +12,15 @@ class DimUpdateMethod(BaseClass):
 
     name = models.CharField(max_length=255, blank=True, null=True)
     schedule = models.CharField(max_length=50, blank=True, null=True)
-    link_code = models.URLField(blank=True, null=True)
+    url = models.ForeignKey(DimUrl, on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}"
 
     class Meta:
         db_table = f'{app}\".\"dim_update_method'
-        verbose_name = '01 method update'
-        verbose_name_plural = '01 method update'
+        verbose_name = '01 метод обновления'
+        verbose_name_plural = '01 методы обновлений'
         ordering = ['name']
 
 

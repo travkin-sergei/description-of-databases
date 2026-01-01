@@ -5,6 +5,7 @@ from django.urls import path, include
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
+
 urlpatterns = [
     path('summernote/', include('django_summernote.urls')),  # настройка редактора в админке
     path('admin/doc/', include('django.contrib.admindocs.urls')),  # Документация
@@ -24,6 +25,7 @@ urlpatterns = [
     path('updates/', include('app_updates.urls')),
     path('query/', include('app_query_path.urls')),
     path('link/', include('app_url.urls')),
+
 ]
 
 if settings.DEBUG:

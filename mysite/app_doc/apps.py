@@ -4,6 +4,7 @@ from django.apps import AppConfig
 class AppDocumentsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app_doc'
+    verbose_name = 'Список документов'
 
     def ready(self):
         """Создаем схему с именем приложения"""

@@ -2,9 +2,8 @@
 from django.db import models
 
 from app_dbm.models import LinkColumn
-
-from .apps import app
 from _common.base_models import BaseClass
+from .apps import app
 
 
 class TableGroupName(BaseClass):

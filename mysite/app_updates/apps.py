@@ -5,6 +5,7 @@ from django.apps import AppConfig
 class AppUpdatesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app_updates'
+    verbose_name = 'Обновления баз данных.'
 
     def ready(self):
         """Создаем схему с именем приложения"""

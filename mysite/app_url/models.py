@@ -1,14 +1,13 @@
+# app_url/models.py
 """
 class DimLin Обеспечивает уникальность ссылки url
 """
-# app_url/models.py
 import hashlib
 from urllib.parse import urlparse
 from django.db import models
 from django.core.exceptions import ValidationError
-
-from .apps import app
 from _common.base_models import BaseClass
+from .apps import app
 
 
 def normalize_url(url: str) -> str:

@@ -119,8 +119,8 @@ class DimRoles(BaseClass):
         unique_together = [
             ['name', ]
         ]
-        verbose_name = '01 Роли в сервисе.'
-        verbose_name_plural = '01 Роли в сервисах.'
+        verbose_name = '001 Роли в сервисе.'
+        verbose_name_plural = '001 Роли в сервисах.'
 
 
 class LinkResponsiblePerson(BaseClass):

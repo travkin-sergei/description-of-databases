@@ -1,5 +1,8 @@
+# _common/base_models.py
+"""
+Общие классы и методы всех приложений проекта
+"""
 import hashlib
-
 from typing import List, Union
 from django.db import models
 

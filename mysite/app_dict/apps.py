@@ -5,6 +5,7 @@ from django.apps import AppConfig
 class AppDictConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app_dict'
+    verbose_name = 'Термины и определения'
 
     def ready(self):
         """Создаем схему с именем приложения"""

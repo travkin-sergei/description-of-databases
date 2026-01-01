@@ -1,11 +1,10 @@
+# app_dbm/models.py
 import datetime
-
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
-
-from .apps import app
 from _common.base_models import BaseClass, hash_calculate
+from .apps import app
 
 
 class TotalData(BaseClass):
@@ -65,7 +64,6 @@ class TotalData(BaseClass):
             kwargs.get('table_type'),
             kwargs.get('table_name'),
             kwargs.get('column_name'),
-            kwargs.get('data_type'),
         ]
         hash_address = hash_calculate(hash_fields)
 
