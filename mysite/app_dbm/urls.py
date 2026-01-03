@@ -4,10 +4,10 @@ from .views.v1 import (
     # DimStageViewSet,
     # DimDBViewSet,
     # LinkDBViewSet,
-    # LinkDBSchemaViewSet,
-    # DimDBTableTypeViewSet,
+    # LinkSchemaViewSet,
+    # DimTableTypeViewSet,
     # DimColumnNameViewSet,
-    # LinkDBTableViewSet,
+    # LinkTableViewSet,
     # LinkColumnViewSet,
     # DimTypeLinkViewSet,
     # LinkColumnColumnViewSet,
@@ -27,10 +27,10 @@ router = DefaultRouter()
 # router.register(r'dim-stage', DimStageViewSet)
 # router.register(r'dim-db', DimDBViewSet)
 # router.register(r'link-db', LinkDBViewSet)
-# router.register(r'link-db-schema', LinkDBSchemaViewSet)
-# router.register(r'dim-table-type', DimDBTableTypeViewSet)
+# router.register(r'link-db-schema', LinkSchemaViewSet)
+# router.register(r'dim-table-type', DimTableTypeViewSet)
 # router.register(r'dim-column-name', DimColumnNameViewSet)
-# router.register(r'link-table', LinkDBTableViewSet)
+# router.register(r'link-table', LinkTableViewSet)
 # router.register(r'link-column', LinkColumnViewSet)
 # router.register(r'dim-type-link', DimTypeLinkViewSet)
 # router.register(r'link-column-column', LinkColumnColumnViewSet)

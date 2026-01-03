@@ -139,7 +139,7 @@ class LinkDB(BaseClass):
 
 
 # 04 Схема
-class LinkDBSchema(BaseClass):
+class LinkSchema(BaseClass):
     """Таблица связи баз данных и имен схем."""
 
     base = models.ForeignKey(DimDB, on_delete=models.CASCADE)
@@ -150,14 +150,14 @@ class LinkDBSchema(BaseClass):
         return f'{self.base}-{self.schema}'
 
     class Meta:
-        db_table = f'{app}\".\"link_base_schemas'
+        db_table = f'{app}\".\"link_schemas'
         unique_together = [['base', 'schema', ]]
         verbose_name = '04 Схема.'
         verbose_name_plural = '04 Схемы.'
 
 
 # 05 Словарь тип таблицы.
-class DimDBTableType(BaseClass):
+class DimTableType(BaseClass):
     """Справочник типов данных."""
 
     name = models.CharField(max_length=255)
@@ -173,7 +173,7 @@ class DimDBTableType(BaseClass):
         verbose_name_plural = '05 Словарь типы таблиц.'
 
 
-# 08 Словарь имен столбцов.
+# 07 Словарь имен столбцов.
 class DimColumnName(BaseClass):
     """Список имен столбцов"""
 
@@ -185,13 +185,13 @@ class DimColumnName(BaseClass):
     class Meta:
         db_table = f'{app}\".\"dim_column_name'
         unique_together = [['name', ]]
-        verbose_name = '08 Словарь имен столбцов.'
-        verbose_name_plural = '08 Словарь имен столбцов.'
+        verbose_name = '07 Словарь имен столбцов.'
+        verbose_name_plural = '07 Словарь имен столбцов.'
         ordering = ['name']
 
 
-# 09 Словарь типов наименований.
-class DimDBTableNameType(BaseClass):
+# 08 Словарь типов наименований.
+class DimTableNameType(BaseClass):
     """Тип имени таблицы"""
 
     name = models.CharField(max_length=255)
@@ -200,20 +200,20 @@ class DimDBTableNameType(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{app}\".\"dim_db_table_name_type'
+        db_table = f'{app}\".\"dim_table_name_type'
         unique_together = [['name', ]]
-        verbose_name = '09 Словарь типов наименований.'
-        verbose_name_plural = '09 Словарь типов наименований.'
+        verbose_name = '08 Словарь типов наименований.'
+        verbose_name_plural = '08 Словарь типов наименований.'
         ordering = ['name']
 
 
-# 10 Таблица.
-class LinkDBTable(BaseClass):
+# 09 Таблица.
+class LinkTable(BaseClass):
     """Связи схем схем, типов таблиц и таблиц."""
 
-    schema = models.ForeignKey(LinkDBSchema, on_delete=models.CASCADE)
+    schema = models.ForeignKey(LinkSchema, on_delete=models.CASCADE)
     is_metadata = models.BooleanField(default=True, verbose_name='метаданные')
-    type = models.ForeignKey(DimDBTableType, on_delete=models.CASCADE)
+    type = models.ForeignKey(DimTableType, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
 
@@ -223,17 +223,17 @@ class LinkDBTable(BaseClass):
     class Meta:
         db_table = f'{app}\".\"link_tables'
         unique_together = [['schema', 'type', 'name', ]]
-        verbose_name = '10 Таблица.'
-        verbose_name_plural = '10 Таблицы'
+        verbose_name = '09 Таблица.'
+        verbose_name_plural = '09 Таблицы'
         ordering = ['schema']
 
 
-# 14 Альтернативное название таблицы.
-class LinkDBTableName(BaseClass):
+# 10 Альтернативное название таблицы.
+class LinkTableName(BaseClass):
     """Связи таблиц и их синонимов."""
 
-    table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE)
-    type = models.ForeignKey(DimDBTableNameType, on_delete=models.CASCADE)
+    table = models.ForeignKey(LinkTable, on_delete=models.CASCADE, )
+    type = models.ForeignKey(DimTableNameType, on_delete=models.CASCADE, )
     name = models.CharField(max_length=255)
     is_publish = models.BooleanField(null=True, blank=True, default=False, verbose_name='Указать как основное?')
 
@@ -245,7 +245,7 @@ class LinkDBTableName(BaseClass):
         if self.is_publish:
             with transaction.atomic():
                 # Сбросить is_publish у других записей той же таблицы
-                LinkDBTableName.objects.filter(
+                LinkTableName.objects.filter(
                     table=self.table
                     , is_publish=True
                 ).exclude(
@@ -260,8 +260,8 @@ class LinkDBTableName(BaseClass):
     class Meta:
         unique_together = [['table', 'name']]
         db_table = f'{app}"."link_tables_name'
-        verbose_name = '14 Альтернативное название таблицы.'
-        verbose_name_plural = '14 Альтернативные названия таблиц.'
+        verbose_name = '10 Альтернативное название таблицы.'
+        verbose_name_plural = '10 Альтернативные названия таблиц.'
         constraints = [
             models.UniqueConstraint(
                 fields=['table'],
@@ -276,7 +276,7 @@ class LinkDBTableName(BaseClass):
 class LinkColumn(BaseClass):
     """Связи таблиц типов данных и столбцов."""
 
-    table = models.ForeignKey(LinkDBTable, on_delete=models.CASCADE)
+    table = models.ForeignKey(LinkTable, on_delete=models.CASCADE)
     date_create = models.DateTimeField(default=datetime.datetime.now)
     type = models.CharField(max_length=255, null=True)
     columns = models.CharField(max_length=255)

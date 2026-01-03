@@ -1,5 +1,5 @@
 from django.db.models import Q, OuterRef, Subquery
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, JsonResponse
 from django.views import View
 from django.views.generic import DetailView, TemplateView
 from django_filters.views import FilterView
@@ -9,13 +9,12 @@ from app_services.models import LinkServicesTable
 from app_updates.models import LinkUpdate
 
 from ..models import (
-    LinkDB,
-    LinkDBTable,
-    LinkColumnColumn, LinkColumn, LinkColumnName, LinkDBTableName,
+    LinkDB, LinkSchema, LinkTable, LinkColumn,
+    LinkColumnColumn, LinkColumnName, LinkTableName,
 )
 from ..filters import (
     LinkDBFilter,
-    LinkDBTableFilter, LinkColumnFilter,
+    LinkTableFilter, LinkColumnFilter,
 )
 
 
@@ -95,22 +94,22 @@ class DatabasesView(LoginRequiredMixin, FilterView):
 
 
 class TablesView(LoginRequiredMixin, FilterView):
-    model = LinkDBTable
+    model = LinkTable
     template_name = 'app_dbm/tables.html'
     context_object_name = 'tables'
     paginate_by = 20
-    filterset_class = LinkDBTableFilter
+    filterset_class = LinkTableFilter
     limit = 100  # Ограничение в 100 записей
 
     def get_queryset(self):
         # Подзапрос для альтернативного имени с is_publish=True
-        alt_name_subquery = LinkDBTableName.objects.filter(
+        alt_name_subquery = LinkTableName.objects.filter(
             table=OuterRef('pk'),
             is_active=True
         ).values('name')[:1]
 
         queryset = (
-            LinkDBTable.objects
+            LinkTable.objects
             .select_related('schema', 'schema__base', 'type')
             .annotate(
                 alt_name=Subquery(alt_name_subquery)
@@ -139,13 +138,13 @@ class TablesView(LoginRequiredMixin, FilterView):
         context['has_filter_params'] = any(v for k, v in self.request.GET.items() if k != 'page')
 
         # СОЗДАЕМ ОТДЕЛЬНЫЙ QUERYSET ДЛЯ ПОДСЧЕТА ОБЩЕГО КОЛИЧЕСТВА
-        alt_name_subquery = LinkDBTableName.objects.filter(
+        alt_name_subquery = LinkTableName.objects.filter(
             table=OuterRef('pk'),
             is_active=True
         ).values('name')[:1]
 
         full_queryset = (
-            LinkDBTable.objects
+            LinkTable.objects
             .select_related('schema', 'schema__base', 'type')
             .annotate(
                 alt_name=Subquery(alt_name_subquery)
@@ -174,12 +173,12 @@ class TablesView(LoginRequiredMixin, FilterView):
 class TableDetailView(LoginRequiredMixin, DetailView):
     """Детализация таблицы."""
 
-    model = LinkDBTable
+    model = LinkTable
     template_name = 'app_dbm/tables-detail.html'
     context_object_name = 'tables'
 
     def get_queryset(self):
-        return LinkDBTable.objects.select_related(
+        return LinkTable.objects.select_related(
             'schema', 'schema__base', 'type'
         ).prefetch_related(
             'linkcolumn_set'
@@ -228,7 +227,7 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         context['schedules'] = schedules
 
         # Альтернативные имена таблицы
-        alt_names = LinkDBTableName.objects.filter(table=table)
+        alt_names = LinkTableName.objects.filter(table=table)
         context['alt_table_names'] = alt_names
 
         return context
@@ -349,3 +348,24 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
         context['schedules'] = schedules
 
         return context
+
+
+class SchemaAPIView(View):
+    def get(self, request):
+        dim_db_id = request.GET.get('dim_db')
+        schemas = LinkSchema.objects.filter(base_id=dim_db_id).values('id', 'schema')
+        return JsonResponse(list(schemas), safe=False)
+
+
+class TableAPIView(View):
+    def get(self, request):
+        schema_id = request.GET.get('schema')
+        tables = LinkTable.objects.filter(schema_id=schema_id).values('id', 'name')
+        return JsonResponse(list(tables), safe=False)
+
+
+class ColumnAPIView(View):
+    def get(self, request):
+        table_id = request.GET.get('table')
+        columns = LinkColumn.objects.filter(table_id=table_id).values('id', 'columns')
+        return JsonResponse(list(columns), safe=False)

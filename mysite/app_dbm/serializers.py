@@ -3,10 +3,11 @@ import json
 
 from rest_framework import serializers
 from .models import (
-    DimStage, DimDB, LinkDB, LinkDBSchema, DimDBTableType, DimColumnName, LinkDBTable,
+    DimStage, DimDB, LinkDB, LinkSchema, DimTableType, DimColumnName, LinkTable,
     LinkColumn, DimTypeLink, LinkColumnColumn, LinkColumnName, TotalData,
-    hash_calculate
+
 )
+from _common.base_models import hash_calculate
 
 
 class DimStageSerializer(serializers.ModelSerializer):
@@ -29,13 +30,13 @@ class LinkDBSerializer(serializers.ModelSerializer):
 
 class LinkDBSchemaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LinkDBSchema
+        model = LinkSchema
         fields = '__all__'
 
 
 class DimDBTableTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DimDBTableType
+        model = DimTableType
         fields = '__all__'
 
 
@@ -45,9 +46,9 @@ class DimColumnNameSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class LinkDBTableSerializer(serializers.ModelSerializer):
+class LinkTableSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LinkDBTable
+        model = LinkTable
         fields = '__all__'
 
 

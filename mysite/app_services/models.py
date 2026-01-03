@@ -3,7 +3,7 @@ from django.db import models
 
 from app_auth.models import MyProfile
 from app_url.models import DimUrl
-from app_dbm.models import LinkDBTable, DimStage
+from app_dbm.models import LinkTable, DimStage
 from app_doc.models import DimDoc
 from _common.base_models import BaseClass
 
@@ -146,7 +146,7 @@ class LinkServicesTable(BaseClass):
     """Список таблиц сервиса."""
 
     service = models.ForeignKey(DimServices, on_delete=models.PROTECT)
-    table = models.ForeignKey(LinkDBTable, on_delete=models.PROTECT)
+    table = models.ForeignKey(LinkTable, on_delete=models.PROTECT)
 
     def __str__(self):
         return f'{self.service}-{self.table}'

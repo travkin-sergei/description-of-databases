@@ -7,7 +7,7 @@ from .models import (
     DimDB
 , LinkDB
 , DimStage
-, LinkDBTable, LinkColumn
+, LinkTable, LinkColumn
 )
 
 
@@ -33,7 +33,7 @@ class LinkDBFilter(django_filters.FilterSet):
         model = LinkDB
         fields = ['db_name', 'alias', 'host', 'port', 'stage', 'is_active']
 
-class LinkDBTableFilter(django_filters.FilterSet):
+class LinkTableFilter(django_filters.FilterSet):
     table_catalog = django_filters.CharFilter(
         field_name='schema__base__name',
         lookup_expr='icontains',
@@ -49,7 +49,7 @@ class LinkDBTableFilter(django_filters.FilterSet):
     is_metadata = django_filters.BooleanFilter()
 
     class Meta:
-        model = LinkDBTable
+        model = LinkTable
         fields = ['table_catalog', 'schema', 'table_name', 'is_active', 'is_metadata']
 
     def filter_table_name(self, queryset, name, value):
@@ -60,7 +60,7 @@ class LinkDBTableFilter(django_filters.FilterSet):
             # Фильтруем по основному имени таблицы ИЛИ по альтернативному имени
             return queryset.filter(
                 Q(name__icontains=value) |
-                Q(linkdbtablename__name__icontains=value)
+                Q(LinkTablename__name__icontains=value)
             ).distinct()
         return queryset
 

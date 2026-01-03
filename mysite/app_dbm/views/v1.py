@@ -8,13 +8,14 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from ..models import (
-    DimStage, DimDB, LinkDB, LinkDBSchema, DimDBTableType, DimColumnName, LinkDBTable, LinkColumn,
+    DimStage, DimDB, LinkDB, LinkSchema, DimTableType, DimColumnName, LinkTable, LinkColumn,
     DimTypeLink, LinkColumnColumn, LinkColumnName, TotalData
 )
 from ..serializers import (
-    TotalDataSerializer, DimStageSerializer, DimDBSerializer, LinkDBSerializer, LinkDBSchemaSerializer,
-    DimDBTableTypeSerializer, DimColumnNameSerializer, LinkDBTableSerializer, LinkColumnSerializer,
-    DimTypeLinkSerializer, LinkColumnColumnSerializer, LinkColumnNameSerializer
+    TotalDataSerializer, DimStageSerializer, DimDBSerializer, LinkDBSerializer,
+    DimColumnNameSerializer, LinkColumnSerializer,
+    DimTypeLinkSerializer, LinkColumnColumnSerializer, LinkColumnNameSerializer,
+   # LinkSchemaSerializer, LinkTableSerializer, DimTableTypeSerializer,
 )
 
 dba_tags = ["DBM"]
@@ -82,18 +83,18 @@ class LinkDBViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
 
 
 # Остальные ViewSet'ы с аналогичной структурой
-@read_only_schema
-class LinkDBSchemaViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
-    queryset = LinkDBSchema.objects.all()
-    serializer_class = LinkDBSchemaSerializer
-    lookup_field = 'schema'
-
-
-@read_only_schema
-class DimDBTableTypeViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
-    queryset = DimDBTableType.objects.all()
-    serializer_class = DimDBTableTypeSerializer
-    pagination_class = None
+# @read_only_schema
+# class LinkSchemaViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
+#     queryset = LinkSchema.objects.all()
+#     serializer_class = LinkSchemaSerializer
+#     lookup_field = 'schema'
+#
+#
+# @read_only_schema
+# class DimTableTypeViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
+#     queryset = DimTableType.objects.all()
+#     serializer_class = DimTableTypeSerializer
+#     pagination_class = None
 
 
 @read_only_schema
@@ -104,21 +105,21 @@ class DimColumnNameViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
     ordering = ['name']
 
 
-@read_only_schema
-class LinkDBTableViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
-    queryset = LinkDBTable.objects.all()
-    serializer_class = LinkDBTableSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['schema', 'type', 'is_metadata']
-    search_fields = ['name', 'description']
-
-    @extend_schema(tags=dba_tags)
-    @action(detail=True, methods=['get'])
-    def columns(self, request, pk=None):
-        table = self.get_object()
-        columns = LinkColumn.objects.filter(table=table)
-        serializer = LinkColumnSerializer(columns, many=True)
-        return Response(serializer.data)
+# @read_only_schema
+# class LinkTableViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
+#     queryset = LinkTable.objects.all()
+#     serializer_class = LinkTableSerializer
+#     filter_backends = [DjangoFilterBackend, SearchFilter]
+#     filterset_fields = ['schema', 'type', 'is_metadata']
+#     search_fields = ['name', 'description']
+#
+#     @extend_schema(tags=dba_tags)
+#     @action(detail=True, methods=['get'])
+#     def columns(self, request, pk=None):
+#         table = self.get_object()
+#         columns = LinkColumn.objects.filter(table=table)
+#         serializer = LinkColumnSerializer(columns, many=True)
+#         return Response(serializer.data)
 
 
 @read_only_schema
@@ -183,7 +184,7 @@ class TotalDataViewSet(viewsets.ModelViewSet):
     http_method_names = [
         'get',
         'post',
-       # 'head', 'options'
+        # 'head', 'options'
     ]
 
     @extend_schema(

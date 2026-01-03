@@ -10,7 +10,7 @@ from django.http import HttpResponseNotFound
 from django.views import View
 from django.views.generic import TemplateView, DetailView, ListView
 
-from app_dbm.models import DimStage, LinkDBTable
+from app_dbm.models import DimStage, LinkTable
 
 from ..filters import DimServicesFilter, LinksUrlServiceFilter
 from ..models import (
