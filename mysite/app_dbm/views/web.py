@@ -1,3 +1,4 @@
+# app_dbm\views\web.py
 from django.db.models import Q, OuterRef, Subquery
 from django.http import HttpResponseNotFound, JsonResponse
 from django.views import View
@@ -16,6 +17,7 @@ from ..filters import (
     LinkDBFilter,
     LinkTableFilter, LinkColumnFilter,
 )
+from _common.base_models import SafePaginator
 
 
 class PageNotFoundView(LoginRequiredMixin, View):
@@ -45,7 +47,7 @@ class DatabasesView(LoginRequiredMixin, FilterView):
     template_name = 'app_dbm/databases.html'
     context_object_name = 'databases'
     paginate_by = 20
-    limit = 100  # Ограничение в 100 записей
+    paginator_class = SafePaginator  # Используем SafePaginator
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -54,30 +56,41 @@ class DatabasesView(LoginRequiredMixin, FilterView):
         # Применяем фильтры
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
 
-        # Ограничиваем результат до limit записей
-        filtered_qs = self.filterset.qs
-        limited_qs = filtered_qs[:self.limit]
+        # УБЕРИТЕ СРЕЗ! SafePaginator сам ограничит количество
+        # НЕ ДЕЛАЙТЕ: limited_qs = filtered_qs[:self.limit]
 
-        return limited_qs
+        return self.filterset.qs  # Просто возвращаем фильтрованный QuerySet
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Полный queryset для подсчета
-        full_queryset = LinkDB.objects.select_related('stage')
-        filterset_for_count = self.filterset_class(self.request.GET, queryset=full_queryset)
-        filtered_for_count = filterset_for_count.qs
-        total_count = filtered_for_count.count()
+        # Используем SafePaginator для подсчета
+        if hasattr(context.get('paginator'), 'max_limit'):
+            max_limit = context['paginator'].max_limit
+            # SafePaginator уже ограничил количество, проверяем через real_count если есть
+            if hasattr(context['paginator'], 'real_count'):
+                total_count = context['paginator'].real_count
+                is_limited = total_count > max_limit
+                limited_count = min(total_count, max_limit)
+            else:
+                total_count = context['paginator'].count
+                is_limited = False
+                limited_count = total_count
+        else:
+            # Если не SafePaginator, считаем обычным способом
+            total_count = self.filterset.qs.count() if self.filterset else 0
+            limited_count = total_count
+            is_limited = False
 
         # Количество на текущей странице
         if context.get('page_obj'):
             displayed_count = len(context['page_obj'].object_list)
         else:
-            displayed_count = min(total_count, self.limit)
+            displayed_count = min(total_count, self.paginate_by)
 
         context['total_count'] = total_count
-        context['limited_count'] = min(total_count, self.limit)
-        context['is_limited'] = total_count > self.limit
+        context['limited_count'] = limited_count
+        context['is_limited'] = is_limited
         context['displayed_count'] = displayed_count
 
         # Параметры фильтрации для пагинации
@@ -97,9 +110,9 @@ class TablesView(LoginRequiredMixin, FilterView):
     model = LinkTable
     template_name = 'app_dbm/tables.html'
     context_object_name = 'tables'
+    paginator_class = SafePaginator  # Используем SafePaginator
     paginate_by = 20
     filterset_class = LinkTableFilter
-    limit = 100  # Ограничение в 100 записей
 
     def get_queryset(self):
         # Подзапрос для альтернативного имени с is_publish=True
@@ -111,19 +124,16 @@ class TablesView(LoginRequiredMixin, FilterView):
         queryset = (
             LinkTable.objects
             .select_related('schema', 'schema__base', 'type')
-            .annotate(
-                alt_name=Subquery(alt_name_subquery)
-            )
+            .annotate(alt_name=Subquery(alt_name_subquery))
         )
 
         # Применяем фильтры
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
 
-        # Ограничиваем результат до limit записей
-        filtered_qs = self.filterset.qs
-        limited_qs = filtered_qs[:self.limit]
+        # УБЕРИТЕ СРЕЗ! SafePaginator сам ограничит количество
+        # НЕ ДЕЛАЙТЕ: limited_qs = filtered_qs[:self.limit]
 
-        return limited_qs
+        return self.filterset.qs  # Просто возвращаем фильтрованный QuerySet
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -137,34 +147,33 @@ class TablesView(LoginRequiredMixin, FilterView):
         context['form_submitted'] = bool(self.request.GET)
         context['has_filter_params'] = any(v for k, v in self.request.GET.items() if k != 'page')
 
-        # СОЗДАЕМ ОТДЕЛЬНЫЙ QUERYSET ДЛЯ ПОДСЧЕТА ОБЩЕГО КОЛИЧЕСТВА
-        alt_name_subquery = LinkTableName.objects.filter(
-            table=OuterRef('pk'),
-            is_active=True
-        ).values('name')[:1]
-
-        full_queryset = (
-            LinkTable.objects
-            .select_related('schema', 'schema__base', 'type')
-            .annotate(
-                alt_name=Subquery(alt_name_subquery)
-            )
-        )
-
-        # Применяем те же фильтры, но БЕЗ ограничения
-        filterset_for_count = self.filterset_class(self.request.GET, queryset=full_queryset)
-        filtered_for_count = filterset_for_count.qs
-        total_count = filtered_for_count.count()
+        # Используем SafePaginator для подсчета
+        if hasattr(context.get('paginator'), 'max_limit'):
+            max_limit = context['paginator'].max_limit
+            # SafePaginator уже ограничил количество, проверяем через real_count если есть
+            if hasattr(context['paginator'], 'real_count'):
+                total_count = context['paginator'].real_count
+                is_limited = total_count > max_limit
+                limited_count = min(total_count, max_limit)
+            else:
+                total_count = context['paginator'].count
+                is_limited = False
+                limited_count = total_count
+        else:
+            # Если не SafePaginator, считаем обычным способом
+            total_count = self.filterset.qs.count() if self.filterset else 0
+            limited_count = total_count
+            is_limited = False
 
         # Количество отображаемых записей (с учетом пагинации)
         if context.get('page_obj'):
             displayed_count = len(context['page_obj'].object_list)
         else:
-            displayed_count = min(total_count, self.limit)
+            displayed_count = min(total_count, self.paginate_by)
 
         context['total_count'] = total_count
-        context['limited_count'] = min(total_count, self.limit)
-        context['is_limited'] = total_count > self.limit
+        context['limited_count'] = limited_count
+        context['is_limited'] = is_limited
         context['displayed_count'] = displayed_count
 
         return context
@@ -241,7 +250,7 @@ class ColumnListView(LoginRequiredMixin, FilterView):
     template_name = 'app_dbm/columns.html'
     context_object_name = 'columns'
     paginate_by = 20
-    limit = 100  # Ограничение в 100 записей
+    paginator_class = SafePaginator  # Используем SafePaginator
 
     def get_queryset(self):
         # Получаем базовый queryset
@@ -255,36 +264,41 @@ class ColumnListView(LoginRequiredMixin, FilterView):
         # Применяем фильтры
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
 
-        # Ограничиваем результат до limit записей
-        filtered_qs = self.filterset.qs
-        limited_qs = filtered_qs[:self.limit]
+        # УБЕРИТЕ СРЕЗ! SafePaginator сам ограничит количество
+        # НЕ ДЕЛАЙТЕ: limited_qs = filtered_qs[:self.limit]
 
-        return limited_qs
+        return self.filterset.qs  # Просто возвращаем фильтрованный QuerySet
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Полный queryset для подсчета
-        full_queryset = LinkColumn.objects.filter(is_active=True).select_related(
-            'table',
-            'table__schema',
-            'table__schema__base',
-            'table__type',
-        ).order_by('table__name', 'columns')
-
-        filterset_for_count = self.filterset_class(self.request.GET, queryset=full_queryset)
-        filtered_for_count = filterset_for_count.qs
-        total_count = filtered_for_count.count()
+        # Используем SafePaginator для подсчета
+        if hasattr(context.get('paginator'), 'max_limit'):
+            max_limit = context['paginator'].max_limit
+            # SafePaginator уже ограничил количество, проверяем через real_count если есть
+            if hasattr(context['paginator'], 'real_count'):
+                total_count = context['paginator'].real_count
+                is_limited = total_count > max_limit
+                limited_count = min(total_count, max_limit)
+            else:
+                total_count = context['paginator'].count
+                is_limited = False
+                limited_count = total_count
+        else:
+            # Если не SafePaginator, считаем обычным способом
+            total_count = self.filterset.qs.count() if self.filterset else 0
+            limited_count = total_count
+            is_limited = False
 
         # Количество на текущей странице
         if context.get('page_obj'):
             displayed_count = len(context['page_obj'].object_list)
         else:
-            displayed_count = min(total_count, self.limit)
+            displayed_count = min(total_count, self.paginate_by)
 
         context['total_count'] = total_count
-        context['limited_count'] = min(total_count, self.limit)
-        context['is_limited'] = total_count > self.limit
+        context['limited_count'] = limited_count
+        context['is_limited'] = is_limited
         context['displayed_count'] = displayed_count
 
         # Для пагинации с сохранением параметров фильтрации

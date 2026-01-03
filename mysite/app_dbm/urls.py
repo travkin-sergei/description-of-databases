@@ -1,5 +1,15 @@
+# app_dbm/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views.ajax import linked_form_view, get_schemas, get_tables, get_columns
+from .views.web import (
+    PageNotFoundView, AboutView,
+    DatabasesView,
+    TablesView,
+    TableDetailView,
+    ColumnListView,
+    ColumnDetailView
+)
 from .views.v1 import (
     # DimStageViewSet,
     # DimDBViewSet,
@@ -14,29 +24,11 @@ from .views.v1 import (
     # LinkColumnNameViewSet,
     TotalDataViewSet
 )
-from .views.web import (
-    PageNotFoundView, AboutView,
-    DatabasesView, TablesView, TableDetailView,
-    ColumnListView, ColumnDetailView
-)
-from .apps import app
 
-app_name = app
+app_name = 'app_dbm'
 
 router = DefaultRouter()
-# router.register(r'dim-stage', DimStageViewSet)
-# router.register(r'dim-db', DimDBViewSet)
-# router.register(r'link-db', LinkDBViewSet)
-# router.register(r'link-db-schema', LinkSchemaViewSet)
-# router.register(r'dim-table-type', DimTableTypeViewSet)
-# router.register(r'dim-column-name', DimColumnNameViewSet)
-# router.register(r'link-table', LinkTableViewSet)
-# router.register(r'link-column', LinkColumnViewSet)
-# router.register(r'dim-type-link', DimTypeLinkViewSet)
-# router.register(r'link-column-column', LinkColumnColumnViewSet)
-# router.register(r'link-column-name', LinkColumnNameViewSet)
-# router.register(r'link-column-stage', LinkColumnStageViewSet)
-router.register(r'total-data', TotalDataViewSet)
+router.register(r'total-data', TotalDataViewSet),
 
 urlpatterns = [
     # API
@@ -48,5 +40,10 @@ urlpatterns = [
     path('tables/<int:pk>/', TableDetailView.as_view(), name='tables-detail'),
     path('columns/', ColumnListView.as_view(), name='columns'),
     path('columns/<int:pk>/', ColumnDetailView.as_view(), name='columns-detail'),
+    # ajax.py
+    path('linked-form/', linked_form_view, name='linked_form'),
+    path('get-schemas/', get_schemas, name='get_schemas'),
+    path('get-tables/', get_tables, name='get_tables'),
+    path('get-columns/', get_columns, name='get_columns'),
 ]
 handler404 = PageNotFoundView.as_view()

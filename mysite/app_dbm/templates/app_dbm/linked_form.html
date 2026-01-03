@@ -1,0 +1,165 @@
+<!-- app_dbm/templates/app_dbm/linked_form.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Взаимозависимые списки</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select {
+            width: 300px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Выбор объекта БД</h1>
+
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>База данных:</label>
+            <select name="database" id="database-select">
+                <option value="">Выберите БД</option>
+                {% for db in databases %}
+                    <option value="{{ db.id }}">{{ db.name }} (v{{ db.version }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Схема:</label>
+            <select name="schema" id="schema-select" disabled>
+                <option value="">Выберите схему</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Таблица:</label>
+            <select name="table" id="table-select" disabled>
+                <option value="">Выберите таблицу</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Столбец:</label>
+            <select name="column" id="column-select" disabled>
+                <option value="">Выберите столбец</option>
+            </select>
+        </div>
+
+        <button type="submit">Отправить</button>
+    </form>
+
+<script>
+$(document).ready(function() {
+    function fillSelect($select, items, valueField = 'id', textField = 'schema') {
+        $select.empty().append('<option value="">Выберите...</option>');
+        if (Array.isArray(items)) {
+            items.forEach(item => {
+                $select.append(`<option value="${item[valueField]}">${item[textField]}</option>`);
+            });
+        }
+        $select.prop('disabled', items.length === 0);
+    }
+
+    $('#database-select').change(function() {
+        const dbId = $(this).val();
+        const $schemaSelect = $('#schema-select').prop('disabled', true);
+        $schemaSelect.empty().append('<option value="">Загрузка...</option>');
+
+        if (!dbId) {
+            $schemaSelect.prop('disabled', true).empty().append('<option value="">Выберите БД</option>');
+            $('#table-select, #column-select').prop('disabled', true).empty().append('<option value="">Выберите...</option>');
+            return;
+        }
+
+        $.getJSON('{% url "app_dbm:get_schemas" %}', { db_id: dbId })
+            .done(function(data) {
+                if (data.error) {
+                    alert('Ошибка: ' + data.error);
+                    $schemaSelect.prop('disabled', true).empty().append('<option value="">Ошибка загрузки</option>');
+                    return;
+                }
+                fillSelect($schemaSelect, data, 'id', 'schema');
+            })
+            .fail(function(xhr) {
+                let msg = xhr.responseJSON?.error || 'Неизвестная ошибка';
+                alert('Ошибка загрузки схем: ' + msg);
+                $schemaSelect.prop('disabled', true).empty().append('<option value="">Ошибка</option>');
+            });
+    });
+
+    $('#schema-select').change(function() {
+        const schemaId = $(this).val();
+        const $tableSelect = $('#table-select').prop('disabled', true);
+        $tableSelect.empty().append('<option value="">Загрузка...</option>');
+
+        if (!schemaId) {
+            $tableSelect.prop('disabled', true).empty().append('<option value="">Выберите схему</option>');
+            $('#column-select').prop('disabled', true).empty().append('<option value="">Выберите...</option>');
+            return;
+        }
+
+        $.getJSON('{% url "app_dbm:get_tables" %}', { schema_id: schemaId })
+            .done(function(data) {
+                if (data.error) {
+                    alert('Ошибка: ' + data.error);
+                    $tableSelect.prop('disabled', true).empty().append('<option value="">Ошибка загрузки</option>');
+                    return;
+                }
+                fillSelect($tableSelect, data, 'id', 'name');
+            })
+            .fail(function(xhr) {
+                let msg = xhr.responseJSON?.error || 'Неизвестная ошибка';
+                alert('Ошибка загрузки таблиц: ' + msg);
+                $tableSelect.prop('disabled', true).empty().append('<option value="">Ошибка</option>');
+            });
+    });
+
+    $('#table-select').change(function() {
+        const tableId = $(this).val();
+        const $columnSelect = $('#column-select').prop('disabled', true);
+        $columnSelect.empty().append('<option value="">Загрузка...</option>');
+
+        if (!tableId) {
+            $columnSelect.prop('disabled', true).empty().append('<option value="">Выберите таблицу</option>');
+            return;
+        }
+
+        $.getJSON('{% url "app_dbm:get_columns" %}', { table_id: tableId })
+            .done(function(data) {
+                if (data.error) {
+                    alert('Ошибка: ' + data.error);
+                    $columnSelect.prop('disabled', true).empty().append('<option value="">Ошибка загрузки</option>');
+                    return;
+                }
+                fillSelect($columnSelect, data, 'id', 'columns');  // ← 'columns' — имя поля в LinkColumn
+            })
+            .fail(function(xhr) {
+                let msg = xhr.responseJSON?.error || 'Неизвестная ошибка';
+                alert('Ошибка загрузки столбцов: ' + msg);
+                $columnSelect.prop('disabled', true).empty().append('<option value="">Ошибка</option>');
+            });
+    });
+});
+</script>
+
+</body>
+</html>

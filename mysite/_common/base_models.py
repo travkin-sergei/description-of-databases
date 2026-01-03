@@ -4,6 +4,8 @@
 """
 import hashlib
 from typing import List, Union
+
+from django.core.paginator import Paginator
 from django.db import models
 
 
@@ -43,3 +45,19 @@ class BaseClass(models.Model):
 
     class Meta:
         abstract = True
+
+
+class SafePaginator(Paginator):
+    """Пагинатор с ограничением максимального количества записей"""
+    max_limit = 1000  # или другое значение
+
+    def page(self, number):
+        number = self.validate_number(number)
+        # Ограничиваем смещение
+        bottom = (number - 1) * self.per_page
+        top = bottom + self.per_page
+        if top > self.max_limit:
+            top = self.max_limit
+        if bottom > self.max_limit:
+            bottom = self.max_limit - self.per_page
+        return self._get_page(self.object_list[bottom:top], number, self)
