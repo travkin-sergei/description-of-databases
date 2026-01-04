@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-from app_dbm.models import DimDB, LinkSchema, LinkTable, LinkColumn, DimTypeLink
+from app_dbm.models import DimDB, LinkColumn, DimTypeLink, LinkSchema, LinkTable
 from .models import DimUpdateMethod, LinkUpdateCol
 
 
@@ -11,7 +11,7 @@ class LinkUpdateColAdminForm(forms.ModelForm):
     main_database = forms.ModelChoiceField(
         queryset=DimDB.objects.all(),
         label="База данных (main)",
-        required=False  # ← необязательное, только для JS
+        required=False
     )
     sub_database = forms.ModelChoiceField(
         queryset=DimDB.objects.all(),
@@ -53,10 +53,9 @@ class LinkUpdateColAdminForm(forms.ModelForm):
 class LinkUpdateColAdmin(admin.ModelAdmin):
     list_display = ['id', 'type', 'main', 'sub', 'is_active']
     list_filter = ['type', 'is_active']
-    autocomplete_fields = ['main', 'sub']  # ← Это работает как Google-поиск
+    autocomplete_fields = ['main', 'sub']
     form = LinkUpdateColAdminForm
 
-    # Не используем autocomplete_fields — конфликтует с кастомной формой
     def main_col_display(self, obj):
         return str(obj.main) if obj.main else "—"
 

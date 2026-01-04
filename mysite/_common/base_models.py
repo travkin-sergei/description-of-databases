@@ -48,16 +48,56 @@ class BaseClass(models.Model):
 
 
 class SafePaginator(Paginator):
-    """Пагинатор с ограничением максимального количества записей"""
-    max_limit = 1000  # или другое значение
+    """
+    Paginator, который ограничивает QuerySet до max_limit записей на уровне SQL.
+    Отказывается от точного .count(), если общее число > max_limit.
+    """
+    max_limit = 1000
+
+    def __init__(self, object_list, per_page, orphans=0, allow_empty_first_page=True):
+        # Если object_list — QuerySet, ограничиваем его сразу
+        if isinstance(object_list, models.QuerySet):
+            # Обязательно должен быть order_by — иначе LIMIT недетерминирован
+            if not object_list.query.order_by:
+                object_list = object_list.order_by('pk')
+
+            # Берём max_limit + 1, чтобы определить, нужно ли резать
+            object_list = object_list[:self.max_limit + 1]
+
+        super().__init__(object_list, per_page, orphans, allow_empty_first_page)
+
+    @property
+    def count(self):
+        """
+        Возвращает реальное количество элементов в ограниченном списке.
+        Не делает COUNT(*), а использует len() на уже ограниченном QuerySet или списке.
+        """
+        if isinstance(self.object_list, models.QuerySet):
+            # len(QuerySet) → делает SELECT COUNT(*) LIMIT N+1? Нет!
+            # На самом деле: len(qs[:N]) → делает SELECT ... LIMIT N и подсчитывает в памяти.
+            # ✅ Это быстро, т.к. LIMIT уже в запросе.
+            return len(self.object_list)
+        else:
+            return len(self.object_list)
 
     def page(self, number):
         number = self.validate_number(number)
-        # Ограничиваем смещение
+
         bottom = (number - 1) * self.per_page
         top = bottom + self.per_page
-        if top > self.max_limit:
-            top = self.max_limit
-        if bottom > self.max_limit:
-            bottom = self.max_limit - self.per_page
-        return self._get_page(self.object_list[bottom:top], number, self)
+
+        # Уже ограниченный object_list (≤ max_limit + 1)
+        limited_list = list(self.object_list)  # materialize once
+        self._is_limited = len(limited_list) > self.max_limit
+        if self._is_limited:
+            limited_list = limited_list[:self.max_limit]
+
+        # Обрезаем под текущую страницу
+        page_items = limited_list[bottom:top]
+
+        return self._get_page(page_items, number, self)
+
+    @property
+    def is_limited(self):
+        # Вызывается после page(), т.к. _is_limited устанавливается там
+        return getattr(self, '_is_limited', False)

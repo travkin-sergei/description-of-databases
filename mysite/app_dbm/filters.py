@@ -1,13 +1,10 @@
 # app_dbm/filters.py
 import django_filters
-from django_filters import CharFilter, BooleanFilter, ModelChoiceFilter
+from django_filters import CharFilter, ModelChoiceFilter
 from django.db.models import Q
 
 from .models import (
-    DimDB
-, LinkDB
-, DimStage
-, LinkTable, LinkColumn
+    LinkDB, DimStage, LinkTable, LinkColumn
 )
 
 
@@ -32,6 +29,7 @@ class LinkDBFilter(django_filters.FilterSet):
     class Meta:
         model = LinkDB
         fields = ['db_name', 'alias', 'host', 'port', 'stage', 'is_active']
+
 
 class LinkTableFilter(django_filters.FilterSet):
     table_catalog = django_filters.CharFilter(
@@ -60,7 +58,7 @@ class LinkTableFilter(django_filters.FilterSet):
             # Фильтруем по основному имени таблицы ИЛИ по альтернативному имени
             return queryset.filter(
                 Q(name__icontains=value) |
-                Q(LinkTablename__name__icontains=value)
+                Q(linktablename__name__icontains=value)
             ).distinct()
         return queryset
 
