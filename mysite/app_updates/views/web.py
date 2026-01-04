@@ -7,7 +7,7 @@ from django.views.generic import (
     TemplateView,
 )
 
-from ..models import DimUpdateMethod, LinkUpdate
+from ..models import DimUpdateMethod, LinkUpdateCol
 from ..filters import DimUpdateMethodFilter
 
 
@@ -65,7 +65,7 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Добавляем связанные объекты LinkUpdate с предварительной выборкой
-        context['related_links'] = LinkUpdate.objects.filter(
+        context['related_links'] = LinkUpdateCol.objects.filter(
             name=self.object
         ).select_related(
             'column__main__table__schema__base',

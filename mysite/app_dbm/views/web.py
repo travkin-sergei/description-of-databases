@@ -13,7 +13,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from _common.base_models import SafePaginator
 from app_services.models import LinkServicesTable
-from app_updates.models import LinkUpdate
 
 from ..models import (
     LinkDB, LinkSchema, LinkTable, LinkColumn,
