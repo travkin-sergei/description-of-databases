@@ -1,12 +1,17 @@
-# app_dbm/admin.py
 from django import forms
-from django.contrib import admin, messages
+from django.contrib import admin
+from django.contrib import messages
 from django_jsonform.widgets import JSONFormWidget
 
+from .models import (
+    LinkColumnColumn, DimTypeLink, DimDB, LinkColumn, LinkDB, DimStage,
+    DimTableNameType, DimTableType, DimColumnName, LinkTableName,
+    LinkSchema, LinkTable, LinkColumnName, TotalData
+)
 from .utils.syncing_model import sync_database
-from .models import *
 
 
+# === Actions ===
 @admin.action(description='Синхронизировать выбранную базу и слой')
 def sync_selected(modeladmin, request, queryset):
     total_rows = 0
@@ -30,7 +35,7 @@ def sync_selected(modeladmin, request, queryset):
             messages.error(request, error_msg)
 
 
-# === Формы ===
+# === Forms ===
 class LinkColumnForm(forms.ModelForm):
     class Meta:
         model = LinkColumn
@@ -58,7 +63,7 @@ class LinkColumnForm(forms.ModelForm):
         return {k: v for k, v in data.items() if v not in ("", None)}
 
 
-# Inline для LinkDB в админке DimDB
+# === Inlines ===
 class LinkDBInline(admin.TabularInline):
     model = LinkDB
     extra = 0
@@ -69,7 +74,30 @@ class LinkDBInline(admin.TabularInline):
     autocomplete_fields = ['stage']
 
 
-# 03 Список баз данных.
+class LinkTableNameInline(admin.TabularInline):
+    model = LinkTableName
+    extra = 0
+    fields = ('name', 'type', 'is_publish')
+    verbose_name = 'Альтернативное имя'
+    verbose_name_plural = 'Альтернативные имена таблиц'
+    autocomplete_fields = ['type']
+
+
+class LinkColumnInline(admin.TabularInline):
+    model = LinkColumn
+    form = LinkColumnForm
+    extra = 0
+    fields = ('is_active', 'columns', 'type', 'is_null', 'is_key', 'unique_together', 'description', 'default', 'stage')
+    verbose_name = 'Колонка'
+    verbose_name_plural = 'Колонки'
+
+
+# === Admins ===
+class BaseAdmin(admin.ModelAdmin):
+    list_per_page = 20
+    list_filter = ('is_active',)
+
+
 @admin.register(LinkDB)
 class LinkDBAdmin(admin.ModelAdmin):
     search_fields = ('name', 'alias', 'host', 'port')
@@ -80,13 +108,6 @@ class LinkDBAdmin(admin.ModelAdmin):
     autocomplete_fields = ['base', 'stage']
 
 
-# Базовый класс админки
-class BaseAdmin(admin.ModelAdmin):
-    list_per_page = 20
-    list_filter = ('is_active',)
-
-
-# Справочные модели
 @admin.register(DimTypeLink)
 class DimTypeLinkAdmin(BaseAdmin):
     list_display = ('id', 'name', 'is_active')
@@ -130,24 +151,6 @@ class DimColumnNameAdmin(BaseAdmin):
     ordering = ['name']
 
 
-class LinkTableNameInline(admin.TabularInline):
-    model = LinkTableName
-    extra = 0
-    fields = ('name', 'type', 'is_publish')
-    verbose_name = 'Альтернативное имя'
-    verbose_name_plural = 'Альтернативные имена таблиц'
-    autocomplete_fields = ['type']
-
-
-class LinkColumnInline(admin.TabularInline):
-    model = LinkColumn
-    form = LinkColumnForm
-    extra = 0
-    fields = ('is_active', 'columns', 'type', 'is_null', 'is_key', 'unique_together', 'description', 'default', 'stage')
-    verbose_name = 'Колонка'
-    verbose_name_plural = 'Колонки'
-
-
 @admin.register(LinkSchema)
 class LinkDBSchemaAdmin(BaseAdmin):
     list_display = ('base', 'schema', 'is_active')
@@ -177,15 +180,15 @@ class LinkTableAdmin(BaseAdmin):
 class LinkColumnAdmin(BaseAdmin):
     form = LinkColumnForm
     list_display = ('columns', 'table', 'type', 'is_null', 'is_key', 'is_active')
-    search_fields = ('columns', 'table__name', 'type', 'description')
+    search_fields = [
+        'columns',
+        'table__name',
+        'table__schema__schema',
+        'table__schema__base__name'
+    ]
     list_filter = BaseAdmin.list_filter + ('type', 'is_null', 'is_key')
     autocomplete_fields = ['table']
     ordering = ['columns']
-
-
-@admin.register(LinkColumnColumn)
-class LinkColumnColumnAdmin(BaseAdmin):
-    ordering = ['pk']
 
 
 @admin.register(LinkTableName)
@@ -215,3 +218,66 @@ class TotalDataAdmin(admin.ModelAdmin):
     readonly_fields = ('hash_address', 'created_at', 'updated_at')
     list_per_page = 50
     ordering = ['-created_at']
+
+
+# === LinkColumnColumn Admin (рабочая версия) ===
+class LinkColumnColumnAdminForm(forms.ModelForm):
+    # Только UI-поля (не включаем в fields!)
+    main_database = forms.ModelChoiceField(
+        queryset=DimDB.objects.all(),
+        label="База данных (main)",
+        required=False  # ← необязательное, только для JS
+    )
+    sub_database = forms.ModelChoiceField(
+        queryset=DimDB.objects.all(),
+        label="База данных (sub)",
+        required=False
+    )
+
+    # Основные поля — только те, что нужны для модели
+    main_column = forms.ModelChoiceField(
+        queryset=LinkColumn.objects.all(),
+        label="Столбец (main)",
+        required=True
+    )
+    sub_column = forms.ModelChoiceField(
+        queryset=LinkColumn.objects.all(),
+        label="Столбец (sub)",
+        required=False
+    )
+
+    class Meta:
+        model = LinkColumnColumn
+        fields = ['is_active', 'type', 'main_column', 'sub_column']  # ← только эти поля
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # НЕ заполняем main_schema/main_table — они не в fields
+        # Они нужны только для JS, но не для валидации
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.main = self.cleaned_data['main_column']
+        instance.sub = self.cleaned_data.get('sub_column')
+        if commit:
+            instance.save()
+        return instance
+
+
+@admin.register(LinkColumnColumn)
+class LinkColumnColumnAdmin(admin.ModelAdmin):
+    list_display = ['id', 'type', 'main', 'sub', 'is_active']
+    list_filter = ['type', 'is_active']
+    autocomplete_fields = ['main', 'sub']  # ← Это работает как Google-поиск
+    form = LinkColumnColumnAdminForm
+
+    # Не используем autocomplete_fields — конфликтует с кастомной формой
+    def main_col_display(self, obj):
+        return str(obj.main) if obj.main else "—"
+
+    main_col_display.short_description = "Main"
+
+    def sub_col_display(self, obj):
+        return str(obj.sub) if obj.sub else "∅"
+
+    sub_col_display.short_description = "Sub"

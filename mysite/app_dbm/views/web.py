@@ -1,23 +1,30 @@
 # app_dbm\views\web.py
+import logging
+
 from django.db.models import Q, OuterRef, Subquery
 from django.http import HttpResponseNotFound, JsonResponse
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import DetailView, TemplateView
+from django.views.decorators.csrf import csrf_exempt
+
 from django_filters.views import FilterView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+from _common.base_models import SafePaginator
 from app_services.models import LinkServicesTable
 from app_updates.models import LinkUpdate
 
 from ..models import (
     LinkDB, LinkSchema, LinkTable, LinkColumn,
-    LinkColumnColumn, LinkColumnName, LinkTableName,
+    LinkColumnColumn, LinkColumnName, LinkTableName, DimTypeLink,
 )
 from ..filters import (
     LinkDBFilter,
     LinkTableFilter, LinkColumnFilter,
 )
-from _common.base_models import SafePaginator
+
+logger = logging.getLogger(__name__)
 
 
 class PageNotFoundView(LoginRequiredMixin, View):
@@ -383,3 +390,75 @@ class ColumnAPIView(View):
         table_id = request.GET.get('table')
         columns = LinkColumn.objects.filter(table_id=table_id).values('id', 'columns')
         return JsonResponse(list(columns), safe=False)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LinkColumnColumnCreateView(View):
+    """
+    Класс-обработчик для создания связи столбцов через AJAX.
+    Используется в админке, когда стандартное сохранение ломается.
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            # Извлекаем данные
+            main_id = request.POST.get('main_column')
+            sub_id = request.POST.get('sub_column')
+            type_id = request.POST.get('type')
+            is_active = request.POST.get('is_active') == 'on'
+
+            # Валидация
+            if not main_id or not type_id:
+                return JsonResponse({
+                    "error": "Поля 'main_column' и 'type' обязательны"
+                }, status=400)
+
+            # Преобразуем в int
+            main_id = int(main_id)
+            type_id = int(type_id)
+            sub_id = int(sub_id) if sub_id else None
+
+            # Проверяем существование объектов (защита от 500)
+            try:
+                main_col = LinkColumn.objects.get(pk=main_id)
+                type_obj = DimTypeLink.objects.get(pk=type_id)
+                sub_col = LinkColumn.objects.get(pk=sub_id) if sub_id else None
+            except LinkColumn.DoesNotExist:
+                return JsonResponse({
+                    "error": f"Столбец с ID={main_id} не найден"
+                }, status=400)
+            except DimTypeLink.DoesNotExist:
+                return JsonResponse({
+                    "error": f"Тип связи с ID={type_id} не найден"
+                }, status=400)
+
+            # Создаём запись напрямую — минуя админку и формы
+            obj = LinkColumnColumn.objects.create(
+                main_id=main_id,
+                sub_id=sub_id,
+                type_id=type_id,
+                is_active=is_active
+            )
+
+            logger.info(f"LinkColumnColumn #{obj.id} создан: main={main_id}, sub={sub_id}, type={type_id}")
+
+            return JsonResponse({
+                "success": True,
+                "id": obj.id,
+                "main": str(obj.main),
+                "sub": str(obj.sub) if obj.sub else None,
+                "message": f"✅ Связь #{obj.id} успешно создана"
+            })
+
+        except ValueError as e:
+            logger.error(f"Некорректный ID: {e}")
+            return JsonResponse({
+                "error": f"Некорректный числовой идентификатор: {e}"
+            }, status=400)
+
+        except Exception as e:
+            logger.exception("Ошибка при создании LinkColumnColumn")
+            return JsonResponse({
+                "error": str(e),
+                "details": "См. логи сервера для деталей"
+            }, status=500)

@@ -8,7 +8,7 @@ from .views.web import (
     TablesView,
     TableDetailView,
     ColumnListView,
-    ColumnDetailView
+    ColumnDetailView, LinkColumnColumnCreateView
 )
 from .views.v1 import (
     # DimStageViewSet,
@@ -33,6 +33,7 @@ router.register(r'total-data', TotalDataViewSet),
 urlpatterns = [
     # API
     path('api/', include(router.urls)),
+    path('api/link-column-column/create/', LinkColumnColumnCreateView.as_view(), name='link_column_column_create'),
     # WEB
     path('about-app/', AboutView.as_view(), name='about-app'),
     path('', DatabasesView.as_view(), name='databases'),

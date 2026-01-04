@@ -292,7 +292,10 @@ class LinkColumn(BaseClass):
     )
 
     def __str__(self):
-        return f'{self.table}-{self.columns}'
+        try:
+            return f"{self.table.schema.base.name}.{self.table.schema.schema}.{self.table.name}.{self.columns}"
+        except Exception:
+            return f"LinkColumn #{self.pk}"
 
     class Meta:
         db_table = f'{app}"."link_columns'
