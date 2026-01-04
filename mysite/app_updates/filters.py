@@ -1,7 +1,8 @@
 import django_filters
 from django import forms
+from app_dbm.models import DimDB, LinkColumn
 from .models import DimUpdateMethod, LinkUpdateCol
-from ..app_dbm.models import DimDB, LinkColumn
+
 
 
 class LinkUpdateColAdminForm(forms.ModelForm):
