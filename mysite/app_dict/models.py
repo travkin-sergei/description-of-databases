@@ -1,6 +1,6 @@
 from django.db import models
 
-from .apps import app
+from .apps import db_schema
 from _common.base_models import BaseClass
 
 
@@ -13,7 +13,7 @@ class DimCategory(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{app}\".\"dim_category'
+        db_table = f'{db_schema}\".\"dim_category'
         unique_together = [["name"]]
         verbose_name = '01 Категории.'
         verbose_name_plural = '01 Категории.'
@@ -31,7 +31,7 @@ class DimDictionary(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{app}\".\"dim_dictionary'
+        db_table = f'{db_schema}\".\"dim_dictionary'
         unique_together = [["name", "category"]]
         verbose_name = '02 Словарь.'
         verbose_name_plural = '02 Словарь.'
@@ -52,7 +52,7 @@ class LinkDictionaryName(BaseClass):
         return f'{self.name}-{self.synonym}'
 
     class Meta:
-        db_table = f'{app}\".\"link_dictionary_synonym'
+        db_table = f'{db_schema}\".\"link_dictionary_synonym'
         unique_together = [['name', 'synonym', ]]
         verbose_name = '03 Связь столбцов и синонимом.'
         verbose_name_plural = '03 Связь столбцов и синонимов.'

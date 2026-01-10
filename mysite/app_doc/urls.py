@@ -2,9 +2,9 @@ from mysite.app_doc.views.web import (
     PageNotFoundView, AboutView,
 )
 from django.urls import path
-from .apps import app
+from .apps import name
 
-app_name = app
+app_name = name
 
 urlpatterns = [
     # API

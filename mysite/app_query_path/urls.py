@@ -2,9 +2,9 @@
 from django.urls import path
 
 from .views.web import AboutView, StartQuizView, QuestionView, ArticleView
-from .apps import app
+from .apps import name
 
-app_name = app
+app_name = name
 
 urlpatterns = [
     # API

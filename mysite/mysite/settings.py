@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_jsonform',  # работа с json в admin.py app_dbm
     'django_apscheduler',  # Шедулер в admin
     # ----------
+    '_common',# Базовое приложение
     'app_auth',  # Авторизация
     'app_dbm',  # База данных
     'app_dict',  # Словарь
@@ -57,7 +58,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'django.middleware._common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',

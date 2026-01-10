@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
 from _common.base_models import BaseClass, hash_calculate
-from .apps import app
+from .apps import db_schema
 
 
 class TotalData(BaseClass):
@@ -28,7 +28,7 @@ class TotalData(BaseClass):
     column_info = models.JSONField(blank=True, null=True, verbose_name='дополнительная информация о данных')
 
     class Meta:
-        db_table = f'{app}\".\"set_total_data'  # Убедитесь, что db_schema определен
+        db_table = f'{db_schema}\".\"set_total_data'  # Убедитесь, что db_schema определен
         verbose_name = '00 Полная информация о данных.'
         verbose_name_plural = '00 Полная информация о данных.'
 
@@ -91,7 +91,7 @@ class DimStage(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{app}\".\"dim_stage'
+        db_table = f'{db_schema}\".\"dim_stage'
         unique_together = [["name"]]
         verbose_name = '01 Словарь слоев.'
         verbose_name_plural = '01 Словарь слоев.'
@@ -109,7 +109,7 @@ class DimDB(BaseClass):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{app}\".\"dim_db'
+        db_table = f'{db_schema}\".\"dim_db'
         unique_together = [['name', ]]
         verbose_name = '02 Словарь баз данных.'
         verbose_name_plural = '02 Словарь баз данных.'
@@ -132,7 +132,7 @@ class LinkDB(BaseClass):
         return f"{self.name} ({self.host})"
 
     class Meta:
-        db_table = f'{app}\".\"link_db'
+        db_table = f'{db_schema}\".\"link_db'
         unique_together = [['name', 'host', 'port', ]]
         verbose_name = '03 Базы данных.'
         verbose_name_plural = '03 Базы данных.'
@@ -150,7 +150,7 @@ class LinkSchema(BaseClass):
         return f'{self.base}-{self.schema}'
 
     class Meta:
-        db_table = f'{app}\".\"link_schemas'
+        db_table = f'{db_schema}\".\"link_schemas'
         unique_together = [['base', 'schema', ]]
         verbose_name = '04 Схема.'
         verbose_name_plural = '04 Схемы.'
@@ -167,7 +167,7 @@ class DimTableType(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{app}\".\"dim_table_type'
+        db_table = f'{db_schema}\".\"dim_table_type'
         unique_together = [['name', ]]
         verbose_name = '05 Словарь тип таблицы.'
         verbose_name_plural = '05 Словарь типы таблиц.'
@@ -183,7 +183,7 @@ class DimColumnName(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{app}\".\"dim_column_name'
+        db_table = f'{db_schema}\".\"dim_column_name'
         unique_together = [['name', ]]
         verbose_name = '07 Словарь имен столбцов.'
         verbose_name_plural = '07 Словарь имен столбцов.'
@@ -200,7 +200,7 @@ class DimTableNameType(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{app}\".\"dim_table_name_type'
+        db_table = f'{db_schema}\".\"dim_table_name_type'
         unique_together = [['name', ]]
         verbose_name = '08 Словарь типов наименований.'
         verbose_name_plural = '08 Словарь типов наименований.'
@@ -221,7 +221,7 @@ class LinkTable(BaseClass):
         return f'{self.schema}-{self.type}-{self.name}'
 
     class Meta:
-        db_table = f'{app}\".\"link_tables'
+        db_table = f'{db_schema}\".\"link_tables'
         unique_together = [['schema', 'type', 'name', ]]
         verbose_name = '09 Таблица.'
         verbose_name_plural = '09 Таблицы'
@@ -259,7 +259,7 @@ class LinkTableName(BaseClass):
 
     class Meta:
         unique_together = [['table', 'name']]
-        db_table = f'{app}"."link_tables_name'
+        db_table = f'{db_schema}"."link_tables_name'
         verbose_name = '10 Альтернативное название таблицы.'
         verbose_name_plural = '10 Альтернативные названия таблиц.'
         constraints = [
@@ -298,7 +298,7 @@ class LinkColumn(BaseClass):
             return f"LinkColumn #{self.pk}"
 
     class Meta:
-        db_table = f'{app}"."link_columns'
+        db_table = f'{db_schema}"."link_columns'
         unique_together = [['table', 'columns']]
         verbose_name = '11 Столбец.'
         verbose_name_plural = '11 Столбцы.'
@@ -313,7 +313,7 @@ class DimTypeLink(BaseClass):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{app}\".\"dim_type_link'
+        db_table = f'{db_schema}\".\"dim_type_link'
         unique_together = [['name', ]]
         verbose_name = '12 Справочник типов связей.'
         verbose_name_plural = '12 Справочник типов связей.'
@@ -332,7 +332,7 @@ class LinkColumnColumn(BaseClass):
         return f'{self.main}-{self.sub}'
 
     class Meta:
-        db_table = f'{app}"."link_columns_columns'
+        db_table = f'{db_schema}"."link_columns_columns'
         unique_together = [['main', 'sub', 'type']]
         verbose_name = '13 Связи столбцов.'
         verbose_name_plural = '13 Связи столбцов.'
@@ -366,7 +366,7 @@ class LinkColumnName(BaseClass):
         return f'{self.column}-{self.name}'
 
     class Meta:
-        db_table = f'{app}\".\"link_columns_name'
+        db_table = f'{db_schema}\".\"link_columns_name'
         unique_together = [['column', 'name', ]]
         verbose_name = '14 Связь столбцов и имен столбцов.'
         verbose_name_plural = '14 Связь столбцов и имен столбцов.'

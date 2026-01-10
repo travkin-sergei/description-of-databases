@@ -5,9 +5,9 @@ from .views.web import (
     ColumnGroupListView, ColumnGroupDetailView,
     TableGroupListView, TableGroupDetailView,
 )
-from .apps import app
+from .apps import name
 
-app_name = app
+app_name = name
 
 urlpatterns = [
     # API

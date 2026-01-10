@@ -26,13 +26,16 @@ class DimDocAdmin(admin.ModelAdmin):
     autocomplete_fields = ('doc_type', 'link')
     readonly_fields = ('created_at', 'updated_at')
     fieldsets = (
-        ('Системные поля', {
-            'fields': ('created_at', 'updated_at', 'is_active',),
-            'classes': ('collapse',)
-        }),
-        ('Основная информация', {
-            'fields': ('doc_type', 'number', 'date_start', 'date_stop', 'description', 'link',)
-        }),
+        (
+            'Системные поля', {
+                'fields': ('created_at', 'updated_at', 'is_active',),
+                'classes': ('collapse',)
+            }
+        ), (
+            'Основная информация', {
+                'fields': ('doc_type', 'number', 'date_start', 'date_stop', 'description', 'link',)
+            }
+        ),
     )
 
     def get_queryset(self, request):

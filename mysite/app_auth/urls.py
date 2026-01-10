@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .apps import app
+from .apps import name
 from .view.web import (
     MyLoginView, MyRegisterView, MyLogoutView,
     AdminDashboardView, ApproveRequestView, RejectRequestView,
@@ -8,7 +8,7 @@ from .view.web import (
     MyPasswordChangeView, MyPasswordChangeDoneView,
 )
 
-app_name = app
+app_name = name
 
 urlpatterns = [
     # API

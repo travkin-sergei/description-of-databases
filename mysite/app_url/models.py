@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from django.db import models
 from django.core.exceptions import ValidationError
 from _common.base_models import BaseClass
-from .apps import app
+from .apps import db_schema
 
 
 def normalize_url(url: str) -> str:
@@ -51,7 +51,7 @@ class DimUrl(BaseClass):
     token = models.CharField(blank=True, null=True, verbose_name='token авторизации')
 
     class Meta:
-        db_table = f'{app}\".\"dim_url'
+        db_table = f'{db_schema}\".\"dim_url'
         verbose_name = '001 Ссылка'
         verbose_name_plural = '001 Ссылки'
         ordering = ['url']

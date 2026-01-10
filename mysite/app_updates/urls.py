@@ -6,9 +6,9 @@ from .views.web import (
     DimUpdateMethodView,
     DimUpdateMethodDetailView,
 )
-from .apps import app
+from .apps import name
 
-app_name = app
+app_name = name
 
 urlpatterns = [
     # API

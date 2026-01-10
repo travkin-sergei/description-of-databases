@@ -24,8 +24,9 @@ from .views.v1 import (
     # LinkColumnNameViewSet,
     TotalDataViewSet
 )
+from .apps import name
 
-app_name = 'app_dbm'
+app_name = name
 
 router = DefaultRouter()
 router.register(r'total-data', TotalDataViewSet),

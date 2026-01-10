@@ -5,16 +5,9 @@ from django.apps import AppConfig
 class AppDictConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'app_dict'
+    db_schema = 'app_dict'
     verbose_name = 'Термины и определения'
 
-    def ready(self):
-        """Создаем схему с именем приложения"""
-        from django.db import connection
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{self.name}";')
-        except:
-            pass
 
-
-app = AppDictConfig.name
+name = AppDictConfig.name
+db_schema = AppDictConfig.db_schema

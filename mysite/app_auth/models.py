@@ -1,16 +1,18 @@
+# app_auth/models
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from .apps import app
+from .apps import db_schema
 from _common.base_models import BaseClass
 
 
 class MyProfile(AbstractUser):
     """Мой профиль пользователя."""
+
     link_profile = models.URLField(blank=True, null=True, verbose_name='Ссылка на профиль')
 
     class Meta:
-        db_table = f'{app}\".\"my_profile'
+        db_table = f'{db_schema}\".\"my_profile'
         verbose_name = 'Профиль пользователя'
         verbose_name_plural = 'Профили пользователей'
 
@@ -50,6 +52,6 @@ class RegistrationRequest(BaseClass):
             return 'Отклонена'
 
     class Meta:
-        db_table = f'{app}\".\"registration_request'
+        db_table = f'{db_schema}\".\"registration_request'
         verbose_name = 'Заявка на регистрацию'
         verbose_name_plural = 'Заявки на регистрацию'
