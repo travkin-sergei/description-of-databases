@@ -1,4 +1,4 @@
-# _common/base_models.py
+# _common/models.py
 """
 Общие классы и методы всех приложений проекта
 """

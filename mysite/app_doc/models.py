@@ -4,7 +4,7 @@
 """
 
 from django.db import models
-from _common.base_models import BaseClass
+from _common.models import BaseClass
 from app_url.models import DimUrl
 
 from .apps import db_schema

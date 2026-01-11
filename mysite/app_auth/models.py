@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from .apps import db_schema
-from _common.base_models import BaseClass
+from _common.models import BaseClass
 
 
 class MyProfile(AbstractUser):

@@ -5,7 +5,7 @@ from app_auth.models import MyProfile
 from app_url.models import DimUrl
 from app_dbm.models import LinkTable, DimStage
 from app_doc.models import DimDoc
-from _common.base_models import BaseClass
+from _common.models import BaseClass
 
 from .apps import db_schema
 

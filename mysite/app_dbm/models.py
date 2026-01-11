@@ -3,7 +3,7 @@ import datetime
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
-from _common.base_models import BaseClass, hash_calculate
+from _common.models import BaseClass, hash_calculate
 from .apps import db_schema
 
 

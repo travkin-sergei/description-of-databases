@@ -6,7 +6,7 @@ import hashlib
 from urllib.parse import urlparse
 from django.db import models
 from django.core.exceptions import ValidationError
-from _common.base_models import BaseClass
+from _common.models import BaseClass
 from .apps import db_schema
 
 

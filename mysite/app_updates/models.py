@@ -2,7 +2,7 @@
 from django.db import models
 from django.db.models import Q
 
-from _common.base_models import BaseClass
+from _common.models import BaseClass
 from app_url.models import DimUrl
 from app_dbm.models import LinkColumn
 

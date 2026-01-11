@@ -7,7 +7,7 @@ from .models import (
     LinkColumn, DimTypeLink, LinkColumnColumn, LinkColumnName, TotalData,
 
 )
-from _common.base_models import hash_calculate
+from _common.models import hash_calculate
 
 
 class DimStageSerializer(serializers.ModelSerializer):

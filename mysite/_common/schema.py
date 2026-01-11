@@ -1,4 +1,4 @@
-# _common/schema_init.py
+# _common/schema.py
 from django.apps import apps
 from django.db import connection
 from django.db.models.signals import pre_migrate

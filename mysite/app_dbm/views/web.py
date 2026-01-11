@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_filters.views import FilterView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from _common.base_models import SafePaginator
+from _common.models import SafePaginator
 from app_services.models import LinkServicesTable
 
 from ..models import (

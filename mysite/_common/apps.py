@@ -9,5 +9,4 @@ class CommonInfraConfig(AppConfig):
     name = '_common'
 
     def ready(self):
-        # подключаем schema_init один раз
-        import _common.schema_init
+        import _common.schema

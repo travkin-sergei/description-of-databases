@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .apps import name
+
 from .view.web import (
     MyLoginView, MyRegisterView, MyLogoutView,
     AdminDashboardView, ApproveRequestView, RejectRequestView,
