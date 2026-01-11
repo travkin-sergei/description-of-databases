@@ -4,6 +4,7 @@
 """
 from django.apps import AppConfig
 
+
 class CommonInfraConfig(AppConfig):
     name = '_common'
 
