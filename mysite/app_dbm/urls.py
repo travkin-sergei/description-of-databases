@@ -1,51 +1,34 @@
 # app_dbm/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views.ajax import linked_form_view, get_schemas, get_tables, get_columns
 from .views.web import (
-    PageNotFoundView, AboutView,
-    DatabasesView,
-    TablesView,
-    TableDetailView,
-    ColumnListView,
-    ColumnDetailView, LinkColumnColumnCreateView
+    PageNotFoundView, AboutView, DatabasesView, TablesView,
+    TableDetailView, ColumnListView, ColumnDetailView,
+    SchemaAPIView, TableAPIView, ColumnAPIView, LinkColumnColumnCreateView
 )
 from .views.v1 import (
-    # DimStageViewSet,
-    # DimDBViewSet,
-    # LinkDBViewSet,
-    # LinkSchemaViewSet,
-    # DimTableTypeViewSet,
-    # DimColumnNameViewSet,
-    # LinkTableViewSet,
-    # LinkColumnViewSet,
-    # DimTypeLinkViewSet,
-    # LinkColumnColumnViewSet,
-    # LinkColumnNameViewSet,
-    TotalDataViewSet
+    SchemaByDBAPI, TableBySchemaAPI, ColumnByTableAPI,
+    DimStageViewSet, DimDBViewSet, LinkDBViewSet,
+    DimColumnNameViewSet, LinkColumnViewSet,
+    DimTypeLinkViewSet, LinkColumnColumnViewSet,
+    LinkColumnNameViewSet, TotalDataViewSet
 )
-from .apps import name
-
-app_name = name
 
 router = DefaultRouter()
-router.register(r'total-data', TotalDataViewSet),
+router.register(r'dim-stage', DimStageViewSet, basename='dim-stage')
+
+app_name = 'dbm'
 
 urlpatterns = [
-    # API
-    path('api/', include(router.urls)),
-    path('api/link-column-column/create/', LinkColumnColumnCreateView.as_view(), name='link_column_column_create'),
-    # WEB
-    path('about-app/', AboutView.as_view(), name='about-app'),
-    path('', DatabasesView.as_view(), name='databases'),
-    path('tables/', TablesView.as_view(), name='tables'),
+    # API маршруты
+    path('api/v1/', include(router.urls)),
+    # Веб-маршруты - ВСЕ с правильными именами
+    path('about/', AboutView.as_view(), name='about-app'),
+    path('', TablesView.as_view(), name='tables'),
     path('tables/<int:pk>/', TableDetailView.as_view(), name='tables-detail'),
     path('columns/', ColumnListView.as_view(), name='columns'),
     path('columns/<int:pk>/', ColumnDetailView.as_view(), name='columns-detail'),
-    # ajax.py
-    path('linked-form/', linked_form_view, name='linked_form'),
-    path('get-schemas/', get_schemas, name='get_schemas'),
-    path('get-tables/', get_tables, name='get_tables'),
-    path('get-columns/', get_columns, name='get_columns'),
+    path('databases/', DatabasesView.as_view(), name='databases'),
+    # 404
+    path('<path:invalid_path>/', PageNotFoundView.as_view(), name='page_not_found'),
 ]
-handler404 = PageNotFoundView.as_view()

@@ -200,7 +200,7 @@
                                 <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                                 <td>
                                     {% if elem.pk %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
+                                    <a href="{% url 'dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
                                         {{ elem.schema.base.name|default_if_none:"—" }}
                                     </a>
                                     {% else %}
@@ -209,7 +209,7 @@
                                 </td>
                                 <td>
                                     {% if elem.pk %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
+                                   <a href="{% url 'dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
                                         {{ elem.schema.schema|default_if_none:"—" }}
                                     </a>
                                     {% else %}
@@ -218,7 +218,7 @@
                                 </td>
                                 <td>
                                     {% if elem.pk %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark fw-bold">
+                                    <a href="{% url 'dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark fw-bold">
                                         {{ elem.name|default_if_none:"—" }}
                                     </a>
                                     {% else %}

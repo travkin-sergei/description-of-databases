@@ -1,0 +1,274 @@
+# Создайте упрощенный CSS файл
+echo "/* Cascade Admin CSS - Упрощенный */
+.cascade-select {
+    margin-bottom: 10px;
+    display: block;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.cascade-select:disabled {
+    background-color: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.cascade-group {
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.cascade-group h2 {
+    margin-top: 0;
+    color: #333;
+    font-size: 18px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.cascade-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.cascade-field {
+    flex: 1;
+}
+
+.cascade-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+}
+
+.readonly-info {
+    background-color: #f0f0f0 !important;
+    border: 1px solid #ddd !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+}" > static/admin/css/cascade_admin.css
+
+# Создайте упрощенный JavaScript файл
+echo "// Cascade Admin JavaScript - Упрощенный
+(function(\$) {
+    'use strict';
+    
+    \$(document).ready(function() {
+        console.log('Cascade admin JS loaded');
+        
+        // Обработчик изменения баз данных (уровень 1)
+        \$(document).on('change', '.cascade-select[data-level=\"1\"]', function() {
+            var \$this = \$(this);
+            var group = \$this.data('group');
+            var baseId = \$this.val();
+            
+            console.log('Base changed:', group, baseId);
+            
+            // Сбрасываем зависимые поля
+            resetDependentFields(\$this, group);
+            
+            if (baseId) {
+                // Загружаем схемы для выбранной базы
+                loadSchemas(baseId, group);
+            }
+        });
+        
+        // Обработчик изменения схем (уровень 2)
+        \$(document).on('change', '.cascade-select[data-level=\"2\"]', function() {
+            var \$this = \$(this);
+            var group = \$this.data('group');
+            var schemaId = \$this.val();
+            
+            console.log('Schema changed:', group, schemaId);
+            
+            // Сбрасываем зависимые поля
+            resetDependentFields(\$this, group);
+            
+            if (schemaId) {
+                // Загружаем таблицы для выбранной схемы
+                loadTables(schemaId, group);
+            }
+        });
+        
+        // Обработчик изменения таблиц (уровень 3)
+        \$(document).on('change', '.cascade-select[data-level=\"3\"]', function() {
+            var \$this = \$(this);
+            var group = \$this.data('group');
+            var tableId = \$this.val();
+            
+            console.log('Table changed:', group, tableId);
+            
+            // Сбрасываем зависимые поля
+            resetDependentFields(\$this, group);
+            
+            if (tableId) {
+                // Загружаем столбцы для выбранной таблицы
+                loadColumns(tableId, group);
+            }
+        });
+        
+        // Инициализация при загрузке страницы
+        initCascadeSelects();
+    });
+    
+    function resetDependentFields(\$select, group) {
+        var level = \$select.data('level');
+        
+        // Находим все зависимые поля в той же группе
+        \$('[data-group=\"' + group + '\"]').each(function() {
+            var \$this = \$(this);
+            var thisLevel = \$this.data('level');
+            
+            if (thisLevel > level) {
+                \$this.val('').prop('disabled', true);
+                // Оставляем только первый option
+                var firstOption = \$this.find('option').first().clone();
+                \$this.empty().append(firstOption);
+            }
+        });
+    }
+    
+    function loadSchemas(baseId, group) {
+        var \$schemaSelect = \$('.cascade-select[data-group=\"' + group + '\"][data-level=\"2\"]');
+        
+        if (\$schemaSelect.length) {
+            \$schemaSelect.prop('disabled', true);
+            \$schemaSelect.html('<option value=\"\">Загрузка схем...</option>');
+            
+            \$.ajax({
+                url: '/admin/app_dbm/api/schemas/',
+                data: {base_id: baseId},
+                dataType: 'json',
+                success: function(data) {
+                    \$schemaSelect.html('<option value=\"\">---------</option>');
+                    
+                    if (data && data.length > 0) {
+                        \$.each(data, function(index, item) {
+                            \$schemaSelect.append(
+                                \$('<option>', {
+                                    value: item.id,
+                                    text: item.text
+                                })
+                            );
+                        });
+                        \$schemaSelect.prop('disabled', false);
+                    } else {
+                        \$schemaSelect.append('<option value=\"\">Нет доступных схем</option>');
+                    }
+                },
+                error: function() {
+                    \$schemaSelect.html('<option value=\"\">Ошибка загрузки</option>');
+                }
+            });
+        }
+    }
+    
+    function loadTables(schemaId, group) {
+        var \$tableSelect = \$('.cascade-select[data-group=\"' + group + '\"][data-level=\"3\"]');
+        
+        if (\$tableSelect.length) {
+            \$tableSelect.prop('disabled', true);
+            \$tableSelect.html('<option value=\"\">Загрузка таблиц...</option>');
+            
+            \$.ajax({
+                url: '/admin/app_dbm/api/tables/',
+                data: {schema_id: schemaId},
+                dataType: 'json',
+                success: function(data) {
+                    \$tableSelect.html('<option value=\"\">---------</option>');
+                    
+                    if (data && data.length > 0) {
+                        \$.each(data, function(index, item) {
+                            \$tableSelect.append(
+                                \$('<option>', {
+                                    value: item.id,
+                                    text: item.text
+                                })
+                            );
+                        });
+                        \$tableSelect.prop('disabled', false);
+                    } else {
+                        \$tableSelect.append('<option value=\"\">Нет доступных таблиц</option>');
+                    }
+                },
+                error: function() {
+                    \$tableSelect.html('<option value=\"\">Ошибка загрузки</option>');
+                }
+            });
+        }
+    }
+    
+    function loadColumns(tableId, group) {
+        var \$columnSelect = \$('.cascade-select[data-group=\"' + group + '\"][data-level=\"4\"]');
+        
+        if (\$columnSelect.length) {
+            \$columnSelect.prop('disabled', true);
+            \$columnSelect.html('<option value=\"\">Загрузка столбцов...</option>');
+            
+            \$.ajax({
+                url: '/admin/app_dbm/api/columns/',
+                data: {table_id: tableId},
+                dataType: 'json',
+                success: function(data) {
+                    \$columnSelect.html('<option value=\"\">---------</option>');
+                    
+                    if (data && data.length > 0) {
+                        \$.each(data, function(index, item) {
+                            \$columnSelect.append(
+                                \$('<option>', {
+                                    value: item.id,
+                                    text: item.text
+                                })
+                            );
+                        });
+                        \$columnSelect.prop('disabled', false);
+                    } else {
+                        \$columnSelect.append('<option value=\"\">Нет доступных столбцов</option>');
+                    }
+                },
+                error: function() {
+                    \$columnSelect.html('<option value=\"\">Ошибка загрузки</option>');
+                }
+            });
+        }
+    }
+    
+    function initCascadeSelects() {
+        // Для каждой группы проверяем заполненные поля
+        \$('.cascade-select[data-group]').each(function() {
+            var \$select = \$(this);
+            var group = \$select.data('group');
+            var level = \$select.data('level');
+            var value = \$select.val();
+            
+            if (value && level < 4) {
+                // Если поле заполнено, разблокируем его
+                \$select.prop('disabled', false);
+                
+                // Загружаем данные для следующего уровня
+                if (level === 1) {
+                    loadSchemas(value, group);
+                } else if (level === 2) {
+                    loadTables(value, group);
+                } else if (level === 3) {
+                    loadColumns(value, group);
+                }
+            }
+        });
+    }
+    
+})(django.jQuery || jQuery);" > static/admin/js/cascade_admin.js
+
+# Теперь выполните команды
+python manage.py collectstatic --noinput
+python manage.py runserver

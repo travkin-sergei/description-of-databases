@@ -1,4 +1,4 @@
-# your_app/admin.py
+# app_url/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import DimUrl
@@ -7,6 +7,7 @@ from .models import DimUrl
 @admin.register(DimUrl)
 class DimLinAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'display_url',
         'status_code_colored',
         'is_active',
@@ -19,7 +20,7 @@ class DimLinAdmin(admin.ModelAdmin):
         'status_code',
         ('created_at', admin.DateFieldListFilter),
     )
-    search_fields = ('url', 'login')  # вы предпочитаете поиск по логину — добавлено
+    search_fields = ('url', 'login')
     ordering = ('-created_at',)
     date_hierarchy = 'created_at'
     list_per_page = 50
@@ -42,7 +43,6 @@ class DimLinAdmin(admin.ModelAdmin):
     readonly_fields = ('url_hash', 'created_at', 'updated_at')
 
     # Методы для красивого отображения
-
     @admin.display(description='URL', ordering='url')
     def display_url(self, obj):
         return format_html(

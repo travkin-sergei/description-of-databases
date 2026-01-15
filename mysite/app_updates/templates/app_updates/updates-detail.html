@@ -175,7 +175,7 @@
                                 <td>{{ main.table.schema.schema|default:"—" }}</td>
                                 <td>
                                     {% if main.table %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=main.table.pk %}">
+                                    <a href="{% url 'tables-detail' pk=main.table.pk %}">
                                         {{ main.table.name }}
                                     </a>
                                     {% else %}
@@ -189,7 +189,7 @@
                                 <td>{{ sub.columns|default:"—" }}</td>
                                 <td>
                                     {% if sub.table %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=sub.table.pk %}">
+                                    <a href="{% url 'tables-detail' pk=sub.table.pk %}">
                                         {{ sub.table.name }}
                                     </a>
                                     {% else %}

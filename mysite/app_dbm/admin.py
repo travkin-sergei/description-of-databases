@@ -1,241 +1,319 @@
-from django import forms
+# app_dbm/admin.py
 from django.contrib import admin
-from django.contrib import messages
-from django_jsonform.widgets import JSONFormWidget
+from django import forms
+from django.utils.html import format_html
 
-from .forms import LinkColumnColumnAdminForm
 from .models import (
-    LinkColumnColumn, DimTypeLink, DimDB, LinkColumn, LinkDB, DimStage,
-    DimTableNameType, DimTableType, DimColumnName, LinkTableName,
-    LinkSchema, LinkTable, LinkColumnName, TotalData
+    TotalData, DimStage, DimDB, LinkDB, LinkSchema, DimTableType,
+    DimColumnName, DimTableNameType, LinkTable, LinkTableName,
+    LinkColumn, DimTypeLink, LinkColumnColumn, LinkColumnName
 )
-from .utils.syncing_model import sync_database
 
 
-# === Actions ===
-@admin.action(description='Синхронизировать выбранную базу и слой')
-def sync_selected(modeladmin, request, queryset):
-    total_rows = 0
-    errors = []
-
-    for link_db in queryset:
-        db_instance = link_db.base
-        stage_instance = link_db.stage
-        result = sync_database(db_instance, stage_instance)
-
-        if isinstance(result, int):
-            total_rows += result
-        else:
-            errors.append(result)
-
-    if total_rows:
-        messages.success(request, f"Синхронизировано {total_rows} строк.")
-
-    if errors:
-        for error_msg in errors:
-            messages.error(request, error_msg)
-
-
-# === Forms ===
-class LinkColumnForm(forms.ModelForm):
-    class Meta:
-        model = LinkColumn
-        fields = '__all__'
-        widgets = {
-            'description': JSONFormWidget(
-                schema={
-                    "type": "object",
-                    "title": "Дополнительные параметры",
-                    "properties": {
-                        "name": {"type": "string", "title": "Название"},
-                        "description": {"type": "string", "title": "Описание"},
-                        "key": {"type": "string", "title": "Ключ"},
-                        "auto": {"type": "string", "title": "Авто"},
-                    },
-                    "required": [],
-                    "additionalProperties": False
-                }
-            ),
-            'default': forms.TextInput(attrs={'size': 20, 'style': 'width: 200px;'}),
-        }
-
-    def clean_description(self):
-        data = self.cleaned_data.get("description", {})
-        return {k: v for k, v in data.items() if v not in ("", None)}
-
-
-# === Inlines ===
-class LinkDBInline(admin.TabularInline):
-    model = LinkDB
-    extra = 0
-    fields = ('version', 'name', 'alias', 'host', 'port', 'stage', 'is_active')
-    verbose_name = 'Экземпляр базы'
-    verbose_name_plural = 'Экземпляры баз'
-    fk_name = 'base'
-    autocomplete_fields = ['stage']
-
-
-class LinkTableNameInline(admin.TabularInline):
-    model = LinkTableName
-    extra = 0
-    fields = ('name', 'type', 'is_publish')
-    verbose_name = 'Альтернативное имя'
-    verbose_name_plural = 'Альтернативные имена таблиц'
-    autocomplete_fields = ['type']
-
-
-class LinkColumnInline(admin.TabularInline):
-    model = LinkColumn
-    form = LinkColumnForm
-    extra = 0
-    fields = ('is_active', 'columns', 'type', 'is_null', 'is_key', 'unique_together', 'description', 'default', 'stage')
-    verbose_name = 'Колонка'
-    verbose_name_plural = 'Колонки'
-
-
-# === Admins ===
+# ================== БАЗОВЫЕ КЛАССЫ ==================
 class BaseAdmin(admin.ModelAdmin):
-    list_per_page = 20
-    list_filter = ('is_active',)
+    """Базовый класс с общими настройками"""
+    list_per_page = 100
+    show_full_result_count = False
 
 
-@admin.register(LinkDB)
-class LinkDBAdmin(admin.ModelAdmin):
-    search_fields = ('name', 'alias', 'host', 'port')
-    list_display = ('name', 'alias', 'host', 'port', 'stage', 'base')
-    list_filter = ('is_active', 'stage')
-    actions = [sync_selected]
-    ordering = ['name']
-    autocomplete_fields = ['base', 'stage']
+# ================== ОПТИМИЗИРОВАННАЯ АДМИНКА ДЛЯ LinkColumn ==================
+@admin.register(LinkColumn)
+class LinkColumnAdmin(BaseAdmin):
+    """Админка для столбцов с улучшенным поиском"""
+
+    # 🔍 ПОИСК ПО ВСЕМУ ПУТИ
+    search_fields = (
+        'columns',  # Имя столбца
+        'table__name',  # Имя таблицы
+        'table__schema__schema',  # Имя схемы
+        'table__schema__base__name',  # Имя базы данных
+        'type',  # Тип данных
+    )
+
+    # 📋 СПИСОК ЗАПИСЕЙ
+    list_display = (
+        'id',
+        'full_path_display',
+        'type',
+        'is_key',
+        'is_null',
+        'created_at'
+    )
+
+    # ⚙️ ФИЛЬТРЫ
+    list_filter = ('is_key', 'is_null', 'table__schema__base')
+
+    # 📄 ПОЛЯ В ФОРМЕ РЕДАКТИРОВАНИЯ
+    fields = ('table', 'columns', 'type', 'is_null', 'is_key',
+              'unique_together', 'default', 'description', 'stage')
+
+    def full_path_display(self, obj):
+        """Отображаем полный путь столбца"""
+        try:
+            base = obj.table.schema.base.name if obj.table.schema.base else '???'
+            schema = obj.table.schema.schema if obj.table.schema else '???'
+            table = obj.table.name if obj.table else '???'
+            column = obj.columns
+
+            return format_html(
+                '<div style="font-family: monospace; font-size: 11px; line-height: 1.3;">'
+                '<span style="color: #666;">{}.{}.{}.</span>'
+                '<span style="color: #1890ff; font-weight: bold;">{}</span>'
+                '</div>',
+                base, schema, table, column
+            )
+        except AttributeError:
+            return str(obj)[:50]
+
+    full_path_display.short_description = 'Полный путь столбца'
+
+    def get_queryset(self, request):
+        """Оптимизируем запросы"""
+        return super().get_queryset(request).select_related(
+            'table__schema__base'
+        )
 
 
-@admin.register(DimTypeLink)
-class DimTypeLinkAdmin(BaseAdmin):
-    list_display = ('id', 'name', 'is_active')
-    search_fields = ('name',)
-    ordering = ['name']
+# ================== РЕГИСТРАЦИЯ МОДЕЛЕЙ ДЛЯ AUTOCOMPLETE ==================
+@admin.register(LinkTable)
+class LinkTableAdmin(BaseAdmin):
+    """Админка для таблиц"""
+    list_display = ('name', 'schema_display', 'type', 'is_metadata')
+    search_fields = ('name__istartswith', 'schema__schema__istartswith')
+
+    def schema_display(self, obj):
+        return f"{obj.schema.base.name}.{obj.schema.schema}"
+
+    schema_display.short_description = 'Схема'
 
 
 @admin.register(DimStage)
 class DimStageAdmin(BaseAdmin):
-    list_display = ('id', 'name', 'is_active')
-    search_fields = ('name',)
-    ordering = ['name']
+    """Админка для стендов"""
+    list_display = ('name', 'description')
+    search_fields = ('name__istartswith',)
 
 
-@admin.register(DimTableNameType)
-class DimDBTableNameTypeAdmin(BaseAdmin):
-    list_display = ('name', 'is_active')
-    search_fields = ('name',)
-    ordering = ['name']
+@admin.register(DimTypeLink)
+class DimTypeLinkAdmin(BaseAdmin):
+    """Админка для типов связей"""
+    list_display = ('name',)
+    search_fields = ('name__istartswith',)
 
 
-@admin.register(DimTableType)
-class DimDBTableTypeAdmin(BaseAdmin):
-    list_display = ('name', 'description', 'is_active')
-    search_fields = ('name', 'description')
-    ordering = ['name']
+# ================== ОСНОВНАЯ АДМИНКА ДЛЯ LinkColumnColumn ==================
+@admin.register(LinkColumnColumn)
+class LinkColumnColumnAdmin(BaseAdmin):
+    """Админка для связей столбцов с автокомплитом"""
+
+    # 🎯 АВТОКОМПЛИТ ПОЛЯ
+    autocomplete_fields = ['main', 'sub', 'type']
+
+    # 📋 СПИСОК ЗАПИСЕЙ
+    list_display = (
+        'id',
+        'main_full_path_display',
+        'sub_full_path_display',
+        'type_display',
+        'created_at'
+    )
+
+    # 🔍 ПОИСК
+    search_fields = (
+        'main__columns',
+        'main__table__name',
+        'main__table__schema__schema',
+        'main__table__schema__base__name',
+        'sub__columns',
+        'sub__table__name',
+        'sub__table__schema__schema',
+        'sub__table__schema__base__name',
+        'type__name',
+    )
+
+    # ⚙️ ФИЛЬТРЫ
+    list_filter = ('type', 'created_at')
+
+    # 📄 ПОЛЯ В ФОРМЕ РЕДАКТИРОВАНИЯ
+    fieldsets = (
+        ('Основной столбец', {
+            'fields': ('main',),
+            'description': 'Начните вводить имя столбца, таблицы, схемы или базы данных'
+        }),
+        ('Связанный столбец (опционально)', {
+            'fields': ('sub',),
+            'description': 'Начните вводить имя столбца, таблицы, схемы или базы данных'
+        }),
+        ('Тип связи', {
+            'fields': ('type',),
+        }),
+    )
+
+    readonly_fields = ('created_at',)
+
+    def get_queryset(self, request):
+        """Оптимизируем запросы"""
+        queryset = super().get_queryset(request)
+        return queryset.select_related(
+            'main__table__schema__base',
+            'sub__table__schema__base',
+            'type'
+        )
+
+    def main_full_path_display(self, obj):
+        """Отображаем полный путь для основного столбца"""
+        if obj.main:
+            try:
+                base = obj.main.table.schema.base.name if obj.main.table.schema.base else '???'
+                schema = obj.main.table.schema.schema if obj.main.table.schema else '???'
+                table = obj.main.table.name if obj.main.table else '???'
+                column = obj.main.columns
+
+                return format_html(
+                    '<div style="font-family: monospace; font-size: 11px; line-height: 1.3;">'
+                    '<span style="color: #666;">{}.{}.{}.</span>'
+                    '<span style="color: #1890ff; font-weight: bold;">{}</span>'
+                    '</div>',
+                    base, schema, table, column
+                )
+            except AttributeError:
+                return str(obj.main)[:50]
+        return "—"
+
+    main_full_path_display.short_description = 'Основной столбец'
+
+    def sub_full_path_display(self, obj):
+        """Отображаем полный путь для связанного столбца"""
+        if obj.sub:
+            try:
+                base = obj.sub.table.schema.base.name if obj.sub.table.schema.base else '???'
+                schema = obj.sub.table.schema.schema if obj.sub.table.schema else '???'
+                table = obj.sub.table.name if obj.sub.table else '???'
+                column = obj.sub.columns
+
+                return format_html(
+                    '<div style="font-family: monospace; font-size: 11px; line-height: 1.3;">'
+                    '<span style="color: #666;">{}.{}.{}.</span>'
+                    '<span style="color: #52c41a; font-weight: bold;">{}</span>'
+                    '</div>',
+                    base, schema, table, column
+                )
+            except AttributeError:
+                return str(obj.sub)[:50]
+        return "—"
+
+    sub_full_path_display.short_description = 'Связанный столбец'
+
+    def type_display(self, obj):
+        return obj.type.name if obj.type else "—"
+
+    type_display.short_description = 'Тип связи'
+
+
+# ================== RAW_ID_FIELDS ВЕРСИЯ (ЕСЛИ НУЖНО) ==================
+class LinkColumnColumnRawIdAdmin(BaseAdmin):
+    """Админка с raw_id_fields"""
+
+    raw_id_fields = ['main', 'sub']
+    autocomplete_fields = ['type']
+
+    list_display = (
+        'id',
+        'main_info',
+        'sub_info',
+        'type',
+        'created_at'
+    )
+
+    fields = ('main', 'sub', 'type', 'created_at')
+    readonly_fields = ('created_at',)
+
+    def main_info(self, obj):
+        if obj.main:
+            try:
+                return f"{obj.main.columns} (ID: {obj.main.id})"
+            except:
+                return f"ID: {obj.main.id}"
+        return "—"
+
+    main_info.short_description = 'Основной столбец'
+
+    def sub_info(self, obj):
+        if obj.sub:
+            try:
+                return f"{obj.sub.columns} (ID: {obj.sub.id})"
+            except:
+                return f"ID: {obj.sub.id}"
+        return "—"
+
+    sub_info.short_description = 'Связанный столбец'
+
+
+# ================== ОСТАЛЬНЫЕ МОДЕЛИ ==================
+@admin.register(TotalData)
+class TotalDataAdmin(BaseAdmin):
+    list_display = ('hash_address', 'stand', 'table_catalog', 'table_schema',
+                    'table_name', 'column_name', 'created_at')
+    list_filter = ('table_catalog', 'table_schema', 'table_type')
+    search_fields = ('table_name__istartswith', 'column_name__istartswith')
+    readonly_fields = ('hash_address', 'created_at', 'updated_at')
 
 
 @admin.register(DimDB)
 class DimDBAdmin(BaseAdmin):
-    inlines = [LinkDBInline]
-    list_display = ('name', 'version', 'is_active')
-    search_fields = ('name', 'version', 'description')
-    ordering = ['name']
+    list_display = ('name', 'version', 'description')
+    search_fields = ('name__istartswith', 'version__istartswith')
+
+
+@admin.register(LinkDB)
+class LinkDBAdmin(BaseAdmin):
+    list_display = ('name', 'alias', 'host', 'port', 'stage', 'base')
+    list_filter = ('stage', 'base')
+    search_fields = ('name__istartswith', 'alias__istartswith')
+
+
+@admin.register(LinkSchema)
+class LinkSchemaAdmin(BaseAdmin):
+    list_display = ('schema', 'base', 'description')
+    list_filter = ('base',)
+    search_fields = ('schema__istartswith',)
+
+
+@admin.register(DimTableType)
+class DimTableTypeAdmin(BaseAdmin):
+    list_display = ('name', 'description')
+    search_fields = ('name__istartswith',)
 
 
 @admin.register(DimColumnName)
 class DimColumnNameAdmin(BaseAdmin):
-    list_display = ('name', 'is_active')
-    search_fields = ('name',)
-    ordering = ['name']
+    list_display = ('name',)
+    search_fields = ('name__istartswith',)
+    list_per_page = 200
 
 
-@admin.register(LinkSchema)
-class LinkDBSchemaAdmin(BaseAdmin):
-    list_display = ('base', 'schema', 'is_active')
-    search_fields = ('schema', 'base__name')
-    list_filter = BaseAdmin.list_filter + ('base',)
-    autocomplete_fields = ['base']
-    ordering = ['schema']
-
-
-@admin.register(LinkTable)
-class LinkTableAdmin(BaseAdmin):
-    inlines = [LinkTableNameInline, LinkColumnInline]
-    list_display = ('name', 'schema', 'type', 'is_active', 'get_alternative_names')
-    search_fields = ('name', 'type__name', 'schema__schema', 'description')
-    list_filter = BaseAdmin.list_filter + ('type', 'schema')
-    autocomplete_fields = ['type', 'schema']
-    ordering = ['name']
-
-    def get_alternative_names(self, obj):
-        names = obj.linktablename_set.values_list('name', flat=True)
-        return ", ".join(names) if names else "—"
-
-    get_alternative_names.short_description = "Альтернативные имена"
-
-
-@admin.register(LinkColumn)
-class LinkColumnAdmin(BaseAdmin):
-    form = LinkColumnForm
-    list_display = ('columns', 'table', 'type', 'is_null', 'is_key', 'is_active')
-    search_fields = [
-        'columns',
-        'table__name',
-        'table__schema__schema',
-        'table__schema__base__name'
-    ]
-    list_filter = BaseAdmin.list_filter + ('type', 'is_null', 'is_key')
-    autocomplete_fields = ['table']
-    ordering = ['columns']
+@admin.register(DimTableNameType)
+class DimTableNameTypeAdmin(BaseAdmin):
+    list_display = ('name',)
+    search_fields = ('name__istartswith',)
 
 
 @admin.register(LinkTableName)
 class LinkTableNameAdmin(BaseAdmin):
-    list_display = ('table', 'name', 'type', 'is_publish', 'is_active')
-    search_fields = ('table__name', 'name', 'type__name')
-    autocomplete_fields = ['table', 'type']
-    ordering = ['name']
+    list_display = ('name', 'table', 'type', 'is_publish')
+    list_filter = ('type', 'is_publish')
+    search_fields = ('name__istartswith', 'table__name__istartswith')
 
 
 @admin.register(LinkColumnName)
 class LinkColumnNameAdmin(BaseAdmin):
-    list_display = ('column', 'name', 'is_active')
-    search_fields = ('column__columns', 'name__name')
-    autocomplete_fields = ['column', 'name']
-    ordering = ['name']
+    list_display = ('name', 'column_display')
+    search_fields = ('name__name__istartswith', 'column__columns__istartswith')
 
+    def column_display(self, obj):
+        if obj.column:
+            return f"{obj.column.columns[:30]}"
+        return "N/A"
 
-@admin.register(TotalData)
-class TotalDataAdmin(admin.ModelAdmin):
-    list_display = (
-        'hash_address', 'table_catalog', 'table_schema', 'table_name',
-        'column_name', 'created_at', 'is_active'
-    )
-    search_fields = ('table_catalog', 'table_schema', 'table_name', 'column_name', 'data_type')
-    list_filter = ('is_active', 'stand', 'table_type')
-    readonly_fields = ('hash_address', 'created_at', 'updated_at')
-    list_per_page = 50
-    ordering = ['-created_at']
-
-
-# === LinkColumnColumn Admin (рабочая версия) ===
-@admin.register(LinkColumnColumn)
-class LinkColumnColumnAdmin(admin.ModelAdmin):
-    list_display = ['id', 'type', 'main', 'sub', 'is_active']
-    list_filter = ['type', 'is_active']
-    autocomplete_fields = ['main', 'sub']  # ← Это работает как Google-поиск
-    form = LinkColumnColumnAdminForm
-
-    # Не используем autocomplete_fields — конфликтует с кастомной формой
-    def main_col_display(self, obj):
-        return str(obj.main) if obj.main else "—"
-
-    main_col_display.short_description = "Main"
-
-    def sub_col_display(self, obj):
-        return str(obj.sub) if obj.sub else "∅"
-
-    sub_col_display.short_description = "Sub"
+    column_display.short_description = 'Столбец'

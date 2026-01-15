@@ -25,7 +25,45 @@ read_only_schema = extend_schema_view(
     list=extend_schema(tags=dba_tags),
     retrieve=extend_schema(tags=dba_tags)
 )
+from django.http import JsonResponse
+from django.views.generic import View
+from ..models import DimDB, LinkSchema, LinkTable, LinkColumn
 
+
+class SchemaByDBAPI(View):
+    """Получение схем по выбранной базе данных"""
+
+    def get(self, request):
+        db_id = request.GET.get('db_id')
+        if not db_id:
+            return JsonResponse({'error': 'No db_id provided'}, status=400)
+
+        schemas = LinkSchema.objects.filter(base_id=db_id).values('id', 'schema')
+        return JsonResponse(list(schemas), safe=False)
+
+
+class TableBySchemaAPI(View):
+    """Получение таблиц по выбранной схеме"""
+
+    def get(self, request):
+        schema_id = request.GET.get('schema_id')
+        if not schema_id:
+            return JsonResponse({'error': 'No schema_id provided'}, status=400)
+
+        tables = LinkTable.objects.filter(schema_id=schema_id).values('id', 'name')
+        return JsonResponse(list(tables), safe=False)
+
+
+class ColumnByTableAPI(View):
+    """Получение колонок по выбранной таблице"""
+
+    def get(self, request):
+        table_id = request.GET.get('table_id')
+        if not table_id:
+            return JsonResponse({'error': 'No table_id provided'}, status=400)
+
+        columns = LinkColumn.objects.filter(table_id=table_id).values('id', 'columns')
+        return JsonResponse(list(columns), safe=False)
 
 # Базовый класс с ограничением методов
 class ReadOnlyViewSetMixin:

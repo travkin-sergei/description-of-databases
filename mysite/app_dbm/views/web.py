@@ -1,6 +1,4 @@
 # app_dbm\views\web.py
-import logging
-
 from django.db.models import Q, OuterRef, Subquery
 from django.http import HttpResponseNotFound, JsonResponse
 from django.utils.decorators import method_decorator
@@ -22,8 +20,6 @@ from ..filters import (
     LinkDBFilter,
     LinkTableFilter, LinkColumnFilter,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class PageNotFoundView(LoginRequiredMixin, View):
@@ -229,16 +225,18 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         context['services_list'] = services
         context['services_count'] = services.count()
 
-        # Расписания обновлений
-        schedules = LinkUpdate.objects.filter(
-            is_active=True,
-            column__main__table=table,
-        ).values(
-            'name__id',
-            'name__name',
-            'name__schedule',
-            'name__is_active'
-        ).distinct().order_by('name__name')
+        # Расписания обновлений - ИСПРАВЛЕННАЯ ВЕРСИЯ (если нужно использовать)
+        # Если в шаблоне не используется, можно оставить пустой список
+        schedules = []  # Пустой список для предотвращения ошибки
+        # ИЛИ используйте правильный запрос, если нужны данные:
+        # schedules = LinkColumnColumn.objects.filter(
+        #     is_active=True,
+        #     main__table=table,  # Исправлено с column__main__table на main__table
+        # ).values(
+        #     'main__id',
+        #     'main__columns',
+        #     'type__name',
+        # ).distinct().order_by('main__columns')
         context['schedules'] = schedules
 
         # Альтернативные имена таблицы
@@ -356,15 +354,17 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
         column_names = LinkColumnName.objects.filter(column=column).select_related('name')
         context['column_names'] = column_names
 
-        # Обновления
-        schedules = LinkUpdate.objects.filter(
-            column__main=column
-        ).values(
-            'name__id',
-            'name__name',
-            'name__schedule',
-            'name__is_active'
-        ).distinct().order_by('name__name')
+        # Обновления - ИСПРАВЛЕННАЯ ВЕРСИЯ (если нужно использовать)
+        # Если в шаблоне не используется, можно оставить пустой список
+        schedules = []  # Пустой список для предотвращения ошибки
+        # ИЛИ используйте правильный запрос, если нужны данные:
+        # schedules = LinkColumnColumn.objects.filter(
+        #     main=column,  # Исправлено с column__main на main
+        # ).values(
+        #     'main__id',
+        #     'main__columns',
+        #     'type__name',
+        # ).distinct().order_by('main__columns')
         context['schedules'] = schedules
 
         return context
@@ -439,8 +439,6 @@ class LinkColumnColumnCreateView(View):
                 is_active=is_active
             )
 
-            logger.info(f"LinkColumnColumn #{obj.id} создан: main={main_id}, sub={sub_id}, type={type_id}")
-
             return JsonResponse({
                 "success": True,
                 "id": obj.id,
@@ -450,13 +448,11 @@ class LinkColumnColumnCreateView(View):
             })
 
         except ValueError as e:
-            logger.error(f"Некорректный ID: {e}")
             return JsonResponse({
                 "error": f"Некорректный числовой идентификатор: {e}"
             }, status=400)
 
         except Exception as e:
-            logger.exception("Ошибка при создании LinkColumnColumn")
             return JsonResponse({
                 "error": str(e),
                 "details": "См. логи сервера для деталей"

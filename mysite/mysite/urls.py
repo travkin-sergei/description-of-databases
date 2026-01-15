@@ -1,3 +1,4 @@
+# mysite/urls.py
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -5,16 +6,22 @@ from django.urls import path, include
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-
 urlpatterns = [
-    path('summernote/', include('django_summernote.urls')),  # настройка редактора в админке
-    path('admin/doc/', include('django.contrib.admindocs.urls')),  # Документация
+
+    path('summernote/', include('django_summernote.urls')),
+    path('admin/doc/', include('django.contrib.admindocs.urls')),
     path('admin/', admin.site.urls),
-    #
-    # Общая схема и документация
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),  # Открытая схема API
-    path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),  # Swagge
-    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),  # ReDoc
+    # Django Autocomplete Light (основной путь для DAL)
+    #path('dal/', include('dal.urls', namespace='dal')),
+    # Ваши кастомные автозаполнения для app_dbm
+    path('autocomplete/', include('app_dbm.autocomplete_urls')),  # ← ПРАВИЛЬНЫЙ ИМПОРТ
+    # Остальные маршруты
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # Для django-select2 (если используете)
+    path('select2/', include('django_select2.urls')),
 
     # Приложения
     path('', include('app_dbm.urls')),
@@ -25,13 +32,8 @@ urlpatterns = [
     path('updates/', include('app_updates.urls')),
     path('query/', include('app_query_path.urls')),
     path('link/', include('app_url.urls')),
-
 ]
 
 if settings.DEBUG:
-    urlpatterns.extend(
-        static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    )
-    urlpatterns.extend(
-        static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

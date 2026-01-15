@@ -1,0 +1,142 @@
+<!-- templates/app_dbm/linkcolumncolumn_form.html -->
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Функция для загрузки зависимых данных
+    function loadDependentData(url, paramName, paramValue, targetSelect) {
+        if (!paramValue) {
+            targetSelect.empty().append('<option value="">---------</option>');
+            return;
+        }
+
+        $.ajax({
+            url: url,
+            data: { [paramName]: paramValue },
+            dataType: 'json',
+            success: function(data) {
+                targetSelect.empty().append('<option value="">---------</option>');
+                $.each(data, function(i, item) {
+                    targetSelect.append($('<option>', {
+                        value: item.id,
+                        text: item.name || item.schema || item.columns
+                    }));
+                });
+            }
+        });
+    }
+
+    // Основная база (main)
+    $('#id_main_base').change(function() {
+        loadDependentData(
+            '/admin/app_dbm/api/schemas-by-db/',
+            'db_id',
+            $(this).val(),
+            $('#id_main_schema')
+        );
+        // Сброс зависимых полей
+        $('#id_main_table').empty().append('<option value="">---------</option>');
+        $('#id_main_column').empty().append('<option value="">---------</option>');
+        $('#id_main').val('');
+    });
+
+    $('#id_main_schema').change(function() {
+        loadDependentData(
+            '/admin/app_dbm/api/tables-by-schema/',
+            'schema_id',
+            $(this).val(),
+            $('#id_main_table')
+        );
+        $('#id_main_column').empty().append('<option value="">---------</option>');
+        $('#id_main').val('');
+    });
+
+    $('#id_main_table').change(function() {
+        loadDependentData(
+            '/admin/app_dbm/api/columns-by-table/',
+            'table_id',
+            $(this).val(),
+            $('#id_main_column')
+        );
+        $('#id_main').val('');
+    });
+
+    // При выборе колонки заполняем скрытое поле
+    $('#id_main_column').change(function() {
+        $('#id_main').val($(this).val());
+    });
+
+    // Аналогично для зависимой базы (sub)
+    $('#id_sub_base').change(function() {
+        loadDependentData(
+            '/admin/app_dbm/api/schemas-by-db/',
+            'db_id',
+            $(this).val(),
+            $('#id_sub_schema')
+        );
+        $('#id_sub_table').empty().append('<option value="">---------</option>');
+        $('#id_sub_column').empty().append('<option value="">---------</option>');
+        $('#id_sub').val('');
+    });
+
+    // ... аналогичные обработчики для sub_schema, sub_table, sub_column
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+
+    <div class="form-row">
+        <div class="fieldBox">
+            <h3>Основная колонка</h3>
+            <div>
+                <label for="id_main_base">База данных:</label>
+                <select id="id_main_base" name="main_base" class="form-control">
+                    <option value="">---------</option>
+                    {% for db in dbs %}
+                    <option value="{{ db.id }}">{{ db.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="id_main_schema">Схема:</label>
+                <select id="id_main_schema" name="main_schema" class="form-control">
+                    <option value="">---------</option>
+                </select>
+            </div>
+            <div>
+                <label for="id_main_table">Таблица:</label>
+                <select id="id_main_table" name="main_table" class="form-control">
+                    <option value="">---------</option>
+                </select>
+            </div>
+            <div>
+                <label for="id_main_column">Колонка:</label>
+                <select id="id_main_column" name="main_column" class="form-control">
+                    <option value="">---------</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="fieldBox">
+            <h3>Тип связи</h3>
+            {{ form.type }}
+        </div>
+
+        <div class="fieldBox">
+            <h3>Зависимая колонка (опционально)</h3>
+            <!-- Аналогичная структура для sub -->
+        </div>
+    </div>
+
+    {{ form.main }}
+    {{ form.sub }}
+
+    <input type="submit" value="Сохранить">
+</form>
+{% endblock %}

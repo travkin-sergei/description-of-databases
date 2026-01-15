@@ -26,7 +26,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'dal',                     # 1. Django Autocomplete Light
+    'dal_select2',             # 2. Для DAL + Select2
+    'django.contrib.admin',    # 3. Админка Django ПОСЛЕ DAL
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -34,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # кастомизация
     'django.contrib.admindocs',  # документирование кода (см. MIDDLEWARE)
+    'django_select2',
     'rest_framework',  # API
     'rest_framework.authtoken',  # authtoken
     'drf_spectacular',  # swagger
@@ -43,7 +46,7 @@ INSTALLED_APPS = [
     'django_jsonform',  # работа с json в admin.py app_dbm
     'django_apscheduler',  # Шедулер в admin
     # ----------
-    '_common',# Базовое приложение
+    '_common',  # Базовое приложение
     'app_auth',  # Авторизация
     'app_dbm',  # База данных
     'app_dict',  # Словарь
@@ -135,9 +138,12 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-STATICFILES_DIRS = [STATIC_DIR]
+# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Для collectstatic
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Для разработки
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -216,3 +222,8 @@ LOGGING = {
         },
     },
 }
+
+# ========== ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ ДЛЯ КАСКАДНЫХ СПИСКОВ ==========
+# Убедитесь, что Select2 работает правильно
+SELECT2_JS = 'admin/js/vendor/select2/select2.full.min.js'
+SELECT2_CSS = 'admin/css/vendor/select2/select2.min.css'
