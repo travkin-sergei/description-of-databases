@@ -1,4 +1,5 @@
 # app_services/views/web.py
+
 from collections import defaultdict
 
 from django.utils import timezone
@@ -6,8 +7,6 @@ from django_filters.views import FilterView
 from django.db.models import Prefetch
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.http import HttpResponseNotFound
-from django.views import View
 from django.views.generic import TemplateView, DetailView, ListView
 
 from app_dbm.models import DimStage, LinkTable
@@ -23,11 +22,12 @@ from ..models import (
     LinkServicesServices,
     LinkResponsiblePerson,
     LinkServicesTable,
-    DimServicesNameType,
 )
 
 
+
 class AboutView(TemplateView):
+    """Страница «О модуле Управление сервисами»."""
     template_name = 'app_services/about-application.html'
     title = "О модуле Управление сервисами"
 
@@ -36,13 +36,13 @@ class AboutView(TemplateView):
         context['title'] = self.title
         context['current_year'] = timezone.now().year
         context['version'] = '1.0.0'
-
         return context
+
+
 
 
 class LinksUrlServiceListView(ListView):
     """Список ссылок сервисов."""
-
     model = LinksUrlService
     filterset_class = LinksUrlServiceFilter
     template_name = 'app_services/link-list.html'
@@ -67,22 +67,25 @@ class LinksUrlServiceListView(ListView):
         if get_params:
             context['query_string'] = get_params.urlencode()
 
+
         # Добавляем querysets для фильтров
         context['tech_stacks'] = DimTechStack.objects.all()
         context['stages'] = DimStage.objects.all()
         context['services'] = DimServices.objects.all()
 
+
         return context
+
 
 
 class ServicesView(LoginRequiredMixin, FilterView):
     """Список сервисов."""
-
     model = DimServices
     filterset_class = DimServicesFilter
     context_object_name = 'services'
     template_name = 'app_services/services.html'
     paginate_by = 20
+
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related('type').prefetch_related(
@@ -93,8 +96,10 @@ class ServicesView(LoginRequiredMixin, FilterView):
         )
         return queryset.order_by('alias')
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
 
         # Сохраняем параметры фильтрации для пагинации
         get_params = self.request.GET.copy()
@@ -103,16 +108,18 @@ class ServicesView(LoginRequiredMixin, FilterView):
         if get_params:
             context['query_string'] = get_params.urlencode()
 
+
         # Добавляем типы сервисов для фильтра
         context['service_types'] = DimServicesTypes.objects.all()
         context['roles'] = DimRoles.objects.all()
 
+
         return context
+
 
 
 class ServicesDetailView(LoginRequiredMixin, DetailView):
     """Детальная информация о сервисе."""
-
     model = DimServices
     context_object_name = 'service'
     template_name = 'app_services/services-detail.html'
@@ -123,7 +130,7 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
             'dimservicesname_set',
             Prefetch(
                 'linkresponsibleperson_set',
-                queryset=LinkResponsiblePerson.objects.select_related('name__user', 'role').filter(is_active=True)
+                queryset=LinkResponsiblePerson.objects.select_related('name', 'role').filter(is_active=True)
             ),
             Prefetch(
                 'linkservicestable_set',
@@ -146,11 +153,13 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+
         # Таблицы с пагинацией
         tables = self.object.linkservicestable_set.select_related('table').filter(is_active=True)
         paginator = Paginator(tables, self.paginate_by)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
+
 
         # Сортировка ссылок сервисов сначала по stack, затем по stage.pk
         links_queryset = (
@@ -176,7 +185,7 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
         responsible_persons = (
             self.object
             .linkresponsibleperson_set
-            .select_related('name__user', 'role')
+            .select_related('name', 'role')
             .filter(is_active=True)
         )
 
@@ -200,12 +209,12 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
         if get_params:
             context['query_string'] = get_params.urlencode()
 
+
         return context
 
 
 class ServiceUserView(LoginRequiredMixin, FilterView):
     """Сервисы, связанные с пользователем."""
-
     model = DimServices
     filterset_class = DimServicesFilter
     template_name = 'app_services/services-user.html'
@@ -217,7 +226,9 @@ class ServiceUserView(LoginRequiredMixin, FilterView):
             'dimservicesname_set',
             Prefetch(
                 'linkresponsibleperson_set',
-                queryset=LinkResponsiblePerson.objects.select_related('role', 'name__user')
+                queryset=LinkResponsiblePerson.objects.select_related(
+                    'name', 'role'
+                ).filter(is_active=True)
             ),
         ).order_by('alias')
 

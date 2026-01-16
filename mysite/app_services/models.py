@@ -190,7 +190,7 @@ class LinksUrlService(BaseClass):
         return f'{self.url}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"Link_url_service'
+        db_table = f'{db_schema}\".\"link_url_service'
         unique_together = [
             ['url', ]
         ]

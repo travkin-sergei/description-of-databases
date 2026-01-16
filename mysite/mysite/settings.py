@@ -19,7 +19,7 @@ environ.Env.read_env(env_file=os.path.join(BASE_DIR.parent, '.env'))
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
