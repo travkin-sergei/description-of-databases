@@ -516,7 +516,7 @@
                                             {% if relation.main == col and relation.sub %}
                                             <li class="d-flex align-items-start">
                                                 <span class="badge bg-secondary me-2">{{ relation.type.name }}</span>
-                                                <a href="{% url 'tables-detail' pk=relation.sub.table.pk %}"
+                                                <a href="{% url 'dbm:tables-detail' pk=relation.sub.table.pk %}"
                                                    class="flex-grow-1"
                                                    title="Перейти к таблице {{ relation.sub.table.name }}">
                                                     {{ relation.sub.table.name }}.{{ relation.sub.columns }}
