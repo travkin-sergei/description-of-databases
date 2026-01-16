@@ -2,7 +2,6 @@ from django.urls import path
 
 from .views.web import (
     AboutView,
-    PageNotFoundView,
     DimUpdateMethodView,
     DimUpdateMethodDetailView,
 )
@@ -17,4 +16,3 @@ urlpatterns = [
     path('updates/', DimUpdateMethodView.as_view(), name='updates'),
     path('updates/<int:pk>/', DimUpdateMethodDetailView.as_view(), name='updates-detail'),
 ]
-handler404 = PageNotFoundView.as_view()

@@ -2,7 +2,7 @@
 from django.urls import path
 
 from .views.web import (
-    AboutView, PageNotFoundView,
+    AboutView,
     DimLinListView, DimLinDetailView,
 )
 
@@ -17,4 +17,3 @@ urlpatterns = [
     path('', DimLinListView.as_view(), name='dimlin_list'),
     path('link/<int:pk>/', DimLinDetailView.as_view(), name='dimlin_detail'),
 ]
-handler404 = PageNotFoundView.as_view()

@@ -135,12 +135,12 @@
                         <tr>
                             <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                             <td>
-                                <a href="{% url 'app_dict:dictionary-detail' pk=elem.pk %}">
+                                <a href="{% url 'app_dict:dict-detail' pk=elem.pk %}">
                                     {{ elem.name|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_dict:dictionary-detail' pk=elem.pk %}">
+                                <a href="{% url 'app_dict:dict-detail' pk=elem.pk %}">
                                     {{ elem.category.name|default_if_none:"—" }}
                                 </a>
                             </td>

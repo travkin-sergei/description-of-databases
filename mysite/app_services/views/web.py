@@ -27,13 +27,6 @@ from ..models import (
 )
 
 
-class PageNotFoundView(View):
-    """Обработка 404 ошибки отсутствия страницы"""
-
-    def get(self, request, *args, **kwargs):
-        return HttpResponseNotFound("<h1>Страница не найдена 404 ошибка</h1>")
-
-
 class AboutView(TemplateView):
     template_name = 'app_services/about-application.html'
     title = "О модуле Управление сервисами"

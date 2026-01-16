@@ -6,26 +6,19 @@ from django.urls import path, include
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-urlpatterns = [
 
+
+urlpatterns = [
     path('summernote/', include('django_summernote.urls')),
     path('admin/doc/', include('django.contrib.admindocs.urls')),
     path('admin/', admin.site.urls),
-    # Django Autocomplete Light (основной путь для DAL)
-    #path('dal/', include('dal.urls', namespace='dal')),
-    # Ваши кастомные автозаполнения для app_dbm
-    path('autocomplete/', include('app_dbm.autocomplete_urls')),  # ← ПРАВИЛЬНЫЙ ИМПОРТ
     # Остальные маршруты
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
-    # Для django-select2 (если используете)
-    path('select2/', include('django_select2.urls')),
-
-    # Приложения
-    path('', include('app_dbm.urls')),
-    path('accounts/', include('app_auth.urls', namespace='app_auth')),
+    # Мои приложения
+    path('', include('app_dbm.urls')),  # Корень
+    path('accounts/', include('app_auth.urls')),
     path('dictionary/', include('app_dict.urls')),
     path('services/', include('app_services.urls')),
     path('request/', include('app_request.urls')),
@@ -33,6 +26,7 @@ urlpatterns = [
     path('query/', include('app_query_path.urls')),
     path('link/', include('app_url.urls')),
 ]
+handler404 = '_common.views.handler404'
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,22 +1,15 @@
 from django.http import HttpResponseNotFound
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView
 from ..models import DimCategory, DimDictionary
-
-
-class PageNotFoundView(LoginRequiredMixin, View):
-    """Обработка 404 ошибки отсутствия страницы"""
-
-    def get(self, request, *args, **kwargs):
-        return HttpResponseNotFound("<h1>Страница не найдена 404 ошибка</h1>")
+from ..apps import name
 
 
 class AboutView(LoginRequiredMixin, TemplateView):
     """Страница о приложении."""
 
-    template_name = 'app_dict/about-application.html'
+    template_name = f'app_dict/about-application.html'
     title = "О приложении"
 
     def get_context_data(self, **kwargs):
@@ -25,9 +18,9 @@ class AboutView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class DictionaryView(LoginRequiredMixin,ListView):
+class DictionaryView(LoginRequiredMixin, ListView):
     model = DimDictionary
-    template_name = 'app_dict/dictionary.html'
+    template_name = f'{name}/dict.html'
     context_object_name = 'results'
     paginate_by = 20
 
@@ -59,11 +52,11 @@ class DictionaryView(LoginRequiredMixin,ListView):
         return context
 
 
-class DictionaryDetailView(LoginRequiredMixin,DetailView):
+class DictionaryDetailView(LoginRequiredMixin, DetailView):
     """Детализация словаря."""
 
     model = DimDictionary
-    template_name = 'app_dict/dictionary-detail.html'
+    template_name = f'{name}/dict-detail.html'
     context_object_name = 'item'
 
     def get_context_data(self, **kwargs):

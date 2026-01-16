@@ -1,7 +1,7 @@
 # app_services/urls.py
 from django.urls import path
 from .views.web import (
-    PageNotFoundView, AboutView,
+    AboutView,
     ServicesView, ServicesDetailView,
     LinksUrlServiceListView,  # Изменено: DimLinkListView -> LinksUrlServiceListView
     ServiceUserView,
@@ -20,4 +20,3 @@ urlpatterns = [
     path('link/', LinksUrlServiceListView.as_view(), name='dim-link'),  # Изменено здесь тоже
 
 ]
-handler404 = PageNotFoundView.as_view()

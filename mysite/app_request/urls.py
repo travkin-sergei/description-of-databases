@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views.web import (
-    AboutView, PageNotFoundView,
+    AboutView,
     ColumnGroupListView, ColumnGroupDetailView,
     TableGroupListView, TableGroupDetailView,
 )
@@ -18,4 +18,4 @@ urlpatterns = [
     path('table-group/', TableGroupListView.as_view(), name='table-group-name'),
     path('table-group/<int:pk>/', TableGroupDetailView.as_view(), name='table-group-name-detail'),
 ]
-handler404 = PageNotFoundView.as_view()
+

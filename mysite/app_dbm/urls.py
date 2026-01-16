@@ -2,7 +2,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views.web import (
-    PageNotFoundView, AboutView, DatabasesView, TablesView,
+    AboutView, DatabasesView, TablesView,
     TableDetailView, ColumnListView, ColumnDetailView,
     SchemaAPIView, TableAPIView, ColumnAPIView, LinkColumnColumnCreateView
 )
@@ -29,6 +29,5 @@ urlpatterns = [
     path('columns/', ColumnListView.as_view(), name='columns'),
     path('columns/<int:pk>/', ColumnDetailView.as_view(), name='columns-detail'),
     path('databases/', DatabasesView.as_view(), name='databases'),
-    # 404
-    path('<path:invalid_path>/', PageNotFoundView.as_view(), name='page_not_found'),
 ]
+# 404 ошибка обрабатывается на уровне приложения

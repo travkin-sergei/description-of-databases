@@ -1,5 +1,5 @@
 from mysite.app_doc.views.web import (
-    PageNotFoundView, AboutView,
+    AboutView,
 )
 from django.urls import path
 from .apps import name
@@ -11,4 +11,3 @@ urlpatterns = [
     # WEB
     path('about-app/', AboutView.as_view(), name='about-app'),
 ]
-handler404 = PageNotFoundView.as_view()

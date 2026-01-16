@@ -11,13 +11,6 @@ from ..models import (
 )
 
 
-class PageNotFoundView(LoginRequiredMixin, View):
-    """Обработка 404 ошибки отсутствия страницы"""
-
-    def get(self, request, *args, **kwargs):
-        return HttpResponseNotFound("<h1>Страница не найдена 404 ошибка</h1>")
-
-
 class AboutView(LoginRequiredMixin, TemplateView):
     """Страница о приложении."""
 

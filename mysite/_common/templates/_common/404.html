@@ -1,0 +1,35 @@
+<!-- templates/_common/404.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ошибка 404 — Страница не найдена{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center p-4 bg-light rounded shadow-sm border">
+                {% if user.is_authenticated %}
+                <p class="text-muted mb-3">
+                    Привет, <strong>{{ user.username }}</strong>!
+                </p>
+                {% endif %}
+                <p class="lead text-muted">
+                    К сожалению, запрашиваемая вами страница не существует или была перемещена.
+                </p>
+                <h1 class="display-4 text-danger mb-3">404</h1>
+                <h2 class="mb-4">Страница не найдена</h2>
+
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <a href="/" class="btn btn-primary px-4">На главную</a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'app_auth:profile' %}" class="btn btn-outline-secondary px-4">Мой профиль</a>
+                    {% else %}
+                    <a href="{% url 'app_auth:login' %}" class="btn btn-outline-secondary px-4">Войти</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

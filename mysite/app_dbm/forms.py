@@ -3,7 +3,8 @@
 from django import forms
 from dal import autocomplete
 from .models import LinkColumnColumn, LinkColumn
-# forms.py
+
+
 class LinkColumnColumnForm(forms.ModelForm):
     main = forms.ModelChoiceField(
         queryset=LinkColumn.objects.select_related(

@@ -1,10 +1,9 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.views.generic import CreateView, TemplateView, UpdateView, View
 from django.urls import reverse_lazy
-from django.utils import timezone
 
 from ..forms import (
     RegistrationRequestForm,
@@ -12,7 +11,7 @@ from ..forms import (
     MyProfileForm,
     ManualUserCreationForm
 )
-from ..models import MyProfile, RegistrationRequest
+from ..models import RegistrationRequest
 
 
 class AboutView(TemplateView):

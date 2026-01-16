@@ -1,17 +1,15 @@
+# app_dict/urls.py
+from django.urls import path
 from .views.web import (
-    PageNotFoundView, AboutView,
+    AboutView,
     DictionaryView, DictionaryDetailView,
 )
-from django.urls import path
 from .apps import name
 
 app_name = name
 
 urlpatterns = [
-    # API
-    # WEB
-    path('about-app/', AboutView.as_view(), name='about-app'),
-    path('dict/', DictionaryView.as_view(), name='dictionary'),
-    path('dict-detail/<int:pk>', DictionaryDetailView.as_view(), name='dictionary-detail'),
+    path('about/', AboutView.as_view(), name='about-app'),
+    path('', DictionaryView.as_view(), name='dict'),
+    path('<int:pk>/', DictionaryDetailView.as_view(), name='dict-detail'),
 ]
-handler404 = PageNotFoundView.as_view()
