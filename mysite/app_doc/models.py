@@ -20,7 +20,7 @@ class DimDocType(BaseClass):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_doc_type'
+        db_table = f'{db_schema}"."dim_doc_type'
         verbose_name = '001 Тип документа'
         verbose_name_plural = '001 Типы документов'
 
@@ -36,11 +36,13 @@ class DimDoc(BaseClass):
     description = models.TextField(blank=True, null=True, verbose_name='Описание')
 
     def __str__(self):
-        return f'{self.number} от {self.date_start.strftime('%Y-%m-%d')}'
+        if self.date_start:
+            return f'{self.number} от {self.date_start.strftime('%Y-%m-%d')}'
+        return f'{self.number} (без даты)'
 
     class Meta:
         db_table = f'{db_schema}\".\"dim_doc'
         unique_together = [['doc_type', 'number', 'date_start', ]]
         verbose_name = '002 Документ'
         verbose_name_plural = '002 Документы'
-        ordering = ['date_start', 'number']
+        ordering = ['date_start', 'date_stop', 'number']

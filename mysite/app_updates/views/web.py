@@ -1,6 +1,4 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseNotFound
-from django.views import View
 from django.views.generic import (
     ListView,
     DetailView,
@@ -32,6 +30,7 @@ class DimUpdateMethodView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        # Используйте DimUpdateMethodFilter вместо LinkUpdateColAdminForm
         self.filterset = DimUpdateMethodFilter(self.request.GET, queryset=queryset)
         return self.filterset.qs.order_by('name')
 
@@ -57,19 +56,19 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Добавляем связанные объекты LinkUpdate с предварительной выборкой
+        # Исправленный select_related - используем только существующие поля
         context['related_links'] = LinkUpdateCol.objects.filter(
-            name=self.object
+            type=self.object
         ).select_related(
-            'column__main__table__schema__base',
-            'column__main__table__schema',
-            'column__main__table',
-            'column__main',
-            'column__sub__table__schema__base',
-            'column__sub__table__schema',
-            'column__sub__table',
-            'column__sub',
-            'column__type'
+            'type',                     # ForeignKey к DimUpdateMethod
+            'main',                     # ForeignKey к LinkColumn
+            'main__table',              # если LinkColumn имеет ForeignKey к таблице
+            'main__table__schema',      # если Table имеет ForeignKey к Schema
+            'main__table__schema__base', # если Schema имеет ForeignKey к Base
+            'sub',                      # ForeignKey к LinkColumn (может быть null)
+            'sub__table',               # если sub не null
+            'sub__table__schema',       # если sub не null
+            'sub__table__schema__base'  # если sub не null
         )
         context['title'] = f"Метод обновления: {self.object.name}"
         # Сохраняем параметры фильтрации для пагинации

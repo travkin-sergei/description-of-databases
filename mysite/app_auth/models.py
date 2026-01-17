@@ -12,7 +12,7 @@ class MyProfile(AbstractUser):
     link_profile = models.URLField(blank=True, null=True, verbose_name='Ссылка на профиль')
 
     class Meta:
-        db_table = f'{db_schema}\".\"my_profile'
+        db_table = f'{db_schema}"."my_profile'
         verbose_name = 'Профиль пользователя'
         verbose_name_plural = 'Профили пользователей'
 
@@ -52,6 +52,6 @@ class RegistrationRequest(BaseClass):
             return 'Отклонена'
 
     class Meta:
-        db_table = f'{db_schema}\".\"registration_request'
+        db_table = f'{db_schema}"."registration_request'
         verbose_name = 'Заявка на регистрацию'
         verbose_name_plural = 'Заявки на регистрацию'

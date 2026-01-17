@@ -13,7 +13,7 @@ class Article(BaseClass):
         return self.title
 
     class Meta:
-        db_table = f'{db_schema}\".\"article'
+        db_table = f'{db_schema}"."article'
         verbose_name = '01 Статья'
         verbose_name_plural = '01 Статьи'
 
@@ -26,7 +26,7 @@ class Question(BaseClass):
         return self.text
 
     class Meta:
-        db_table = f'{db_schema}\".\"question'
+        db_table = f'{db_schema}"."question'
         verbose_name = '02 Вопрос'
         verbose_name_plural = '02 Вопрос'
 
@@ -49,6 +49,6 @@ class AnswerOption(BaseClass):
         return f"{self.question.text} → {self.text}"
 
     class Meta:
-        db_table = f'{db_schema}\".\"answer_option'
+        db_table = f'{db_schema}"."answer_option'
         verbose_name = '03 Вариант ответа'
         verbose_name_plural = '03 Вариант ответа'

@@ -26,8 +26,8 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
-    'dal',  # 1. Django Autocomplete Light
-    'dal_select2',  # 2. Для DAL + Select2
+    # 'dal',  # 1. Django Autocomplete Light
+    # 'dal_select2',  # 2. Для DAL + Select2
     'django.contrib.admin',  # 3. Админка Django ПОСЛЕ DAL
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -36,19 +36,19 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # кастомизация
     'django.contrib.admindocs',  # документирование кода (см. MIDDLEWARE)
-    'django_select2',
+    #'django_select2',
     'rest_framework',  # API
     'rest_framework.authtoken',  # authtoken
     'drf_spectacular',  # swagger
     'django_filters',  # фильтрация
     'django_summernote',  # настройка редактора в админке
     'import_export',  # загрузка данных через admin.py
-    'django_jsonform',  # работа с json в admin.py app_dbm
+    'django_jsonform',  # работа с json в admin.py
     'django_apscheduler',  # Шедулер в admin
     # ----------
     '_common',  # Базовое приложение
     'app_auth',  # Авторизация
-    'app_dbm',  # База данных
+    'app_dbm', # База данных
     'app_dict',  # Словарь
     'app_doc',  # Документы
     'app_query_path',  # Вопрос ответ

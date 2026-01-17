@@ -1,260 +1,919 @@
 {% extends 'base.html' %}
 {% block title %}{{ service.alias|default:"—" }}{% endblock title %}
+
 {% block body %}
-<section style="background-color: #f8f9fa;">
+<style>
+    :root {
+        --primary-dark: #1a1a1a;
+        --primary-yellow: #ffcc00;
+        --yellow-light: #fff9e6;
+        --yellow-dark: #e6b800;
+        --text-dark: #333;
+        --text-light: #f8f9fa;
+        --success-color: #28a745;
+    }
+
+    .service-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .service-card {
+        border: 2px solid var(--primary-yellow);
+        border-radius: 10px;
+        background: white;
+        overflow: hidden;
+        margin-bottom: 25px;
+    }
+
+    .service-card-header {
+        background: linear-gradient(135deg, var(--primary-dark), #2a2a2a);
+        color: var(--primary-yellow);
+        padding: 20px;
+        border-bottom: 2px solid var(--primary-yellow);
+    }
+
+    .service-card-body {
+        padding: 20px;
+    }
+
+    /* Стили для горизонтальных вкладок */
+    .nav-tabs-horizontal {
+        border-bottom: 2px solid var(--primary-yellow);
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: hidden;
+        margin-bottom: 20px;
+        gap: 5px;
+    }
+
+    .nav-tabs-horizontal .nav-item {
+        flex-shrink: 0;
+        margin-bottom: -2px;
+    }
+
+    .nav-tabs-horizontal .nav-link {
+        border: 2px solid transparent;
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+        padding: 12px 20px;
+        color: white;
+        font-weight: 600;
+        background-color: var(--primary-dark);
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .nav-tabs-horizontal .nav-link:hover {
+        background-color: #2a2a2a;
+        color: var(--primary-yellow);
+        border-color: var(--primary-yellow);
+    }
+
+    .nav-tabs-horizontal .nav-link.active {
+        background-color: white;
+        border-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        border-bottom-color: white;
+        position: relative;
+        z-index: 1;
+    }
+
+    .nav-tabs-horizontal .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: white;
+    }
+
+    .tab-badge {
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 6px;
+    }
+
+    .tab-content {
+        background: white;
+        border-radius: 0 0 8px 8px;
+        padding: 0;
+    }
+
+    .tab-pane {
+        padding: 20px;
+    }
+
+    /* Стили для ссылок */
+    .links-group {
+        margin-bottom: 20px;
+    }
+
+    .links-stack-header {
+        background-color: var(--primary-dark);
+        color: var(--primary-yellow);
+        padding: 12px 15px;
+        border: 1px solid var(--primary-yellow);
+        border-radius: 6px;
+        font-weight: 600;
+        margin-bottom: 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .links-stack-header:hover {
+        background-color: #2a2a2a;
+    }
+
+    .links-stack-header.collapsed .accordion-arrow {
+        transform: rotate(-90deg);
+    }
+
+    .accordion-arrow {
+        color: var(--primary-yellow);
+        font-size: 1rem;
+        transition: transform 0.3s ease;
+        float: right;
+    }
+
+    .link-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        background: white;
+        transition: all 0.2s;
+    }
+
+    .link-item:hover {
+        background-color: #f8f9fa;
+        border-color: var(--primary-yellow);
+        transform: translateX(2px);
+    }
+
+    .stage-badge {
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 10px;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .link-content {
+        flex-grow: 1;
+    }
+
+    .link-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 3px;
+    }
+
+    .link-description {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    /* Стили для таблиц */
+    .table-responsive {
+        border-radius: 0 0 8px 8px;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0;
+    }
+
+    .data-table th {
+        background-color: #f8f9fa;
+        color: var(--primary-dark);
+        font-weight: 600;
+        padding: 12px 15px;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .data-table td {
+        padding: 12px 15px;
+        vertical-align: top;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .data-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .table-link {
+        color: var(--primary-dark);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .table-link:hover {
+        color: var(--primary-yellow);
+        text-decoration: underline;
+    }
+
+    .schema-badge {
+        background-color: #e9ecef;
+        color: #6c757d;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        margin-right: 5px;
+    }
+
+    /* Стили для контактных лиц */
+    .contacts-group {
+        margin-bottom: 20px;
+    }
+
+    .contacts-group-header {
+        background-color: #f8f9fa;
+        padding: 12px 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 15px;
+    }
+
+    .contacts-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .person-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        flex: 1;
+        min-width: 250px;
+        transition: all 0.2s;
+    }
+
+    .person-card:hover {
+        border-color: var(--primary-yellow);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .person-role {
+        color: var(--primary-yellow);
+        background-color: var(--primary-dark);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+
+    .person-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 5px;
+    }
+
+    .person-email {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    .profile-link {
+        color: var(--primary-dark);
+        text-decoration: none;
+    }
+
+    .profile-link:hover {
+        color: var(--primary-yellow);
+        text-decoration: underline;
+    }
+
+    /* Стили для связанных сервисов */
+    .service-relation-item {
+        padding: 10px 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        background: white;
+        transition: all 0.2s;
+        display: block;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .service-relation-item:hover {
+        background-color: #f8f9fa;
+        border-color: var(--primary-yellow);
+        transform: translateX(2px);
+    }
+
+    .service-type-badge {
+        background-color: #6c757d;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-right: 8px;
+    }
+
+    /* Пагинация */
+    .pagination-container {
+        margin: 20px 0;
+    }
+
+    .page-link {
+        color: var(--primary-dark);
+        border: 1px solid #dee2e6;
+    }
+
+    .page-link:hover {
+        background-color: var(--primary-yellow);
+        color: var(--primary-dark);
+        border-color: var(--primary-yellow);
+    }
+
+    .page-item.active .page-link {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: var(--primary-yellow);
+    }
+
+    .disabled-link {
+        color: #6c757d;
+        cursor: not-allowed;
+        text-decoration: none;
+        padding: 10px 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        background: white;
+        display: block;
+    }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
+
+    /* Стили для таблицы документов */
+    .table-dark {
+        background-color: var(--primary-dark) !important;
+        color: var(--primary-yellow) !important;
+    }
+
+    .table-dark th {
+        border-color: var(--primary-yellow) !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(255, 204, 0, 0.1) !important;
+    }
+
+    .align-middle td {
+        vertical-align: middle !important;
+    }
+
+    /* Стили для связанных сервисов внутри вкладок */
+    .related-services-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Стили для документации */
+    .docs-table th {
+        white-space: nowrap;
+    }
+
+    /* Группировка контактных лиц по ролям */
+    .role-group {
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="service-container">
     <div class="container py-5">
-        <div class="row">
-            <!-- Заголовок сервиса -->
-            <div class="col-12">
-                <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header text-center"
-                         style="background-color: #1a1a1a; color: #ffcc00; border-bottom: 2px solid #ffcc00;">
-                        <h1 class="mb-0">
-                            {{ service.type.name|default:"—" }}.
-                            {{ service.alias|default:"—" }}
-                        </h1>
-                    </div>
-                </div>
+        <!-- Заголовок сервиса -->
+        <div class="service-card">
+            <div class="service-card-header text-center">
+                <h1 class="mb-0">
+                    {% if service.type %}
+                    <span class="text-muted">{{ service.type.name|default:"—" }}.</span>
+                    {% endif %}
+                    {{ service.alias|default:"—" }}
+                </h1>
             </div>
-            <!-- Описание сервиса -->
-            <div class="col-12 mb-4">
-                <div class="card" style="border: 2px solid #ffcc00;">
-                    <div class="card-header cursor-pointer"
-                         style="background-color: #1a1a1a; color: #ffcc00;"
-                         data-bs-toggle="collapse"
-                         data-bs-target="#descriptionCollapse">
-                        <h4 class="mb-0 d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-info-circle me-2"></i>Описание сервиса</span>
-                            <i class="fas fa-chevron-down transition-all"></i>
-                        </h4>
-                    </div>
-                    <div id="descriptionCollapse" class="collapse show">
-                        <div class="card-body">
-                            {% if service.code %}
-                                <p class="mb-2"><strong>Код сервиса:</strong> {{ service.code }}</p>
-                            {% endif %}
-                            <p class="lead mb-0">
-                                {{ service.description|default:"—" }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+        </div>
+
+        <!-- ЕДИНЫЙ блок со всеми вкладками на одном уровне -->
+        <div class="service-card">
+            <div class="service-card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>Вся информация о сервисе
+                </h5>
             </div>
-            <!-- Блок ссылок -->
-            {% if grouped_links %}
-            <div class="col-12 mb-4">
-                <div class="card" style="border: 2px solid #ffcc00;">
-                    <div class="card-header cursor-pointer"
-                         style="background-color: #1a1a1a; color: #ffcc00;"
-                         data-bs-toggle="collapse"
-                         data-bs-target="#linksCollapse">
-                        <h4 class="mb-0 d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-link me-2"></i>Ссылки</span>
-                            <i class="fas fa-chevron-down transition-all"></i>
-                        </h4>
+            <div class="service-card-body p-0">
+                <!-- Навигация вкладок - ВСЕ НА ОДНОМ УРОВНЕ -->
+                <ul class="nav nav-tabs-horizontal px-3 pt-3" id="allTabs" role="tablist">
+                    <!-- Вкладка Описание -->
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active"
+                                id="description-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#description"
+                                type="button"
+                                role="tab"
+                                aria-controls="description"
+                                aria-selected="true">
+                            <i class="fas fa-info-circle me-2"></i>Описание
+                        </button>
+                    </li>
+
+                    <!-- Вкладка Документы -->
+                    {% if service_docs %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="docs-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#docs"
+                                type="button"
+                                role="tab"
+                                aria-controls="docs"
+                                aria-selected="false">
+                            <i class="fas fa-file-alt me-2"></i>Документы
+                            <span class="tab-badge">{{ docs_count }}</span>
+                        </button>
+                    </li>
+                    {% endif %}
+
+                    <!-- Вкладка Ссылки -->
+                    {% if grouped_links %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="links-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#links"
+                                type="button"
+                                role="tab"
+                                aria-controls="links"
+                                aria-selected="false">
+                            <i class="fas fa-link me-2"></i>Ссылки
+                            <span class="tab-badge">
+                                {% with total=grouped_links.values|length %}{{ total }} групп{% endwith %}
+                            </span>
+                        </button>
+                    </li>
+                    {% endif %}
+
+                    <!-- Вкладка Контактные лица -->
+                    {% if responsible_persons %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="contacts-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#contacts"
+                                type="button"
+                                role="tab"
+                                aria-controls="contacts"
+                                aria-selected="false">
+                            <i class="fas fa-users me-2"></i>Контактные лица
+                            <span class="tab-badge">{{ responsible_persons|length }}</span>
+                        </button>
+                    </li>
+                    {% endif %}
+
+                    <!-- Вкладка Подчиненные сервисы -->
+                    {% if as_main %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="sub-services-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#sub-services"
+                                type="button"
+                                role="tab"
+                                aria-controls="sub-services"
+                                aria-selected="false">
+                            <i class="fas fa-sitemap me-2"></i>Подчиненные
+                            <span class="tab-badge">{{ as_main|length }}</span>
+                        </button>
+                    </li>
+                    {% endif %}
+
+                    <!-- Вкладка Родительские сервисы -->
+                    {% if as_sub %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="parent-services-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#parent-services"
+                                type="button"
+                                role="tab"
+                                aria-controls="parent-services"
+                                aria-selected="false">
+                            <i class="fas fa-project-diagram me-2"></i>Родительские
+                            <span class="tab-badge">{{ as_sub|length }}</span>
+                        </button>
+                    </li>
+                    {% endif %}
+
+                    <!-- Вкладка Таблицы -->
+                    {% if tables_page_obj and tables_page_obj.object_list %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link"
+                                id="tables-tab"
+                                data-bs-toggle="tab"
+                                data-bs-target="#tables"
+                                type="button"
+                                role="tab"
+                                aria-controls="tables"
+                                aria-selected="false">
+                            <i class="fas fa-table me-2"></i>Таблицы
+                            <span class="tab-badge">{{ tables_page_obj.paginator.count|default:0 }}</span>
+                        </button>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Содержимое всех вкладок -->
+                <div class="tab-content" id="allTabsContent">
+                    <!-- Вкладка Описание -->
+                    <div class="tab-pane fade show active"
+                         id="description"
+                         role="tabpanel"
+                         aria-labelledby="description-tab">
+                        <p class="lead mb-0">
+                            {{ service.description|default:"Нет описания" }}
+                        </p>
                     </div>
-                    <div id="linksCollapse" class="collapse show">
-                        <div class="card-body p-0">
-                            <div class="accordion" id="linksAccordion">
-                                {% for stack_name, links in grouped_links.items %}
-                                <div class="accordion-item border-0">
-                                    <div class="accordion-header">
-                                        <button class="accordion-button collapsed d-flex justify-content-between align-items-center py-3"
-                                                type="button"
-                                                data-bs-toggle="collapse"
-                                                data-bs-target="#collapse{{ forloop.counter }}"
-                                                style="background-color: #f8f9fa;">
-                                            <strong>{{ stack_name }}</strong>
-                                            <i class="fas fa-chevron-down transition-all ms-2"></i>
-                                        </button>
-                                    </div>
-                                    <div id="collapse{{ forloop.counter }}"
-                                         class="accordion-collapse collapse"
-                                         data-bs-parent="#linksAccordion">
-                                        <div class="accordion-body pt-0">
-                                            <div class="list-group list-group-flush">
-                                                {% for link in links %}
-                                                <div class="list-group-item border-0 py-3">
-                                                    <div class="d-flex flex-column">
-                                                        <div class="d-flex align-items-center mb-1">
-                                                            <i class="fas fa-external-link-alt me-2 text-muted"></i>
-                                                            <a href="{{ link.link }}"
-                                                               target="_blank"
-                                                               class="text-decoration-none flex-grow-1">
-                                                                <span class="badge bg-warning text-dark ms-2">
-                                                                    {{ link.stage.name|default:link.stage.pk }}
-                                                                </span>
-                                                                <strong>{{ link.link_name|default:"Ссылка" }}</strong>
-                                                            </a>
-                                                        </div>
-                                                        {% if link.description %}
-                                                        <div class="ms-4 ps-2 text-muted small">
-                                                            {{ link.description }}
-                                                        </div>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            <!-- Левая колонка -->
-            <div class="col-lg-4">
-                {% if responsible_persons %}
-                <!-- Контактные лица -->
-                <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
-                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Контактные лица</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                        {% for person in responsible_persons %}
-                        <li class="list-group-item bg-light">
-                            <div class="d-flex flex-column">
-                                <div class="d-flex align-items-center">
-                                    <strong class="me-2">{{ person.role.name }}:</strong>
-                                    {% if person.name.link_profile %}
-                                    <a href="{{ person.name.link_profile }}"
-                                       target="_blank"
-                                       class="text-decoration-none"
-                                       title="Профиль пользователя">
-                                        {{ person.name.get_full_name|default:person.name.username }}
-                                        <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
-                                    </a>
-                                    {% else %}
-                                    <span>{{ person.name.get_full_name|default:person.name.username }}</span>
-                                    {% endif %}
-                                </div>
-                                {% if person.name.email %}
-                                <small class="text-muted ms-4">{{ person.name.email }}</small>
-                                {% endif %}
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    </div>
-                </div>
-                {% endif %}
-                {% if as_main %}
-                <!-- Подчиненные сервисы -->
-                <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
-                        <h5 class="mb-0"><i class="fas fa-sitemap me-2"></i>Подчиненные сервисы</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            {% for relation in as_main %}
-                            <li class="list-group-item">
-                                <a href="{% url 'app_services:services-detail' pk=relation.sub.id %}"
-                                   class="text-decoration-none">
-                                    {{ forloop.counter }}
-                                    <small class="text-muted">({{ relation.sub.type.name }})</small>
-                                    {{ relation.sub.alias }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                {% endif %}
-                {% if as_sub %}
-                <!-- Родительские сервисы -->
-                <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
-                        <h5 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Родительские сервисы</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            {% for relation in as_sub %}
-                            <li class="list-group-item">
-                                <a href="{% url 'app_services:services-detail' pk=relation.main.id %}"
-                                   class="text-decoration-none">
-                                    {{ forloop.counter }}
-                                    <small class="text-muted">({{ relation.main.type.name }})</small>
-                                    {{ relation.main.alias }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            <!-- Таблицы сервиса -->
-            <div class="col-lg-8">
-                {% if tables_page_obj %}
-                <div class="card mb-4" style="border: 2px solid #ffcc00;">
-                    <div class="card-header" style="background-color: #1a1a1a; color: #ffcc00;">
-                        <h4 class="mb-0"><i class="fas fa-table me-2"></i>Таблицы сервиса</h4>
-                    </div>
-                    <div class="card-body">
-                        {% include 'inc/_paginator.html' with page_obj=tables_page_obj query_string=query_string %}
-                        <div class="table-responsive mt-3">
-                            <table class="table table-striped table-hover">
+
+                    <!-- Вкладка Документы -->
+                    {% if service_docs %}
+                    <div class="tab-pane fade"
+                         id="docs"
+                         role="tabpanel"
+                         aria-labelledby="docs-tab">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle docs-table">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Название таблицы</th>
-                                        <th>Описание</th>
+                                        <th>Номер</th>
+                                        <th>Дата</th>
+                                        <th></th>
+                                        <th style="width: 40%;">Описание документа</th>
+                                        <th style="width: 20%;">Тип документа</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for table_link in tables_page_obj %}
+                                    {% for link_doc in service_docs %}
                                     <tr>
-                                        <td>
-                                            <a href="{% url 'dbm:tables-detail' pk=table_link.table.pk %}"
-                                               class="text-decoration-none">
-                                                {% if table_link.table.schema %}
-                                                <span class="text-muted">{{ table_link.table.schema}}.</span>
-                                                {% endif %}
-                                                {{ table_link.table.name }}
-                                            </a>
+                                        <td class="fw-semibold">
+                                            {{ link_doc.doc.number|default:"—" }}
                                         </td>
-                                        <td>{{ table_link.table.description|default:"—" }}</td>
+                                        <td>
+                                            {% if link_doc.doc.date_start %}
+                                            от {{ link_doc.doc.date_start|date:"d.m.Y" }}
+                                            {% else %}
+                                            <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if link_doc.doc.date_stop %}
+                                            <small class="text-muted">
+                                                Действует до: {{ link_doc.doc.date_stop|date:"d.m.Y" }}
+                                            </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium mb-1">
+                                                {{ link_doc.doc.description|default:"Без описания"|truncatechars:100 }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if link_doc.doc.doc_type %}
+                                            <span class="badge bg-info">
+                                                {{ link_doc.doc.doc_type.name|default:"Тип не указан" }}
+                                            </span>
+                                            {% else %}
+                                            <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
-                        {% include 'inc/_paginator.html' with page_obj=tables_page_obj query_string=query_string %}
                     </div>
+                    {% endif %}
+
+                    <!-- Вкладка Ссылки -->
+                    {% if grouped_links %}
+                    <div class="tab-pane fade"
+                         id="links"
+                         role="tabpanel"
+                         aria-labelledby="links-tab">
+                        <!-- Аккордеон для каждой технологии -->
+                        <div class="accordion" id="linksAccordion">
+                            {% for stack_name, links in grouped_links.items %}
+                            <div class="links-group">
+                                <div class="links-stack-header collapsed"
+                                     data-bs-toggle="collapse"
+                                     data-bs-target="#collapse{{ forloop.counter }}"
+                                     aria-expanded="false"
+                                     aria-controls="collapse{{ forloop.counter }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-code me-2"></i>
+                                            {{ stack_name }}
+                                            <span class="badge bg-yellow ms-2" style="background-color: var(--primary-yellow); color: var(--primary-dark);">
+                                                {{ links|length }}
+                                            </span>
+                                        </div>
+                                        <span class="accordion-arrow">▼</span>
+                                    </div>
+                                </div>
+                                <div id="collapse{{ forloop.counter }}" class="collapse" data-bs-parent="#linksAccordion">
+                                    <div class="pt-3">
+                                        {% for link in links %}
+                                        <div class="link-item">
+                                            <span class="stage-badge">
+                                                {% if link.stage %}
+                                                    {{ link.stage.name|default:link.stage.pk|default:"—" }}
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </span>
+                                            <div class="link-content">
+                                                {% if link.link %}
+                                                <a href="{{ link.link }}"
+                                                   target="_blank"
+                                                   class="link-name text-decoration-none">
+                                                    {{ link.link_name|default:"Ссылка" }}
+                                                    <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
+                                                </a>
+                                                {% else %}
+                                                <span class="link-name">{{ link.link_name|default:"Ссылка" }}</span>
+                                                {% endif %}
+                                                {% if link.description %}
+                                                <p class="link-description mb-0">{{ link.description }}</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Вкладка Контактные лица -->
+                    {% if responsible_persons %}
+                    <div class="tab-pane fade"
+                         id="contacts"
+                         role="tabpanel"
+                         aria-labelledby="contacts-tab">
+                        <!-- Группировка контактных лиц по ролям -->
+                        {% regroup responsible_persons by role as roles_list %}
+                        {% for role_group in roles_list %}
+                        <div class="role-group">
+                            <div class="contacts-group-header">
+                                <i class="fas fa-user-tag me-2"></i>
+                                {{ role_group.grouper.name|default:"Без роли" }}
+                                <span class="badge bg-secondary ms-2">{{ role_group.list|length }}</span>
+                            </div>
+                            <div class="contacts-row">
+                                {% for person in role_group.list %}
+                                <div class="person-card">
+                                    <span class="person-role">{{ role_group.grouper.name|default:"Роль не указана" }}</span>
+                                    {% if person.name %}
+                                    <div class="person-name">
+                                        {% if person.name.link_profile %}
+                                        <a href="{{ person.name.link_profile }}"
+                                           target="_blank"
+                                           class="profile-link">
+                                            {{ person.name.get_full_name|default:person.name.username|default:"Имя не указано" }}
+                                            <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
+                                        </a>
+                                        {% else %}
+                                        {{ person.name.get_full_name|default:person.name.username|default:"Имя не указано" }}
+                                        {% endif %}
+                                    </div>
+                                    {% if person.name.email %}
+                                    <p class="person-email mb-0">
+                                        <i class="fas fa-envelope me-1"></i>{{ person.name.email }}
+                                    </p>
+                                    {% endif %}
+                                    {% else %}
+                                    <div class="person-name text-muted">Пользователь не указан</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Вкладка Подчиненные сервисы -->
+                    {% if as_main %}
+                    <div class="tab-pane fade"
+                         id="sub-services"
+                         role="tabpanel"
+                         aria-labelledby="sub-services-tab">
+                        <div class="related-services-container">
+                            {% for relation in as_main %}
+                            {% if relation.sub and relation.sub.id %}
+                            <a href="{% url 'app_services:services-detail' pk=relation.sub.id %}"
+                               class="service-relation-item">
+                                {% if relation.sub.type %}
+                                <span class="service-type-badge">{{ relation.sub.type.name|default:"—" }}</span>
+                                {% endif %}
+                                {{ relation.sub.alias|default:"Без названия" }}
+                            </a>
+                            {% else %}
+                            <div class="disabled-link">
+                                <span class="service-type-badge">—</span>
+                                Сервис не найден
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Вкладка Родительские сервисы -->
+                    {% if as_sub %}
+                    <div class="tab-pane fade"
+                         id="parent-services"
+                         role="tabpanel"
+                         aria-labelledby="parent-services-tab">
+                        <div class="related-services-container">
+                            {% for relation in as_sub %}
+                            {% if relation.main and relation.main.id %}
+                            <a href="{% url 'app_services:services-detail' pk=relation.main.id %}"
+                               class="service-relation-item">
+                                {% if relation.main.type %}
+                                <span class="service-type-badge">{{ relation.main.type.name|default:"—" }}</span>
+                                {% endif %}
+                                {{ relation.main.alias|default:"Без названия" }}
+                            </a>
+                            {% else %}
+                            <div class="disabled-link">
+                                <span class="service-type-badge">—</span>
+                                Сервис не найден
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Вкладка Таблицы -->
+                    {% if tables_page_obj and tables_page_obj.object_list %}
+                    <div class="tab-pane fade"
+                         id="tables"
+                         role="tabpanel"
+                         aria-labelledby="tables-tab">
+                        <!-- Пагинация сверху -->
+                        {% if is_paginated %}
+                        <div class="pagination-container">
+                            {% include 'inc/_paginator.html' with page_obj=tables_page_obj query_string=query_string %}
+                        </div>
+                        {% endif %}
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Название таблицы</th>
+                                    <th>Описание</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for table_link in tables_page_obj %}
+                                <tr>
+                                    <td>{{ forloop.counter0|add:tables_page_obj.start_index|default:forloop.counter }}</td>
+                                    <td>
+                                        {% if table_link.table and table_link.table.id %}
+                                        <a href="{% url 'dbm:tables-detail' pk=table_link.table.id %}"
+                                           class="table-link">
+                                            {% if table_link.table.schema %}
+                                            <span class="schema-badge">{{ table_link.table.schema }}</span>
+                                            {% endif %}
+                                            {{ table_link.table.name|default:"Без названия" }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">Таблица не найдена</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ table_link.table.description|default:"—"|truncatechars:100 }}</td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Пагинация снизу -->
+                        {% if is_paginated %}
+                        <div class="pagination-container">
+                            {% include 'inc/_paginator.html' with page_obj=tables_page_obj query_string=query_string %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
-    </div>
-</section>
 
-<style>
-    .cursor-pointer { cursor: pointer; }
-    .transition-all { transition: transform 0.3s ease; }
-    .accordion-button:not(.collapsed) .fa-chevron-down { transform: rotate(180deg); }
-    .card-header:hover { background-color: #2a2a2a !important; }
-    .accordion-button:focus { box-shadow: none; }
-    .accordion-button:not(.collapsed) { background-color: rgba(0,0,0,0.03); }
-    .list-group-item { border-left: none; border-right: none; }
-    .list-group-item:first-child { border-top: none; }
-</style>
+        <!-- Сообщение если нет связанных таблиц -->
+        {% if not tables_page_obj or not tables_page_obj.object_list %}
+        <div class="service-card">
+            <div class="service-card-body text-center py-5">
+                <i class="fas fa-table fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Нет связанных таблиц</h5>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Инициализация аккордеонов
-        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(header => {
-            header.addEventListener('click', function() {
-                const icon = this.querySelector('.fa-chevron-down');
-                if (icon) {
-                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                    icon.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
-                }
+        // Инициализация всех вкладок
+        var triggerTabList = [].slice.call(document.querySelectorAll('#allTabs button'));
+        triggerTabList.forEach(function (triggerEl) {
+            var tabTrigger = new bootstrap.Tab(triggerEl);
+
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault();
+                tabTrigger.show();
+
+                // Сохраняем активную вкладку
+                const activeTab = triggerEl.getAttribute('data-bs-target');
+                sessionStorage.setItem('activeServiceTab', activeTab);
             });
         });
+
+        // Восстанавливаем активную вкладку при загрузке
+        const activeTab = sessionStorage.getItem('activeServiceTab');
+        if (activeTab) {
+            const tabTrigger = document.querySelector(`#allTabs button[data-bs-target="${activeTab}"]`);
+            if (tabTrigger) {
+                const tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+
+        // Инициализация аккордеона для ссылок
+        const accordionButtons = document.querySelectorAll('.links-stack-header');
+        accordionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const arrow = this.querySelector('.accordion-arrow');
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+
+                // Обновляем все стрелки
+                accordionButtons.forEach(btn => {
+                    const btnArrow = btn.querySelector('.accordion-arrow');
+                    if (btn !== this) {
+                        btnArrow.style.transform = 'rotate(0deg)';
+                    }
+                });
+
+                // Обновляем текущую стрелку
+                arrow.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+        });
+
+        // Инициализация пагинации для таблиц
+        const tablesPane = document.getElementById('tables');
+        if (tablesPane) {
+            const tablesTab = document.getElementById('tables-tab');
+            if (tablesTab) {
+                tablesTab.addEventListener('shown.bs.tab', function () {
+                    // Можно добавить логику обновления, если нужно
+                });
+            }
+        }
     });
 </script>
 {% endblock %}

@@ -1,22 +1,25 @@
-# app_updates\admin.py
+# app_updates/admin.py
 from django.contrib import admin
-from .filters import LinkUpdateColAdminForm
 from .models import DimUpdateMethod, LinkUpdateCol
+
+
+@admin.register(DimUpdateMethod)
+class DimUpdateMethodAdmin(admin.ModelAdmin):
+    """Простая админка для методов обновления"""
+    list_display = ['name', 'schedule', 'url']
+    list_filter = ['schedule']
+    search_fields = ['name', 'schedule', 'url__name']
+    autocomplete_fields = ['url']
 
 
 @admin.register(LinkUpdateCol)
 class LinkUpdateColAdmin(admin.ModelAdmin):
-    list_display = ['id', 'type', 'main', 'sub', 'is_active']
-    list_filter = ['type', 'is_active']
-    autocomplete_fields = ['main', 'sub']
-    form = LinkUpdateColAdminForm
+    """Простая админка для связи столбцов"""
 
-    def main_col_display(self, obj):
-        return str(obj.main) if obj.main else "—"
 
-    main_col_display.short_description = "Main"
+    list_display = ['type', 'main', 'sub']
+    list_filter = ['type']
+    search_fields = ['type__name', 'main__name', 'sub__name']
 
-    def sub_col_display(self, obj):
-        return str(obj.sub) if obj.sub else "∅"
-
-    sub_col_display.short_description = "Sub"
+    # Автодополнение для всех ForeignKey
+    autocomplete_fields = ['type', 'main', 'sub']

@@ -11,6 +11,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from _common.models import SafePaginator
 from app_services.models import LinkServicesTable
+from app_updates.models import LinkUpdateCol
 
 from ..models import (
     LinkDB, LinkSchema, LinkTable, LinkColumn,
@@ -199,49 +200,40 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         table = self.object
 
-        # Существующие столбцы
         columns = table.linkcolumn_set.filter(is_active=True).order_by(
             'unique_together', 'date_create', 'id'
         )
 
-        # Добавляем stage из JSON
         for col in columns:
             col.stages_from_json = []
             if col.stage and isinstance(col.stage, dict):
-                # Сортируем по ключу и сохраняем список стадий
                 col.stages_from_json = [
                     v for k, v in sorted(col.stage.items(), key=lambda x: int(x[0]))
                 ]
 
         context['columns'] = columns
 
-        # Связи между столбцами
-        context['column_relations'] = LinkColumnColumn.objects.filter(
-            Q(main__in=columns) | Q(sub__in=columns)
-        ).select_related('main', 'sub', 'type')
+        context['column_relations'] = (
+            LinkColumnColumn.objects
+            .filter(Q(main__in=columns) | Q(sub__in=columns))
+            .select_related('main', 'sub', 'type')
+        )
 
-        # Связанные сервисы
-        services = LinkServicesTable.objects.filter(table=table).select_related('service')
+        services = (
+            LinkServicesTable.objects
+            .filter(table=table)
+            .select_related('service')
+        )
         context['services_list'] = services
         context['services_count'] = services.count()
 
-        # Расписания обновлений - ИСПРАВЛЕННАЯ ВЕРСИЯ (если нужно использовать)
-        # Если в шаблоне не используется, можно оставить пустой список
-        schedules = []  # Пустой список для предотвращения ошибки
-        # ИЛИ используйте правильный запрос, если нужны данные:
-        # schedules = LinkColumnColumn.objects.filter(
-        #     is_active=True,
-        #     main__table=table,  # Исправлено с column__main__table на main__table
-        # ).values(
-        #     'main__id',
-        #     'main__columns',
-        #     'type__name',
-        # ).distinct().order_by('main__columns')
-        context['schedules'] = schedules
+        context['alt_table_names'] = LinkTableName.objects.filter(table=table)
 
-        # Альтернативные имена таблицы
-        alt_names = LinkTableName.objects.filter(table=table)
-        context['alt_table_names'] = alt_names
+        context['update_columns'] = (
+            LinkUpdateCol.objects
+            .filter(main__in=columns)
+            .select_related('type', 'main', 'sub')
+        )
 
         return context
 

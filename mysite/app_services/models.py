@@ -16,7 +16,7 @@ class DimServicesTypes(BaseClass):
     name = models.CharField(max_length=255)
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services_type'
+        db_table = f'{db_schema}"."dim_services_type'
         unique_together = [
             ['name', ]
         ]
@@ -46,7 +46,7 @@ class DimServices(BaseClass):
         return f'{self.alias}-{self.type}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services'
+        db_table = f'{db_schema}"."dim_services'
         unique_together = [
             ['alias', 'type', ]
         ]
@@ -65,7 +65,7 @@ class LinkServicesServices(BaseClass):
         return f'{self.main}-{self.sub}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_services_services'
+        db_table = f'{db_schema}"."link_services_services'
         unique_together = [
             ['main', 'sub', ]
         ]
@@ -81,7 +81,7 @@ class DimServicesNameType(BaseClass):
         return self.name
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services_name_type'
+        db_table = f'{db_schema}"."dim_services_name_type'
         unique_together = [['name', ]]
         verbose_name = '08 Словарь типов наименований.'
         verbose_name_plural = '08 Словарь типов наименований.'
@@ -98,7 +98,7 @@ class DimServicesName(BaseClass):
         return f'{self.alias}-{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_services_name'
+        db_table = f'{db_schema}"."dim_services_name'
         unique_together = [
             ['alias', 'name', ]
         ]
@@ -115,7 +115,7 @@ class DimRoles(BaseClass):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_roles'
+        db_table = f'{db_schema}"."dim_roles'
         unique_together = [
             ['name', ]
         ]
@@ -134,7 +134,7 @@ class LinkResponsiblePerson(BaseClass):
         return f'{self.service}-{self.role}-{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_responsible_person'
+        db_table = f'{db_schema}"."link_responsible_person'
         unique_together = [
             ['service', 'role', 'name', ]
         ]
@@ -152,7 +152,7 @@ class LinkServicesTable(BaseClass):
         return f'{self.service}-{self.table}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_service_table'
+        db_table = f'{db_schema}"."link_service_table'
         unique_together = [
             ['service', 'table', ]
         ]
@@ -168,7 +168,7 @@ class DimTechStack(BaseClass):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_tech_stack'
+        db_table = f'{db_schema}"."link_tech_stack'
         unique_together = [
             ['name', ]
         ]
@@ -190,7 +190,7 @@ class LinksUrlService(BaseClass):
         return f'{self.url}'
 
     class Meta:
-        db_table = f'{db_schema}\".\"link_url_service'
+        db_table = f'{db_schema}"."link_url_service'
         unique_together = [
             ['url', ]
         ]

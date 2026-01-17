@@ -170,14 +170,12 @@
                             {% for link in related_links %}
                             <tr>
                                 <th class="text-center">{{ forloop.counter }}</th>
-                                {% with main=link.column.main sub=link.column.sub %}
+                                {% with main=link.main sub=link.sub %}
                                 <td>{{ main.table.schema.base.name|default:"—" }}</td>
                                 <td>{{ main.table.schema.schema|default:"—" }}</td>
                                 <td>
                                     {% if main.table %}
-                                    <a href="{% url 'tables-detail' pk=main.table.pk %}">
-                                        {{ main.table.name }}
-                                    </a>
+                                    <a href="{% url 'dbm:tables-detail' pk=main.table.pk %}">{{ main.table.name }}</a>
                                     {% else %}
                                     —
                                     {% endif %}
@@ -189,7 +187,7 @@
                                 <td>{{ sub.columns|default:"—" }}</td>
                                 <td>
                                     {% if sub.table %}
-                                    <a href="{% url 'tables-detail' pk=sub.table.pk %}">
+                                    <a href="{% url 'dbm:tables-detail' pk=sub.table.pk %}">
                                         {{ sub.table.name }}
                                     </a>
                                     {% else %}

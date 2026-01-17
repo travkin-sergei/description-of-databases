@@ -10,7 +10,7 @@ from .apps import db_schema
 
 
 class DimUpdateMethod(BaseClass):
-    name = models.CharField(unique=True, max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
     schedule = models.CharField(max_length=50, blank=True, null=True)
     url = models.ForeignKey(DimUrl, on_delete=models.PROTECT, blank=True, null=True)
 
@@ -18,10 +18,11 @@ class DimUpdateMethod(BaseClass):
         return f"{self.name}"
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_update_method'
+        db_table = f'{db_schema}"."dim_update_method'
+        unique_together = [['name', 'schedule']]
         verbose_name = '01 метод обновления'
         verbose_name_plural = '01 методы обновлений'
-        ordering = ['name']
+        ordering = ['name', 'schedule']
 
 
 class LinkUpdateCol(BaseClass):
@@ -30,7 +31,7 @@ class LinkUpdateCol(BaseClass):
     sub = models.ForeignKey(LinkColumn, on_delete=models.CASCADE, related_name='update_sub', blank=True, null=True)
 
     def __str__(self):
-        return f'{self.main}-{self.sub}'
+        return f'{self.type}-{self.main}-{self.sub}'
 
     class Meta:
         db_table = f'{db_schema}"."link_update_col'
@@ -41,12 +42,7 @@ class LinkUpdateCol(BaseClass):
         constraints = [
             models.UniqueConstraint(
                 fields=['main', 'sub', 'type'],
-                name='unique_update_columns_relation'  # ← УНИКАЛЬНОЕ ИМЯ
-            ),
-            models.UniqueConstraint(
-                fields=['main'],
-                condition=Q(sub__isnull=True),
-                name='unique_update_main_only'  # ← УНИКАЛЬНОЕ ИМЯ
+                name='unique_update_columns_relation'
             ),
         ]
         indexes = [

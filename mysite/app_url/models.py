@@ -51,7 +51,7 @@ class DimUrl(BaseClass):
     token = models.CharField(blank=True, null=True, verbose_name='token авторизации')
 
     class Meta:
-        db_table = f'{db_schema}\".\"dim_url'
+        db_table = f'{db_schema}"."dim_url'
         verbose_name = '001 Ссылка'
         verbose_name_plural = '001 Ссылки'
         ordering = ['url']
