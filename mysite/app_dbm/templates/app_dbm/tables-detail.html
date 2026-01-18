@@ -213,17 +213,11 @@
         <div class="data-card">
             <div class="data-card-header">
                 <h5>
-                    {{ tables.schema.base.name }}
-                    |
-                    {{ tables.schema|upper }}.{{ tables.name|upper }}
+                    {{ tables.schema.base.name|upper }}-{{ tables.schema.schema|upper }}-{{ tables.name|upper }}
                 </h5>
             </div>
             <div class="data-card-body">
-                {% if tables.description %}
-                {% for k, v in tables.description.items %}
-                <div><strong>{{ k }}:</strong> {{ v }}</div>
-                {% endfor %}
-                {% endif %}
+                {{ tables.description }}
             </div>
         </div>
         <!-- ===================== СВЯЗАННЫЕ СЕРВИСЫ (АККОРДЕОН) ===================== -->
@@ -304,19 +298,15 @@
                     {% for col in columns %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-
                         <td><strong>{{ col.columns }}</strong></td>
-
                         <td><code>{{ col.type }}</code></td>
-
                         <td>
                             {% if col.is_null %}
                             <span class="badge-null">NULL</span>
                             {% else %}
-                            <span class="badge-not-null">NOT NULL</span>
+                            <span class="badge-not-null">NOT_NULL</span>
                             {% endif %}
                         </td>
-
                         <td>
                             {% if col.description %}
                             {% for k, v in col.description.items %}

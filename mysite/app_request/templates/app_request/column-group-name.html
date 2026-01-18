@@ -170,32 +170,32 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for item in fz_list %}
+                        {% for i_col in columns %}
                         <tr class="clickable-row">
                             <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.table.schema.base.name|default_if_none:"—" }}
+                                <a href="{% url 'app_request:column-group-name-detail' i_col.pk %}">
+                                    {{ i_col.column.table.schema.base.name|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.table.schema.schema|default_if_none:"—" }}
+                                <a href="{% url 'app_request:column-group-name-detail' i_col.pk %}">
+                                    {{ i_col.column.table.schema.schema|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.table.name|default_if_none:"—" }}
+                                <a href="{% url 'app_request:column-group-name-detail' i_col.pk %}">
+                                    {{ i_col.column.table.name|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.columns|default_if_none:"—" }}
+                                <a href="{% url 'app_request:column-group-name-detail' i_col.pk %}">
+                                    {{ i_col.column.columns|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.group_name.name|default_if_none:"—" }}
+                                <a href="{% url 'app_request:column-group-name-detail' i_col.pk %}">
+                                    {{ i_col.group_name.name|default_if_none:"—" }}
                                 </a>
                             </td>
                         </tr>

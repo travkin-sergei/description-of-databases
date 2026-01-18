@@ -421,7 +421,6 @@
                 </h1>
             </div>
         </div>
-
         <!-- ЕДИНЫЙ блок со всеми вкладками на одном уровне -->
         <div class="service-card">
             <div class="service-card-header">
@@ -445,7 +444,6 @@
                             <i class="fas fa-info-circle me-2"></i>Описание
                         </button>
                     </li>
-
                     <!-- Вкладка Документы -->
                     {% if service_docs %}
                     <li class="nav-item" role="presentation">
@@ -462,7 +460,6 @@
                         </button>
                     </li>
                     {% endif %}
-
                     <!-- Вкладка Ссылки -->
                     {% if grouped_links %}
                     <li class="nav-item" role="presentation">
@@ -481,7 +478,6 @@
                         </button>
                     </li>
                     {% endif %}
-
                     <!-- Вкладка Контактные лица -->
                     {% if responsible_persons %}
                     <li class="nav-item" role="presentation">
@@ -498,7 +494,6 @@
                         </button>
                     </li>
                     {% endif %}
-
                     <!-- Вкладка Подчиненные сервисы -->
                     {% if as_main %}
                     <li class="nav-item" role="presentation">
@@ -515,7 +510,6 @@
                         </button>
                     </li>
                     {% endif %}
-
                     <!-- Вкладка Родительские сервисы -->
                     {% if as_sub %}
                     <li class="nav-item" role="presentation">
@@ -532,7 +526,6 @@
                         </button>
                     </li>
                     {% endif %}
-
                     <!-- Вкладка Таблицы -->
                     {% if tables_page_obj and tables_page_obj.object_list %}
                     <li class="nav-item" role="presentation">
@@ -550,7 +543,6 @@
                     </li>
                     {% endif %}
                 </ul>
-
                 <!-- Содержимое всех вкладок -->
                 <div class="tab-content" id="allTabsContent">
                     <!-- Вкладка Описание -->
@@ -562,7 +554,6 @@
                             {{ service.description|default:"Нет описания" }}
                         </p>
                     </div>
-
                     <!-- Вкладка Документы -->
                     {% if service_docs %}
                     <div class="tab-pane fade"
@@ -621,7 +612,6 @@
                         </div>
                     </div>
                     {% endif %}
-
                     <!-- Вкладка Ссылки -->
                     {% if grouped_links %}
                     <div class="tab-pane fade"
@@ -660,15 +650,14 @@
                                                 {% endif %}
                                             </span>
                                             <div class="link-content">
-                                                {% if link.link %}
-                                                <a href="{{ link.link }}"
+                                                {% if link.url %}
+                                                <a href="{{ link.url.url }}"
                                                    target="_blank"
                                                    class="link-name text-decoration-none">
                                                     {{ link.link_name|default:"Ссылка" }}
-                                                    <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
                                                 </a>
                                                 {% else %}
-                                                <span class="link-name">{{ link.link_name|default:"Ссылка" }}</span>
+                                                <span class="link-name">Ссылка не обнаружена</span>
                                                 {% endif %}
                                                 {% if link.description %}
                                                 <p class="link-description mb-0">{{ link.description }}</p>
@@ -683,7 +672,6 @@
                         </div>
                     </div>
                     {% endif %}
-
                     <!-- Вкладка Контактные лица -->
                     {% if responsible_persons %}
                     <div class="tab-pane fade"
@@ -731,7 +719,6 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-
                     <!-- Вкладка Подчиненные сервисы -->
                     {% if as_main %}
                     <div class="tab-pane fade"
@@ -758,7 +745,6 @@
                         </div>
                     </div>
                     {% endif %}
-
                     <!-- Вкладка Родительские сервисы -->
                     {% if as_sub %}
                     <div class="tab-pane fade"
@@ -785,7 +771,6 @@
                         </div>
                     </div>
                     {% endif %}
-
                     <!-- Вкладка Таблицы -->
                     {% if tables_page_obj and tables_page_obj.object_list %}
                     <div class="tab-pane fade"
@@ -798,7 +783,6 @@
                             {% include 'inc/_paginator.html' with page_obj=tables_page_obj query_string=query_string %}
                         </div>
                         {% endif %}
-
                         <div class="table-responsive">
                             <table class="data-table">
                                 <thead>
@@ -831,7 +815,6 @@
                                 </tbody>
                             </table>
                         </div>
-
                         <!-- Пагинация снизу -->
                         {% if is_paginated %}
                         <div class="pagination-container">
@@ -843,20 +826,8 @@
                 </div>
             </div>
         </div>
-
-        <!-- Сообщение если нет связанных таблиц -->
-        {% if not tables_page_obj or not tables_page_obj.object_list %}
-        <div class="service-card">
-            <div class="service-card-body text-center py-5">
-                <i class="fas fa-table fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">Нет связанных таблиц</h5>
-            </div>
-        </div>
-        {% endif %}
-
     </div>
 </div>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Инициализация всех вкладок

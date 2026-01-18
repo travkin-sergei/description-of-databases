@@ -289,11 +289,9 @@
                 </form>
             </div>
         </div>
-
         <!-- Пагинация снизу -->
         {% if tables %}
             {% include 'inc/_paginator.html' %}
-
             <!-- Дополнительное предупреждение если есть следующая страница и ограничение -->
             {% if is_limited and page_obj.has_next %}
             <div class="alert alert-warning mt-3">

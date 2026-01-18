@@ -1,7 +1,7 @@
 # app_request/models.py
 from django.db import models
 
-from app_dbm.models import LinkColumn
+from app_dbm.models import LinkColumn, LinkTable
 from _common.models import BaseClass
 from .apps import db_schema
 
@@ -24,7 +24,7 @@ class TableGroup(BaseClass):
     """
     Список таблиц и их группировка
     """
-    table = models.ForeignKey(LinkColumn, on_delete=models.PROTECT, )
+    table = models.ForeignKey(LinkTable, on_delete=models.PROTECT, )
     group_name = models.ForeignKey(TableGroupName, on_delete=models.PROTECT, )
 
     def __str__(self):
@@ -39,6 +39,7 @@ class TableGroup(BaseClass):
 
 class ColumnGroupName(BaseClass):
     """Название группировок столбцов"""
+
     name = models.CharField(max_length=255, verbose_name='Номер закона')
 
     def __str__(self):

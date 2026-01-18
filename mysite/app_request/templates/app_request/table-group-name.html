@@ -110,7 +110,7 @@
 
         <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
-                <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Законы РФ</h5>
+                <h5 class="mb-0"><i class="fas fa-table mr-2"></i>Группы таблиц</h5>
             </div>
             <div class="card-body p-0">
                 <form method="GET" action="">
@@ -118,49 +118,41 @@
                         <thead>
                         <tr>
                             <th width="5%" class="text-center">№</th>
-                            <th width="15%">База данных</th>
-                            <th width="15%">Схема</th>
-                            <th width="20%">Таблица</th>
-                            <th width="25%">Столбец</th>
-                            <th width="20%">Закон</th>
+                            <th width="20%">База данных</th>
+                            <th width="20%">Схема</th>
+                            <th width="30%">Таблица</th>
+                            <th width="25%">Группа таблиц</th>
                         </tr>
                         <!-- Строка фильтров -->
                         <tr class="filter-row">
                             <td class="text-center">#</td>
                             <td>
                                 <input type="text"
-                                       name="column__table__schema__base__name"
+                                       name="table__schema__base__name"
                                        class="form-control form-control-dark"
                                        placeholder="Поиск по базе..."
-                                       value="{{ request.GET.column__table__schema__base__name }}">
+                                       value="{{ request.GET.table__schema__base__name }}">
                             </td>
                             <td>
                                 <input type="text"
-                                       name="column__table__schema__schema"
+                                       name="table__schema__schema"
                                        class="form-control form-control-dark"
                                        placeholder="Поиск по схеме..."
-                                       value="{{ request.GET.column__table__schema__schema }}">
+                                       value="{{ request.GET.table__schema__schema }}">
                             </td>
                             <td>
                                 <input type="text"
-                                       name="column__table__name"
+                                       name="table__name"
                                        class="form-control form-control-dark"
                                        placeholder="Поиск по таблице..."
-                                       value="{{ request.GET.column__table__name }}">
-                            </td>
-                            <td>
-                                <input type="text"
-                                       name="column__columns"
-                                       class="form-control form-control-dark"
-                                       placeholder="Поиск по столбцу..."
-                                       value="{{ request.GET.column__columns }}">
+                                       value="{{ request.GET.table__name }}">
                             </td>
                             <td>
                                 <div class="search-row">
                                     <input type="text"
                                            name="group_name__name"
                                            class="form-control form-control-dark"
-                                           placeholder="Поиск по закону..."
+                                           placeholder="Поиск по группе..."
                                            value="{{ request.GET.group_name__name }}">
                                     <button type="submit" class="btn btn-gold">
                                         <i class="fas fa-search mr-1"></i>Найти
@@ -170,38 +162,33 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for item in fz_list %}
+                        {% for item in tables %}
                         <tr class="clickable-row">
                             <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.table.schema.base.name|default_if_none:"—" }}
+                                <a href="#">
+                                    {{ item.table.schema.base.name|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.table.schema.schema|default_if_none:"—" }}
+                                <a href="#">
+                                    {{ item.table.schema.schema|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.table.name|default_if_none:"—" }}
+                                <a href="#">
+                                    {{ item.table.name|default_if_none:"—" }}
                                 </a>
                             </td>
                             <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
-                                    {{ item.column.columns|default_if_none:"—" }}
-                                </a>
-                            </td>
-                            <td>
-                                <a href="{% url 'app_request:column-group-name-detail' item.pk %}">
+                                <a href="#">
                                     {{ item.group_name.name|default_if_none:"—" }}
                                 </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr class="no-data-row">
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="5" class="text-center text-muted py-4">
                                 <i class="fas fa-search fa-2x mb-2"></i><br>
                                 Нет данных для отображения
                             </td>
