@@ -75,16 +75,6 @@ class LinkColumnAdmin(BaseAdmin):
 
 
 # ================== РЕГИСТРАЦИЯ МОДЕЛЕЙ ДЛЯ AUTOCOMPLETE ==================
-@admin.register(LinkTable)
-class LinkTableAdmin(BaseAdmin):
-    """Админка для таблиц"""
-    list_display = ('name', 'schema_display', 'type', 'is_metadata')
-    search_fields = ('name__istartswith', 'schema__schema__istartswith')
-
-    def schema_display(self, obj):
-        return f"{obj.schema.base.name}.{obj.schema.schema}"
-
-    schema_display.short_description = 'Схема'
 
 
 @admin.register(DimStage)
@@ -249,6 +239,13 @@ class LinkColumnColumnRawIdAdmin(BaseAdmin):
     sub_info.short_description = 'Связанный столбец'
 
 
+class LinkColumnInline(admin.TabularInline):
+    model = LinkColumn
+    extra = 0  # Не добавлять пустые формы по умолчанию
+    fields = ('columns', 'type', 'is_key', 'is_null', 'description')
+    show_change_link = True  # Позволяет перейти к полной форме редактирования
+
+
 # ================== ОСТАЛЬНЫЕ МОДЕЛИ ==================
 @admin.register(TotalData)
 class TotalDataAdmin(BaseAdmin):
@@ -316,3 +313,16 @@ class LinkColumnNameAdmin(BaseAdmin):
         return "N/A"
 
     column_display.short_description = 'Столбец'
+
+
+@admin.register(LinkTable)
+class LinkTableAdmin(BaseAdmin):
+    """Админка для таблиц"""
+    list_display = ('name', 'schema_display', 'type', 'is_metadata')
+    search_fields = ('name__istartswith', 'schema__schema__istartswith')
+    inlines = [LinkColumnInline]  # ← Добавлено
+
+    def schema_display(self, obj):
+        return f"{obj.schema.base.name}.{obj.schema.schema}"
+
+    schema_display.short_description = 'Схема'

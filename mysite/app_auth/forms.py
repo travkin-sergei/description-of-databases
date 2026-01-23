@@ -70,9 +70,9 @@ class MyUserLoginForm(AuthenticationForm):
 class MyProfileForm(forms.ModelForm):
     class Meta:
         model = MyProfile
-        fields = ['first_name', 'last_name', 'email', 'link_profile']
+        fields = ['first_name', 'last_name', 'email', 'url']
         widgets = {
-            'link_profile': forms.URLInput(attrs={'class': 'form-control'}),
+            'url': forms.URLInput(attrs={'class': 'form-control'}),
         }
 
 
@@ -89,7 +89,7 @@ class ManualUserCreationForm(forms.ModelForm):
 
     class Meta:
         model = MyProfile
-        fields = ['username', 'email', 'first_name', 'last_name', 'link_profile']
+        fields = ['username', 'email', 'first_name', 'last_name', 'url']
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")

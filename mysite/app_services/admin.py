@@ -1,13 +1,14 @@
 # app_services/admin.py
+from django_apscheduler.models import DjangoJobExecution
+from django_apscheduler.admin import DjangoJobExecutionAdmin
+from django.db.models import Q
 from django.contrib import admin
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
     DimTechStack, LinksUrlService, LinkServicesServices,
-    DimServicesNameType, LinkDoc  # Добавлен LinkDoc
+    DimServicesNameType, LinkDoc
 )
-from django_apscheduler.models import DjangoJobExecution
-from django_apscheduler.admin import DjangoJobExecutionAdmin
 
 # Сначала отменяем стандартную регистрацию
 admin.site.unregister(DjangoJobExecution)
@@ -107,6 +108,11 @@ class DimRolesAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
+from django.contrib import admin
+
+from .models import LinkResponsiblePerson
+
+
 @admin.register(LinkResponsiblePerson)
 class LinkResponsiblePersonAdmin(admin.ModelAdmin):
     list_display = ('id', 'service', 'role', 'name')
@@ -114,13 +120,29 @@ class LinkResponsiblePersonAdmin(admin.ModelAdmin):
     search_fields = (
         'service__alias',
         'role__name',
-        'name__user__username',
-        'name__user__first_name',
-        'name__user__last_name',
+        # больше не используем name__user__... здесь
     )
     ordering = ('service',)
     autocomplete_fields = ('service', 'role')
     raw_id_fields = ('name',)
+
+    def get_search_results(self, request, queryset, search_term):
+        # Сначала стандартный поиск
+        queryset, may_have_duplicates = super().get_search_results(
+            request, queryset, search_term
+        )
+
+        if search_term:
+            # Добавляем поиск по связанным полям User (через name)
+            user_filters = (
+                    Q(name__username__icontains=search_term) |
+                    Q(name__first_name__icontains=search_term) |
+                    Q(name__last_name__icontains=search_term)
+            )
+            queryset |= self.model.objects.filter(user_filters)
+
+        # При объединении через |= возможны дубликаты
+        return queryset.distinct(), True
 
 
 @admin.register(LinkServicesTable)

@@ -60,17 +60,18 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
         context['related_links'] = LinkUpdateCol.objects.filter(
             type=self.object
         ).select_related(
-            'type',                     # ForeignKey к DimUpdateMethod
-            'main',                     # ForeignKey к LinkColumn
-            'main__table',              # если LinkColumn имеет ForeignKey к таблице
-            'main__table__schema',      # если Table имеет ForeignKey к Schema
+            'type',                      # ForeignKey к DimUpdateMethod
+            'main',                      # ForeignKey к LinkColumn
+            'main__table',               # если LinkColumn имеет ForeignKey к таблице
+            'main__table__schema',       # если Table имеет ForeignKey к Schema
             'main__table__schema__base', # если Schema имеет ForeignKey к Base
-            'sub',                      # ForeignKey к LinkColumn (может быть null)
-            'sub__table',               # если sub не null
-            'sub__table__schema',       # если sub не null
-            'sub__table__schema__base'  # если sub не null
+            'sub',                       # ForeignKey к LinkColumn (может быть null)
+            'sub__table',                # если sub не null
+            'sub__table__schema',        # если sub не null
+            'sub__table__schema__base'   # если sub не null
         )
         context['title'] = f"Метод обновления: {self.object.name}"
+
         # Сохраняем параметры фильтрации для пагинации
         get_params = self.request.GET.copy()
         if 'page' in get_params:

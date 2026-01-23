@@ -48,7 +48,7 @@ class DimServicesFilter(django_filters.FilterSet):
         # Ищем пользователей по имени пользователя (username)
         # MyProfile имеет связь с User через поле user
         profile_ids = MyProfile.objects.filter(
-            user__username__icontains=value
+            username__icontains=value
         ).values_list('id', flat=True)
 
         return queryset.filter(

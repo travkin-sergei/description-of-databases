@@ -564,16 +564,23 @@
                             <table class="table table-hover table-striped align-middle docs-table">
                                 <thead class="table-dark">
                                     <tr>
-                                        <th>Номер</th>
-                                        <th>Дата</th>
+                                        <th width="5%">тип</th>
+                                        <th width="7%">№</th>
+                                        <th width="10%">дата</th>
                                         <th></th>
-                                        <th style="width: 40%;">Описание документа</th>
-                                        <th style="width: 20%;">Тип документа</th>
+                                        <th>Описание документа</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for link_doc in service_docs %}
                                     <tr>
+                                        <td>
+                                            {% if link_doc.doc.doc_type %}
+                                                {{ link_doc.doc.doc_type.name|default:"Тип не указан" }}
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </td>
                                         <td class="fw-semibold">
                                             {{ link_doc.doc.number|default:"—" }}
                                         </td>
@@ -593,17 +600,8 @@
                                         </td>
                                         <td>
                                             <div class="fw-medium mb-1">
-                                                {{ link_doc.doc.description|default:"Без описания"|truncatechars:100 }}
+                                                {{ link_doc.doc.description|default:"Без описания"|truncatechars:170 }}
                                             </div>
-                                        </td>
-                                        <td>
-                                            {% if link_doc.doc.doc_type %}
-                                            <span class="badge bg-info">
-                                                {{ link_doc.doc.doc_type.name|default:"Тип не указан" }}
-                                            </span>
-                                            {% else %}
-                                            <span class="text-muted">—</span>
-                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -693,8 +691,8 @@
                                     <span class="person-role">{{ role_group.grouper.name|default:"Роль не указана" }}</span>
                                     {% if person.name %}
                                     <div class="person-name">
-                                        {% if person.name.link_profile %}
-                                        <a href="{{ person.name.link_profile }}"
+                                        {% if person.name.url %}
+                                        <a href="{{ person.name.url }}"
                                            target="_blank"
                                            class="profile-link">
                                             {{ person.name.get_full_name|default:person.name.username|default:"Имя не указано" }}

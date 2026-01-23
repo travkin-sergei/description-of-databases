@@ -37,7 +37,7 @@ class DimDoc(BaseClass):
 
     def __str__(self):
         if self.date_start:
-            return f'{self.number} от {self.date_start.strftime('%Y-%m-%d')}'
+            return f'{self.number} от {self.date_start.strftime("%Y-%m-%d")}'
         return f'{self.number} (без даты)'
 
     class Meta:

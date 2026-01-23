@@ -398,9 +398,9 @@
 
                             <dt class="col-sm-5">Ссылка на профиль</dt>
                             <dd class="col-sm-7 text-start">
-                                {% if user.profile.link_profile %}
-                                <a href="{{ user.profile.link_profile }}" target="_blank" class="data-link">
-                                    {{ user.profile.link_profile|truncatechars:40 }}
+                                {% if user.profile.url %}
+                                <a href="{{ user.profile.url }}" target="_blank" class="data-link">
+                                    {{ user.profile.url|truncatechars:40 }}
                                 </a>
                                 {% else %}
                                 —

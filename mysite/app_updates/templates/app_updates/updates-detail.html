@@ -112,17 +112,17 @@
             <div class="card-body card-content-padding">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Название:</strong> {{ update_method.name }}</p>
+                        <p>
+                            <strong>Название:</strong>
+                            {% if update_method.url %}
+                            <a href="{{ update_method.url }}" target="_blank"><strong>{{ update_method.name }}</strong></a>
+                            {% else %}
+                            {{ update_method.name }}
+                            {% endif %}
+                        </p>
                         <p><strong>Расписание:</strong> {{ update_method.schedule|default:"Не указано" }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Ссылка на код:</strong>
-                            {% if update_method.link_code %}
-                            <a href="{{ update_method.link_code }}" target="_blank">{{ update_method.link_code }}</a>
-                            {% else %}
-                            Не указана
-                            {% endif %}
-                        </p>
                         <p><strong>Статус:</strong>
                             <span class="badge badge-yellow">
                                 {% if update_method.is_active %}Активен{% else %}Неактивен{% endif %}

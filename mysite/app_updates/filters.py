@@ -1,51 +1,6 @@
+# app_updates/filters.py
 import django_filters
-from django import forms
-from app_dbm.models import DimDB, LinkColumn
 from .models import DimUpdateMethod, LinkUpdateCol
-
-
-
-class LinkUpdateColAdminForm(forms.ModelForm):
-    # Только UI-поля (не включаем в fields!)
-    main_database = forms.ModelChoiceField(
-        queryset=DimDB.objects.all(),
-        label="База данных (main)",
-        required=False
-    )
-    sub_database = forms.ModelChoiceField(
-        queryset=DimDB.objects.all(),
-        label="База данных (sub)",
-        required=False
-    )
-
-    # Основные поля — только те, что нужны для модели
-    main_column = forms.ModelChoiceField(
-        queryset=LinkColumn.objects.all(),
-        label="Столбец (main)",
-        required=True
-    )
-    sub_column = forms.ModelChoiceField(
-        queryset=LinkColumn.objects.all(),
-        label="Столбец (sub)",
-        required=False
-    )
-
-    class Meta:
-        model = LinkUpdateCol
-        fields = ['is_active', 'type', 'main_column', 'sub_column']  # ← только эти поля
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # НЕ заполняем main_schema/main_table — они не в fields
-        # Они нужны только для JS, но не для валидации
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        instance.main = self.cleaned_data['main_column']
-        instance.sub = self.cleaned_data.get('sub_column')
-        if commit:
-            instance.save()
-        return instance
 
 
 class DimUpdateMethodFilter(django_filters.FilterSet):
@@ -57,16 +12,54 @@ class DimUpdateMethodFilter(django_filters.FilterSet):
         lookup_expr='icontains',
         label='Расписание'
     )
-    link_code = django_filters.CharFilter(
+    has_url = django_filters.BooleanFilter(
+        field_name='url',
+        lookup_expr='isnull',
+        exclude=True,
+        label='Имеет URL'
+    )
+    url_name = django_filters.CharFilter(
+        field_name='url__name',
         lookup_expr='icontains',
-        label='Ссылка на код'
+        label='Название URL'
     )
 
     class Meta:
         model = DimUpdateMethod
-        fields = [
-            'name',
-            'schedule',
-            'link_code',
-            'is_active',
-        ]
+        fields = ['name', 'schedule', 'url', 'is_active']
+
+
+class LinkUpdateColFilter(django_filters.FilterSet):
+    type_name = django_filters.CharFilter(
+        field_name='type__name',
+        lookup_expr='icontains',
+        label='Название типа'
+    )
+    main_column = django_filters.CharFilter(
+        field_name='main__column__name',
+        lookup_expr='icontains',
+        label='Основной столбец'
+    )
+    sub_column = django_filters.CharFilter(
+        field_name='sub__column__name',
+        lookup_expr='icontains',
+        label='Вторичный столбец'
+    )
+    main_table = django_filters.CharFilter(
+        field_name='main__table__name',
+        lookup_expr='icontains',
+        label='Основная таблица'
+    )
+    has_sub = django_filters.BooleanFilter(
+        field_name='sub',
+        lookup_expr='isnull',
+        exclude=True,
+        label='Имеет вторичный столбец'
+    )
+    is_active = django_filters.BooleanFilter(
+        label='Активен'
+    )
+
+    class Meta:
+        model = LinkUpdateCol
+        fields = ['type', 'main', 'sub', 'is_active']

@@ -2,14 +2,16 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from .apps import db_schema
 from _common.models import BaseClass
+from app_url.models import DimUrl
+
+from .apps import db_schema
 
 
 class MyProfile(AbstractUser):
     """Мой профиль пользователя."""
 
-    link_profile = models.URLField(blank=True, null=True, verbose_name='Ссылка на профиль')
+    url = models.ForeignKey(DimUrl, on_delete=models.PROTECT, verbose_name='Ссылка на профиль', blank=True, null=True)
 
     class Meta:
         db_table = f'{db_schema}"."my_profile'
