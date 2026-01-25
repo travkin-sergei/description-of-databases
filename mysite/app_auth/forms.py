@@ -1,16 +1,15 @@
+# app_auth/forms.py
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import get_user_model
-from .models import MyProfile, RegistrationRequest
+from .models import DimProfile, RegistrationRequest
 
 User = get_user_model()
 
 
 class RegistrationRequestForm(forms.ModelForm):
-    """Форма заявки на регистрацию - ТОЛЬКО email и описание"""
     confirm_email = forms.EmailField(
         label='Подтверждение Email',
-        help_text='Повторите email для проверки',
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'example@domain.com'
@@ -36,23 +35,21 @@ class RegistrationRequestForm(forms.ModelForm):
             'description': 'Цель использования',
         }
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            if RegistrationRequest.objects.filter(email=email, status=None).exists():
+                raise forms.ValidationError('Заявка с таким email уже ожидает рассмотрения')
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError('Пользователь с таким email уже зарегистрирован')
+        return email
+
     def clean(self):
         cleaned_data = super().clean()
         email = cleaned_data.get('email')
         confirm_email = cleaned_data.get('confirm_email')
-
         if email and confirm_email and email != confirm_email:
             raise forms.ValidationError('Email адреса не совпадают')
-
-        # Проверяем, нет ли уже заявки с таким email
-        if email and RegistrationRequest.objects.filter(email=email, status=None).exists():
-            raise forms.ValidationError('Заявка с таким email уже ожидает рассмотрения')
-
-        # Проверяем, нет ли уже пользователя с таким email
-        User = get_user_model()
-        if email and User.objects.filter(email=email).exists():
-            raise forms.ValidationError('Пользователь с таким email уже зарегистрирован')
-
         return cleaned_data
 
 
@@ -67,17 +64,23 @@ class MyUserLoginForm(AuthenticationForm):
     )
 
 
-class MyProfileForm(forms.ModelForm):
+class DimProfileForm(forms.ModelForm):
     class Meta:
-        model = MyProfile
-        fields = ['first_name', 'last_name', 'email', 'url']
+        model = DimProfile
+        fields = ['first_name', 'last_name', 'email']
         widgets = {
-            'url': forms.URLInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'first_name': 'Имя',
+            'last_name': 'Фамилия',
+            'email': 'Email',
         }
 
 
 class ManualUserCreationForm(forms.ModelForm):
-    """Форма для администратора - создание пользователя вручную"""
     password1 = forms.CharField(
         label='Пароль',
         widget=forms.PasswordInput(attrs={'class': 'form-control'})
@@ -88,8 +91,8 @@ class ManualUserCreationForm(forms.ModelForm):
     )
 
     class Meta:
-        model = MyProfile
-        fields = ['username', 'email', 'first_name', 'last_name', 'url']
+        model = DimProfile
+        fields = ['username', 'email', 'first_name', 'last_name']
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")

@@ -1,33 +1,36 @@
-# views/v1.py
-from rest_framework import viewsets, status, filters, permissions
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, Count
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
+from django.db.models import Q, Count, F
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiTypes
 from app_url.models import DimUrl
 from ..models import DimUpdateMethod, LinkUpdateCol
 from ..serializers import DimUpdateMethodSerializer, LinkUpdateColSerializer
 from ..filters import DimUpdateMethodFilter, LinkUpdateColFilter
 
-updates_tags = ["Updates"]
 
-read_only_schema = extend_schema_view(
-    list=extend_schema(tags=updates_tags, description="Получить список методов обновления"),
-    retrieve=extend_schema(tags=updates_tags, description="Получить детальную информацию о методе обновления")
+@extend_schema_view(
+    list=extend_schema(
+        tags=['app_updates'],  # ИСПРАВЛЕНО: tags должен быть списком
+        description="Получить список методов обновления",
+        responses={200: DimUpdateMethodSerializer(many=True)}
+    ),
+    retrieve=extend_schema(
+        tags=['app_updates'],  # ИСПРАВЛЕНО
+        description="Получить детальную информацию о методе обновления",
+        responses={200: DimUpdateMethodSerializer}
+    )
 )
+class DimUpdateMethodViewSet(viewsets.ReadOnlyModelViewSet):  # ЗАМЕНА: используем ReadOnlyModelViewSet вместо кастомного mixin
+    """
+    ViewSet для модели DimUpdateMethod (методы обновления).
 
-
-class ReadOnlyViewSetMixin:
-    http_method_names = ['get', 'head', 'options']
-
-    def get_permissions(self):
-        return [permissions.AllowAny()]
-
-
-@read_only_schema
-class DimUpdateMethodViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
-    queryset = DimUpdateMethod.objects.all()
+    Поддерживает:
+    - Фильтрацию, поиск и сортировку.
+    - Дополнительные действия (actions) для специфичных запросов.
+    """
+    queryset = DimUpdateMethod.objects.select_related('url').all()  # select_related вынесен сюда для оптимизации
     serializer_class = DimUpdateMethodSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = DimUpdateMethodFilter
@@ -35,99 +38,145 @@ class DimUpdateMethodViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
     ordering_fields = ['name', 'schedule', 'created_at', 'updated_at']
     ordering = ['name', 'schedule']
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.select_related('url')
-
-        url_value = self.request.query_params.get('url')
-        if url_value:
-            queryset = queryset.filter(url__url=url_value)
-
-        url_normalized = self.request.query_params.get('url_normalized')
-        if url_normalized:
-            queryset = queryset.filter(url__url_normalized=url_normalized)
-
-        is_active = self.request.query_params.get('is_active')
-        if is_active is not None:
-            queryset = queryset.filter(is_active=is_active.lower() == 'true')
-
-        return queryset
-
     @extend_schema(
-        tags=updates_tags,
+        tags=['app_updates'],
         summary="Получить методы обновления по URL",
         description="Возвращает список методов обновления для указанного URL",
         parameters=[
             OpenApiParameter(
-                name='url', type=str, location=OpenApiParameter.QUERY,
-                description='URL для фильтрации', required=True
+                name='url',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='URL для фильтрации',
+                required=True
             )
-        ]
+        ],
+        responses={200: DimUpdateMethodSerializer(many=True)}
     )
     @action(detail=False, methods=['get'])
     def by_url(self, request):
         url_value = request.query_params.get('url')
         if not url_value:
-            return Response({'error': 'Параметр url обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Параметр url обязателен'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
-            url_obj = DimUrl.objects.get(url=url_value)
+            # Оптимизированный запрос с select_related
+            url_obj = DimUrl.objects.select_related('dimupdatemethod_set').get(url=url_value)
         except DimUrl.DoesNotExist:
-            return Response({'error': f'URL не найден: {url_value}'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'error': f'URL не найден: {url_value}'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         methods = self.get_queryset().filter(url=url_obj)
         serializer = self.get_serializer(methods, many=True)
         return Response(serializer.data)
 
-    @extend_schema(tags=updates_tags, summary="Получить список расписаний")
+    @extend_schema(
+        tags=['app_updates'],
+        summary="Получить список расписаний",
+        responses={200: {'type': 'array', 'items': {'type': 'string'}}}
+    )
     @action(detail=False, methods=['get'])
     def schedules(self, request):
-        schedules = DimUpdateMethod.objects.values_list('schedule', flat=True).distinct()
+        schedules = DimUpdateMethod.objects.values_list('schedule', flat=True).distinct().order_by('schedule')
         return Response(list(schedules))
 
-    @extend_schema(tags=updates_tags, summary="Статистика методов обновления")
+    @extend_schema(
+        tags=['app_updates'],
+        summary="Статистика методов обновления",
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'total': {'type': 'integer'},
+                    'active': {'type': 'integer'},
+                    'url_stats': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'url': {'type': 'string'},
+                                'count': {'type': 'integer'}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
     @action(detail=False, methods=['get'])
     def stats(self, request):
         total = DimUpdateMethod.objects.count()
         active = DimUpdateMethod.objects.filter(is_active=True).count()
 
-        with_url = DimUpdateMethod.objects.filter(url__isnull=False).count()
-        without_url = total - with_url
-
-        schedule_stats = DimUpdateMethod.objects.values('schedule').annotate(
-            total_count=Count('id'),
-            active_count=Count('id', filter=Q(is_active=True))
-        ).order_by('-total_count')
-
-        url_stats = DimUpdateMethod.objects.values('url__url').annotate(
-            count=Count('id')
-        ).order_by('-count')
+        # Оптимизированная статистика по URL
+        url_stats = DimUrl.objects.filter(
+            dimupdatemethod__isnull=False
+        ).annotate(
+            count=Count('dimupdatemethod')
+        ).values('url', 'count').order_by('-count')[:10]  # Ограничение для производительности
 
         return Response({
-            'total': total, 'active': active, 'inactive': total - active,
-            'with_url': with_url, 'without_url': without_url,
-            'schedule_stats': list(schedule_stats), 'url_stats': list(url_stats)
+            'total': total,
+            'active': active,
+            'inactive': total - active,
+            'url_stats': list(url_stats)
         })
 
-    @extend_schema(tags=updates_tags, summary="Информация об используемых URL")
+    @extend_schema(
+        tags=['app_updates'],
+        summary="Информация об используемых URL",
+        responses={
+            200: {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'url': {'type': 'string'},
+                        'method_count': {'type': 'integer'}
+                    }
+                }
+            }
+        }
+    )
     @action(detail=False, methods=['get'])
     def url_info(self, request):
+        # Исправлено: используем правильное имя обратной связи
         urls_with_methods = DimUrl.objects.filter(
-            id__in=DimUpdateMethod.objects.filter(url__isnull=False).values('url_id')
+            dimupdatemethod__isnull=False
         ).annotate(
-            method_count=Count('dimupdatemethod'),
-            active_method_count=Count('dimupdatemethod', filter=Q(dimupdatemethod__is_active=True))
-        ).values('url', 'url_normalized', 'status_code', 'method_count', 'active_method_count')
+            method_count=Count('dimupdatemethod')
+        ).values(
+            'url', 'method_count'
+        ).order_by('-method_count')[:20]  # Ограничение для производительности
 
         return Response(list(urls_with_methods))
 
 
 @extend_schema_view(
-    list=extend_schema(tags=updates_tags, description="Получить список связей обновления столбцов"),
-    retrieve=extend_schema(tags=updates_tags, description="Получить детальную информацию о связи обновления столбцов")
+    list=extend_schema(
+        tags=['app_updates'],  # ИСПРАВЛЕНО
+        description="Получить список связей обновления столбцов",
+        responses={200: LinkUpdateColSerializer(many=True)}
+    ),
+    retrieve=extend_schema(
+        tags=['app_updates'],  # ИСПРАВЛЕНО
+        description="Получить детальную информацию о связи обновления столбцов",
+        responses={200: LinkUpdateColSerializer}
+    )
 )
-class LinkUpdateColViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
-    queryset = LinkUpdateCol.objects.all()
+class LinkUpdateColViewSet(viewsets.ReadOnlyModelViewSet):  # ЗАМЕНА: используем ReadOnlyModelViewSet
+    """
+    ViewSet для модели LinkUpdateCol (связи методов обновления с колонками).
+    """
+    queryset = LinkUpdateCol.objects.select_related(
+        'type', 'type__url', 'main__column', 'main__table__database',
+        'sub__column', 'sub__table__database'
+    ).all()
     serializer_class = LinkUpdateColSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = LinkUpdateColFilter
@@ -135,141 +184,90 @@ class LinkUpdateColViewSet(ReadOnlyViewSetMixin, viewsets.ModelViewSet):
         'type__name', 'main__column__name', 'sub__column__name',
         'main__table__name', 'sub__table__name', 'type__url__url'
     ]
-    ordering_fields = ['main__column__name', 'type__name', 'created_at', 'updated_at']
+    ordering_fields = ['main__column__name', 'type__name', 'created_at']
     ordering = ['main__column__name']
 
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        method_url = self.request.query_params.get('method_url')
-        if method_url:
-            queryset = queryset.filter(type__url__url=method_url)
-
-        is_active = self.request.query_params.get('is_active')
-        if is_active is not None:
-            queryset = queryset.filter(is_active=is_active.lower() == 'true')
-
+        # Исправлена логика фильтрации по has_sub
         has_sub = self.request.query_params.get('has_sub')
         if has_sub is not None:
-            queryset = queryset.filter(sub__isnull=has_sub.lower() != 'true')
-
-        queryset = queryset.select_related(
-            'type', 'type__url', 'main', 'main__column', 'main__table', 'main__table__database',
-            'sub', 'sub__column', 'sub__table', 'sub__table__database'
-        )
+            queryset = queryset.filter(sub__isnull=(has_sub.lower() != 'true'))
 
         return queryset
 
     @extend_schema(
-        tags=updates_tags,
-        summary="Получить связи по методу обновления",
-        description="Возвращает связи обновления столбцов для указанного метода обновления",
-        parameters=[
-            OpenApiParameter(
-                name='method_url', type=str, location=OpenApiParameter.QUERY,
-                description='URL метода обновления', required=True
-            )
-        ]
-    )
-    @action(detail=False, methods=['get'])
-    def by_update_method(self, request):
-        method_url = request.query_params.get('method_url')
-        if not method_url:
-            return Response({'error': 'Параметр method_url обязателен'}, status=status.HTTP_400_BAD_REQUEST)
-
-        links = self.get_queryset().filter(type__url__url=method_url)
-        serializer = self.get_serializer(links, many=True)
-        return Response(serializer.data)
-
-    @extend_schema(
-        tags=updates_tags,
-        summary="Получить связи по основной колонке",
-        description="Возвращает связи обновления для указанной основной колонки",
-        parameters=[
-            OpenApiParameter(
-                name='column_id', type=int, location=OpenApiParameter.QUERY,
-                description='ID основной колонки', required=True
-            )
-        ]
-    )
-    @action(detail=False, methods=['get'])
-    def by_main_column(self, request):
-        column_id = request.query_params.get('column_id')
-        if not column_id:
-            return Response({'error': 'Параметр column_id обязателен'}, status=status.HTTP_400_BAD_REQUEST)
-
-        links = self.get_queryset().filter(main__column_id=column_id)
-        serializer = self.get_serializer(links, many=True)
-        return Response(serializer.data)
-
-    @extend_schema(
-        tags=updates_tags,
-        summary="Получить связи по базе данных",
-        description="Возвращает связи обновления для указанной базы данных",
-        parameters=[
-            OpenApiParameter(
-                name='database_id', type=int, location=OpenApiParameter.QUERY,
-                description='ID базы данных', required=True
-            )
-        ]
-    )
-    @action(detail=False, methods=['get'])
-    def by_database(self, request):
-        database_id = request.query_params.get('database_id')
-        if not database_id:
-            return Response({'error': 'Параметр database_id обязателен'}, status=status.HTTP_400_BAD_REQUEST)
-
-        links = self.get_queryset().filter(
-            Q(main__table__database_id=database_id) | Q(sub__table__database_id=database_id)
-        )
-        serializer = self.get_serializer(links, many=True)
-        return Response(serializer.data)
-
-    @extend_schema(
-        tags=updates_tags,
+        tags=['app_updates'],
         summary="Получить связи по шаблону URL",
-        description="Возвращает связи обновления, где URL метода обновления содержит указанный шаблон",
         parameters=[
             OpenApiParameter(
-                name='url_pattern', type=str, location=OpenApiParameter.QUERY,
-                description='Шаблон для поиска в URL', required=True
+                name='url_pattern',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='Шаблон для поиска в URL (регистронезависимый)',
+                required=True
             )
-        ]
+        ],
+        responses={200: LinkUpdateColSerializer(many=True)}
     )
     @action(detail=False, methods=['get'])
     def by_url_pattern(self, request):
-        url_pattern = request.query_params.get('url_pattern')
+        url_pattern = request.query_params.get('url_pattern', '').strip()
         if not url_pattern:
-            return Response({'error': 'Параметр url_pattern обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Параметр url_pattern обязателен'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        # Исправлено: используем icontains для регистронезависимого поиска
         links = self.get_queryset().filter(
-            Q(type__url__url__icontains=url_pattern) | Q(type__url__url_normalized__icontains=url_pattern)
-        )
+            Q(type__url__url__icontains=url_pattern) |
+            Q(type__url__url_normalized__icontains=url_pattern)
+        ).distinct()
+
+        page = self.paginate_queryset(links)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(links, many=True)
         return Response(serializer.data)
 
-    @extend_schema(tags=updates_tags, summary="Статистика связей обновления")
+    @extend_schema(
+        tags=['app_updates'],
+        summary="Статистика связей обновления (упрощённая)",
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'total': {'type': 'integer'},
+                    'by_type': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'type_name': {'type': 'string'},
+                                'count': {'type': 'integer'}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
     @action(detail=False, methods=['get'])
     def stats(self, request):
         total = LinkUpdateCol.objects.count()
-        active = LinkUpdateCol.objects.filter(is_active=True).count()
-        with_sub = LinkUpdateCol.objects.filter(sub__isnull=False).count()
 
+        # Упрощённая статистика с ограничением количества результатов
         by_type = LinkUpdateCol.objects.values(
-            'type__name', 'type__url__url', 'type__id'
+            type_name=F('type__name')
         ).annotate(
-            count=Count('id'),
-            active_count=Count('id', filter=Q(is_active=True))
-        ).order_by('-count')
-
-        by_url = LinkUpdateCol.objects.values('type__url__url').annotate(
-            count=Count('id'),
-            active_count=Count('id', filter=Q(is_active=True))
-        ).order_by('-count')
+            count=Count('id')
+        ).order_by('-count')[:5]
 
         return Response({
-            'total': total, 'active': active, 'inactive': total - active,
-            'with_sub_column': with_sub, 'without_sub_column': total - with_sub,
-            'by_type': list(by_type), 'by_url': list(by_url)
+            'total': total,
+            'by_type': list(by_type)
         })

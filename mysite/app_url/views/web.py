@@ -15,7 +15,7 @@ from ..models import DimUrl
 class AboutView(LoginRequiredMixin, TemplateView):
     """Страница о приложении."""
 
-    template_name = 'app_dbm/about-application.html'
+    template_name = 'app_dbm/about-app.html'
     title = "О приложении"
 
     def get_context_data(self, **kwargs):

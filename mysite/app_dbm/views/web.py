@@ -1,13 +1,12 @@
 # app_dbm\views\web.py
 from django.db.models import Q, OuterRef, Subquery
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import DetailView, TemplateView
 from django.views.decorators.csrf import csrf_exempt
-
 from django_filters.views import FilterView
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from _common.models import SafePaginator
 from app_services.models import LinkServicesTable
@@ -33,7 +32,7 @@ class PageNotFoundView(LoginRequiredMixin, View):
 class AboutView(LoginRequiredMixin, TemplateView):
     """Страница о приложении."""
 
-    template_name = 'app_dbm/about-application.html'
+    template_name = 'app_dbm/about-app.html'
     title = "О приложении"
 
     def get_context_data(self, **kwargs):
@@ -50,7 +49,7 @@ class DatabasesView(LoginRequiredMixin, FilterView):
     template_name = 'app_dbm/databases.html'
     context_object_name = 'databases'
     paginate_by = 20
-    paginator_class = SafePaginator  # Используем SafePaginator
+    paginator_class = SafePaginator
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -58,9 +57,6 @@ class DatabasesView(LoginRequiredMixin, FilterView):
 
         # Применяем фильтры
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
-
-        # УБЕРИТЕ СРЕЗ! SafePaginator сам ограничит количество
-        # НЕ ДЕЛАЙТЕ: limited_qs = filtered_qs[:self.limit]
 
         return self.filterset.qs  # Просто возвращаем фильтрованный QuerySet
 
@@ -132,9 +128,6 @@ class TablesView(LoginRequiredMixin, FilterView):
 
         # Применяем фильтры
         self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
-
-        # УБЕРИТЕ СРЕЗ! SafePaginator сам ограничит количество
-        # НЕ ДЕЛАЙТЕ: limited_qs = filtered_qs[:self.limit]
 
         return self.filterset.qs  # Просто возвращаем фильтрованный QuerySet
 

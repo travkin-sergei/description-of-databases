@@ -1,4 +1,4 @@
-# app_auth/models
+# app_auth/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -8,13 +8,13 @@ from app_url.models import DimUrl
 from .apps import db_schema
 
 
-class MyProfile(AbstractUser):
+class DimProfile(AbstractUser):
     """Мой профиль пользователя."""
 
     url = models.ForeignKey(DimUrl, on_delete=models.PROTECT, verbose_name='Ссылка на профиль', blank=True, null=True)
 
     class Meta:
-        db_table = f'{db_schema}"."my_profile'
+        db_table = f'{db_schema}"."dim_profile'
         verbose_name = 'Профиль пользователя'
         verbose_name_plural = 'Профили пользователей'
 
@@ -39,8 +39,6 @@ class RegistrationRequest(BaseClass):
         verbose_name='Статус'
     )
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-
     def __str__(self):
         return f'{self.email}'
 
@@ -54,6 +52,6 @@ class RegistrationRequest(BaseClass):
             return 'Отклонена'
 
     class Meta:
-        db_table = f'{db_schema}"."registration_request'
+        db_table = f'{db_schema}"."dim_registration_request'
         verbose_name = 'Заявка на регистрацию'
         verbose_name_plural = 'Заявки на регистрацию'

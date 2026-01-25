@@ -1,3 +1,5 @@
+# app_dict/filters.py
+
 import django_filters
 from .models import DimDictionary
 

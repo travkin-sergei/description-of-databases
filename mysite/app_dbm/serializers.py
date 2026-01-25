@@ -1,13 +1,11 @@
-# app_dbm/serializers.py
 import json
 
 from rest_framework import serializers
-from .models import (
-    DimStage, DimDB, LinkDB, LinkSchema, DimTableType, DimColumnName, LinkTable,
-    LinkColumn, DimTypeLink, LinkColumnColumn, LinkColumnName, TotalData,
-
-)
 from _common.models import hash_calculate
+from .models import (
+    DimStage, DimDB, LinkDB, LinkSchema, DimTableType, DimColumnName,
+    LinkTable, LinkColumn, DimTypeLink, LinkColumnColumn, LinkColumnName, TotalData
+)
 
 
 class DimStageSerializer(serializers.ModelSerializer):
@@ -28,13 +26,13 @@ class LinkDBSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class LinkDBSchemaSerializer(serializers.ModelSerializer):
+class LinkSchemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = LinkSchema
         fields = '__all__'
 
 
-class DimDBTableTypeSerializer(serializers.ModelSerializer):
+class DimTableTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DimTableType
         fields = '__all__'
@@ -77,18 +75,25 @@ class LinkColumnNameSerializer(serializers.ModelSerializer):
 
 
 class TotalDataSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели TotalData.
+    Особенности:
+    - Валидация ключевых полей для хэша.
+    - Обработка JSON в поле column_info.
+    - Возврат только hash_address в ответе.
+    """
+
     column_number = serializers.IntegerField(required=False, allow_null=True)
     column_info = serializers.JSONField(required=False, allow_null=True)
 
     class Meta:
         model = TotalData
         fields = [
-            "stand", "table_type", "group_catalog", "table_catalog",
-            "table_schema", "table_name", "table_comment", "column_number",
-            "column_name", "column_comment", "data_type", "is_nullable",
-            "is_auto", "column_info"
+            'stand', 'table_type', 'group_catalog', 'table_catalog',
+            'table_schema', 'table_name', 'table_comment', 'column_number',
+            'column_name', 'column_comment', 'data_type', 'is_nullable',
+            'is_auto', 'column_info'
         ]
-        # Можно также указать extra_kwargs для настройки полей
         extra_kwargs = {
             'stand': {'allow_blank': True, 'allow_null': True},
             'table_type': {'allow_blank': True, 'allow_null': True},
@@ -105,86 +110,89 @@ class TotalDataSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, data):
-        """Проверка обязательных полей для хэша."""
-        required_for_hash = [
-            'stand', 'table_catalog', 'table_schema', 'table_type', 'table_name', 'column_name', 'data_type'
+        """
+        Проверяет наличие обязательных полей для расчёта хэша.
+        """
+        required_fields = [
+            'stand', 'table_catalog', 'table_schema',
+            'table_type', 'table_name', 'column_name', 'data_type'
         ]
 
-        missing_fields = [field for field in required_for_hash if not data.get(field)]
-
-        if missing_fields:
+        missing = [field for field in required_fields if not data.get(field)]
+        if missing:
             raise serializers.ValidationError({
-                'error': f'Для расчета хеша необходимы поля: {", ".join(missing_fields)}'
+                'error': f'Обязательны поля для хэша: {", ".join(missing)}'
             })
         return data
 
     def validate_column_number(self, value):
-        """Валидация для column_number."""
+        """Проверяет, что column_number ≥ 0."""
         if value is not None and value < 0:
-            raise serializers.ValidationError("column_number не может быть отрицательным")
+            raise serializers.ValidationError('column_number не может быть отрицательным')
         return value
 
     def validate_column_info(self, value):
-        """Валидация для column_info."""
+        """
+        Преобразует строку в JSON, если необходимо.
+        Принимает: dict, list, str (с валидным JSON), None.
+        """
         if value is None:
             return None
 
-        # Если передана строка, пытаемся распарсить ее в JSON
         if isinstance(value, str):
             try:
                 return json.loads(value)
             except json.JSONDecodeError:
-                raise serializers.ValidationError("column_info должен быть валидным JSON")
+                raise serializers.ValidationError('column_info должен быть валидным JSON')
 
-        # Если уже словарь или список - возвращаем как есть
         if isinstance(value, (dict, list)):
             return value
 
-        raise serializers.ValidationError("column_info должен быть JSON объектом или массивом")
+        raise serializers.ValidationError(
+            'column_info должен быть JSON-объектом, массивом или строкой с JSON'
+        )
 
     def calculate_hash(self, validated_data):
-        """Расчет хэша из validated_data."""
-        hash_fields = [
+        """Рассчитывает хэш на основе ключевых полей."""
+        fields = [
             validated_data.get('stand', ''),
             validated_data.get('table_catalog', ''),
             validated_data.get('table_schema', ''),
             validated_data.get('table_type', ''),
             validated_data.get('table_name', ''),
             validated_data.get('column_name', ''),
-            validated_data.get('data_type', ''),
+            validated_data.get('data_type', '')
         ]
-        return hash_calculate(hash_fields)
+        return hash_calculate(fields)
 
     def create(self, validated_data):
-        """Создает запись и возвращает только hash_address."""
-        # Рассчитываем хэш
+        """Создаёт запись с уникальным hash_address."""
         hash_address = self.calculate_hash(validated_data)
-
-        # Создаем или обновляем запись
-        instance, created = TotalData.objects.update_or_create(
+        instance, _ = TotalData.objects.update_or_create(
             hash_address=hash_address,
             defaults=validated_data
         )
-
         return instance
 
     def update(self, instance, validated_data):
-        """Обновление записи."""
-        # Проверяем, не меняются ли ключевые поля
-        hash_fields = [
-            'stand', 'table_catalog', 'table_schema', 'table_type', 'table_name', 'column_name', 'data_type'
+        """
+        Обновляет запись, запрещая изменение ключевых полей (влияющих на хэш).
+        """
+        key_fields = [
+            'stand', 'table_catalog', 'table_schema',
+            'table_type', 'table_name', 'column_name', 'data_type'
         ]
 
-        for field in hash_fields:
+        for field in key_fields:
             if field in validated_data:
-                current = getattr(instance, field, '')
-                new = validated_data[field]
-                if str(current) != str(new):
+                current_val = getattr(instance, field, '')
+                new_val = validated_data[field]
+                if str(current_val) != str(new_val):
                     raise serializers.ValidationError({
-                        field: f'Нельзя изменять поле {field} - оно влияет на хэш'
+                        field: f'Поле {field} нельзя изменить — оно влияет на hash_address'
                     })
 
-        # Обновляем разрешенные поля
+        # Обновляем остальные поля
         for key, value in validated_data.items():
             setattr(instance, key, value)
 
@@ -193,8 +201,6 @@ class TotalDataSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         """
-        Возвращает ТОЛЬКО hash_address в ответе.
+        Возвращает только hash_address в ответе API.
         """
-        return {
-            'hash_address': instance.hash_address
-        }
+        return {'hash_address': instance.hash_address}

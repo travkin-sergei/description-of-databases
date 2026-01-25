@@ -1,7 +1,7 @@
 # app_services/models.py
 from django.db import models
 
-from app_auth.models import MyProfile
+from app_auth.models import DimProfile
 from app_url.models import DimUrl
 from app_dbm.models import LinkTable, DimStage
 from app_doc.models import DimDoc
@@ -128,7 +128,7 @@ class LinkResponsiblePerson(BaseClass):
 
     service = models.ForeignKey(DimServices, on_delete=models.PROTECT)
     role = models.ForeignKey(DimRoles, on_delete=models.PROTECT)
-    name = models.ForeignKey(MyProfile, on_delete=models.PROTECT)
+    name = models.ForeignKey(DimProfile, on_delete=models.PROTECT)
 
     def __str__(self):
         return f'{self.service}-{self.role}-{self.name}'

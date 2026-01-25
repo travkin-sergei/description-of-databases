@@ -1,9 +1,10 @@
+# app_auth/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import MyProfile, RegistrationRequest
+from .models import DimProfile, RegistrationRequest
 
 
-@admin.register(MyProfile)
+@admin.register(DimProfile)
 class MyUserAdmin(UserAdmin):
     # Автокомплит для foreign key поля
     autocomplete_fields = ['url', ]

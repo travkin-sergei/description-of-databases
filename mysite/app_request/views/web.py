@@ -13,7 +13,7 @@ from ..models import ColumnGroup, TableGroup
 class AboutView(LoginRequiredMixin, TemplateView):
     """Страница о приложении."""
 
-    template_name = 'app_request/about-application.html'
+    template_name = 'app_request/about-app.html'
     title = "О приложении"
 
     def get_context_data(self, **kwargs):
@@ -88,6 +88,7 @@ class ColumnGroupListView(LoginRequiredMixin, ListView):
         return context
 
 
+# Детализация столбцов
 class ColumnGroupDetailView(LoginRequiredMixin, DetailView):
     """Детализация федерального законодательства."""
     model = ColumnGroup

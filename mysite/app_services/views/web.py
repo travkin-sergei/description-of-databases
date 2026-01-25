@@ -28,7 +28,7 @@ from ..models import (
 
 class AboutView(TemplateView):
     """Страница «О модуле Управление сервисами»."""
-    template_name = 'app_services/about-application.html'
+    template_name = 'app_services/about-app.html'
     title = "О модуле Управление сервисами"
 
     def get_context_data(self, **kwargs):
@@ -115,49 +115,45 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
     paginate_by = 10
 
     def get_queryset(self):
-        return super().get_queryset().select_related('type').prefetch_related(
-            'dimservicesname_set',
-            Prefetch(
-                'linkdoc_set',
-                queryset=LinkDoc.objects.select_related('doc')
-                .filter(doc__isnull=False)
-                .order_by('doc__number')
-            ),
-            Prefetch(
-                'linkresponsibleperson_set',
-                queryset=LinkResponsiblePerson.objects.select_related('name', 'role')
-                .filter(is_active=True, name__isnull=False)
-            ),
-            Prefetch(
-                'linkservicestable_set',
-                queryset=LinkServicesTable.objects.select_related('table')
-                .filter(is_active=True, table__isnull=False)
-            ),
-            Prefetch(
-                'linksurlservice_set',
-                queryset=LinksUrlService.objects.select_related('url', 'stack', 'stage')
-                .filter(is_active=True)
-            ),
-            Prefetch(
-                'my_main',
-                queryset=LinkServicesServices.objects.select_related('sub', 'sub__type')
-                .filter(is_active=True, sub__isnull=False)
-            ),
-            Prefetch(
-                'my_sub',
-                queryset=LinkServicesServices.objects.select_related('main', 'main__type')
-                .filter(is_active=True, main__isnull=False)
-            ),
+        return (
+            super().get_queryset()
+            .select_related('type')
+            .prefetch_related(
+                'dimservicesname_set',
+                Prefetch('linkdoc_set',
+                         queryset=LinkDoc.objects.select_related('doc')
+                         .filter(doc__isnull=False).order_by('doc__number')),
+                Prefetch('linkresponsibleperson_set',
+                         queryset=LinkResponsiblePerson.objects.select_related('name', 'role')
+                         .filter(is_active=True, name__isnull=False)),
+                Prefetch('linkservicestable_set',
+                         queryset=LinkServicesTable.objects.select_related('table')
+                         .filter(is_active=True, table__isnull=False)),
+                Prefetch('linksurlservice_set',
+                         queryset=LinksUrlService.objects.select_related('url', 'stack', 'stage')
+                         .filter(is_active=True)),
+                Prefetch('my_main',
+                         queryset=LinkServicesServices.objects.select_related('sub', 'sub__type')
+                         .filter(is_active=True, sub__isnull=False)),
+                Prefetch(
+                    'my_sub',
+                    queryset=LinkServicesServices.objects.select_related('main', 'main__type')
+                    .filter(is_active=True, main__isnull=False)
+                ),
+            )
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         # Таблицы с пагинацией - фильтруем те, где table не None и добавляем сортировку
-        tables = self.object.linkservicestable_set.select_related('table').filter(
-            is_active=True,
-            table__isnull=False
-        ).order_by('table__schema', 'table__name')  # Добавлена сортировка
+        tables = (
+            self.object
+            .linkservicestable_set
+            .select_related('table')
+            .filter(is_active=True, table__isnull=False)
+            .order_by('table__schema', 'table__name')
+        )
 
         paginator = Paginator(tables, self.paginate_by)
         page_number = self.request.GET.get('page')
@@ -179,7 +175,10 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
 
         # Дополнительная сортировка внутри каждой группы по stage.pk
         for stack_name in grouped_links:
-            grouped_links[stack_name].sort(key=lambda x: (x.stage.pk if x.stage else 0, x.link_name))
+            (
+                grouped_links[stack_name]
+                .sort(key=lambda x: (x.stage.pk if x.stage else 0, x.link_name))
+            )
 
         # Документы сервиса - фильтруем пустые документы
         service_docs = [
@@ -243,20 +242,21 @@ class ServiceUserView(LoginRequiredMixin, FilterView):
     paginate_by = 20
 
     def get_queryset(self):
-        return super().get_queryset().select_related('type').prefetch_related(
-            'dimservicesname_set',
-            Prefetch(
-                'linkdoc_set',
-                queryset=LinkDoc.objects.select_related('doc')
-                .filter(doc__isnull=False)
-            ),
-            Prefetch(
-                'linkresponsibleperson_set',
-                queryset=LinkResponsiblePerson.objects.select_related(
-                    'name', 'role'
-                ).filter(is_active=True)
-            ),
-        ).order_by('alias')
+        return (
+            super().get_queryset()
+            .select_related('type')
+            .prefetch_related(
+                'dimservicesname_set',  # ← ИСПРАВЛЕНО
+                Prefetch(
+                    'linkdoc_set',  # ← ИСПРАВЛЕНО
+                    queryset=LinkDoc.objects.select_related('doc').filter(doc__isnull=False)
+                ),
+                Prefetch(
+                    'linkresponsibleperson_set',  # ← ИСПРАВЛЕНО
+                    queryset=LinkResponsiblePerson.objects.select_related('name', 'role').filter(is_active=True)
+                ),
+            ).order_by('alias')
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -9,5 +9,5 @@ class AppAuthConfig(AppConfig):
     verbose_name = 'Авторизация и профили'
 
 
-name = AppAuthConfig.name
+app_name = AppAuthConfig.name
 db_schema = AppAuthConfig.db_schema

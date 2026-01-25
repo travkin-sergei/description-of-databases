@@ -796,7 +796,7 @@
                                     <td>{{ forloop.counter0|add:tables_page_obj.start_index|default:forloop.counter }}</td>
                                     <td>
                                         {% if table_link.table and table_link.table.id %}
-                                        <a href="{% url 'dbm:tables-detail' pk=table_link.table.id %}"
+                                        <a href="{% url 'app_dbm:tables-detail' pk=table_link.table.id %}"
                                            class="table-link">
                                             {% if table_link.table.schema %}
                                             <span class="schema-badge">{{ table_link.table.schema }}</span>

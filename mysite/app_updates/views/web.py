@@ -11,7 +11,7 @@ from ..filters import DimUpdateMethodFilter
 
 class AboutView(LoginRequiredMixin, TemplateView):
     """Страница о приложении."""
-    template_name = 'app_updates/about-application.html'
+    template_name = 'app_updates/about-app.html'
     title = "О приложении"
 
     def get_context_data(self, **kwargs):

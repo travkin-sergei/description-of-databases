@@ -1,28 +1,28 @@
 # app_updates/urls.py
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views.v1 import DimUpdateMethodViewSet, LinkUpdateColViewSet
 from .views.web import (
     AboutView,
-    DimUpdateMethodView,
-    DimUpdateMethodDetailView,
+    DimUpdateMethodDetailView, DimUpdateMethodView,
 )
-from .apps import name
+from .apps import AppUpdatesConfig  # Исправлен импорт
 
-app_name = name
+# Пространство имён приложения
+app_name = AppUpdatesConfig.name
 
-router = DefaultRouter()
-router.register(r'api/v1/update-methods', DimUpdateMethodViewSet, basename='update-method')
-router.register(r'api/v1/update-columns', LinkUpdateColViewSet, basename='update-columns')
+# Роутер для API версии 1
+api_router = DefaultRouter()
+api_router.register(r'updates', DimUpdateMethodViewSet, basename='updates')
+api_router.register(r'update-columns', LinkUpdateColViewSet, basename='update-column')  # Единственное число
 
+# Основные URL-паттерны приложения
 urlpatterns = [
-    # API v1
-    path('', include(router.urls)),
-    # WEB страницы
-    path('about-app/', AboutView.as_view(), name='about-app'),
+    # API
+    path('api/v1/', include(api_router.urls)),
+    # web
+    path('about/', AboutView.as_view(), name='about-app'),
     path('updates/', DimUpdateMethodView.as_view(), name='updates'),
     path('updates/<int:pk>/', DimUpdateMethodDetailView.as_view(), name='updates-detail'),
-
-    # API документация (опционально)
-    path('api-auth/', include('rest_framework.urls')),
 ]

@@ -1,3 +1,4 @@
+# app_auth/view/web.py
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -8,14 +9,14 @@ from django.urls import reverse_lazy
 from ..forms import (
     RegistrationRequestForm,
     MyUserLoginForm,
-    MyProfileForm,
+    DimProfileForm,
     ManualUserCreationForm
 )
 from ..models import RegistrationRequest
 
 
 class AboutView(TemplateView):
-    template_name = 'app_auth/about.html'
+    template_name = 'app_auth/about-app.html'
 
 
 class MyLoginView(LoginView):
@@ -42,9 +43,9 @@ class MyLogoutView(LogoutView):
     next_page = reverse_lazy('app_auth:login')
 
 
-class MyProfileView(LoginRequiredMixin, UpdateView):
+class DimProfileView(LoginRequiredMixin, UpdateView):
     template_name = 'app_auth/profile.html'
-    form_class = MyProfileForm
+    form_class = DimProfileForm
     success_url = reverse_lazy('app_auth:profile')
 
     def get_object(self, queryset=None):

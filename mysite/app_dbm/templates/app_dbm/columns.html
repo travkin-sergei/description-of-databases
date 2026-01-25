@@ -238,7 +238,7 @@
                                 <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
                                 <td>
                                     {% if column.table.pk %}
-                                    <a href="{% url 'dbm:tables-detail' pk=column.table.pk %}" class="text-decoration-none text-dark">
+                                    <a href="{% url 'app_dbm:tables-detail' pk=column.table.pk %}" class="text-decoration-none text-dark">
                                         {{ column.table.schema.base.name|default_if_none:"—" }}
                                     </a>
                                     {% else %}
@@ -247,7 +247,7 @@
                                 </td>
                                 <td>
                                     {% if column.table.pk %}
-                                    <a href="{% url 'dbm:tables-detail' pk=column.table.pk %}" class="text-decoration-none text-dark">
+                                    <a href="{% url 'app_dbm:tables-detail' pk=column.table.pk %}" class="text-decoration-none text-dark">
                                         {{ column.table.schema.schema|default_if_none:"—" }}
                                     </a>
                                     {% else %}
@@ -256,7 +256,7 @@
                                 </td>
                                 <td>
                                     {% if column.table.pk %}
-                                    <a href="{% url 'dbm:tables-detail' pk=column.table.pk %}" class="text-decoration-none text-dark fw-bold">
+                                    <a href="{% url 'app_dbm:tables-detail' pk=column.table.pk %}" class="text-decoration-none text-dark fw-bold">
                                         {{ column.table.name|default_if_none:"—" }}
                                     </a>
                                     {% else %}
@@ -265,7 +265,7 @@
                                 </td>
                                 <td>
                                     {% if column.pk %}
-                                    <a href="{% url 'dbm:columns-detail' pk=column.pk %}" class="text-decoration-none text-dark fw-bold">
+                                    <a href="{% url 'app_dbm:columns-detail' pk=column.pk %}" class="text-decoration-none text-dark fw-bold">
                                         {{ column.columns|default_if_none:"—" }}
                                     </a>
                                     {% else %}

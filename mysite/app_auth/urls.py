@@ -1,27 +1,35 @@
+# app_auth/urls.py
 from django.urls import path
 
-from .apps import name
-
+from .apps import AppAuthConfig
+from .view.v1 import RegisterRequestView, ProfileDetailView
 from .view.web import (
-    MyLoginView, MyRegisterView, MyLogoutView,
-    AdminDashboardView, ApproveRequestView, RejectRequestView,
-    CreateUserManuallyView, MyProfileView, AboutView,
-    MyPasswordChangeView, MyPasswordChangeDoneView,
+    AboutView, DimProfileView,
+    MyLoginView,
+    MyLogoutView,
+    MyRegisterView,
+    MyPasswordChangeView,
+    MyPasswordChangeDoneView,
+    AdminDashboardView,
+    ApproveRequestView,
+    RejectRequestView,
+    CreateUserManuallyView,
 )
 
-app_name = name
+app_name = AppAuthConfig.name
 
 urlpatterns = [
     # API
-    # WEB
-    path('', MyProfileView.as_view(), name='profile'),
+    path('register/', RegisterRequestView.as_view(), name='api_register'),
+    path('profile/', ProfileDetailView.as_view(), name='api_profile'),
+    # web
+    path('', DimProfileView.as_view(), name='profile'),
     path('about-app/', AboutView.as_view(), name='about-app'),
     path('login/', MyLoginView.as_view(), name='login'),
     path('logout/', MyLogoutView.as_view(), name='logout'),
     path('register/', MyRegisterView.as_view(), name='register'),
     path('password-change/', MyPasswordChangeView.as_view(), name='password_change'),
     path('password-change/done/', MyPasswordChangeDoneView.as_view(), name='password_change_done'),
-
     # Админка
     path('admin-dashboard/', AdminDashboardView.as_view(), name='admin_dashboard'),
     path('admin-approve/<int:request_id>/', ApproveRequestView.as_view(), name='approve_request'),

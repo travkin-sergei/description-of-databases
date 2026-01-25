@@ -1,40 +1,50 @@
 # app_services/filters.py
 import django_filters
+from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django_filters.views import FilterView
 
-from app_auth.models import MyProfile
+from app_auth.models import DimProfile
 from app_dbm.models import DimStage
 
 from .models import (
-    DimServices, DimServicesTypes, DimRoles, DimTechStack, LinksUrlService,
+    DimServices,
+    DimServicesTypes,
+    DimRoles,
+    DimTechStack,
+    LinksUrlService,
 )
 
 
 class DimServicesFilter(django_filters.FilterSet):
+    """Фильтр для модели DimServices (основные сервисы)."""
     search = django_filters.CharFilter(
         field_name='alias',
         lookup_expr='icontains',
-        label='Сервис'
+        label='Сервис (псевдоним содержит)',
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть псевдонима'})  # ИЗМЕНЕНО
     )
 
     type = django_filters.ModelChoiceFilter(
         queryset=DimServicesTypes.objects.all(),
         field_name='type',
-        label='Тип',
-        empty_label="Любой"
+        label='Тип сервиса',
+        empty_label='Любой',
+        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
     )
 
     user = django_filters.CharFilter(
         method='filter_by_user_name',
-        label='Пользователь (логин)'
+        label='Пользователь (логин содержит)',
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть логина'})  # ИЗМЕНЕНО
     )
 
     role = django_filters.ModelChoiceFilter(
         queryset=DimRoles.objects.all(),
-        method='filter_by_role',
+        field_name='role',  # или то поле, по которому фильтруете
         label='Роль',
-        empty_label="Любая"
+        empty_label='Любая',
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     class Meta:
@@ -42,20 +52,24 @@ class DimServicesFilter(django_filters.FilterSet):
         fields = ['search', 'type', 'user', 'role']
 
     def filter_by_user_name(self, queryset, name, value):
+        """Фильтр по имени пользователя (username) через DimProfile."""
         if not value or not value.strip():
             return queryset
 
-        # Ищем пользователей по имени пользователя (username)
-        # MyProfile имеет связь с User через поле user
-        profile_ids = MyProfile.objects.filter(
-            username__icontains=value
+        value = value.strip()
+        profile_ids = DimProfile.objects.filter(
+            user__username__icontains=value
         ).values_list('id', flat=True)
+
+        if not profile_ids:
+            return queryset.none()
 
         return queryset.filter(
             linkresponsibleperson__name_id__in=profile_ids
         ).distinct()
 
     def filter_by_role(self, queryset, name, value):
+        """Фильтр по роли ответственного."""
         if not value:
             return queryset
         return queryset.filter(
@@ -64,39 +78,45 @@ class DimServicesFilter(django_filters.FilterSet):
 
 
 class LinksUrlServiceFilter(django_filters.FilterSet):
-    """Фильтры ссылок сервисов."""
-
-    # Фильтр по URL через связанную модель DimUrl
+    """Фильтры для модели LinksUrlService (связи URL с сервисами)."""
     url = django_filters.CharFilter(
-        field_name='url__url',  # доступ к полю url в модели DimUrl
+        field_name='url__url',
         lookup_expr='icontains',
-        label='URL содержит'
+        label='URL содержит',
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть URL'})  # ИЗМЕНЕНО
     )
 
     link_name = django_filters.CharFilter(
         lookup_expr='icontains',
-        label='Название ссылки содержит'
+        label='Название ссылки содержит',
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть названия'})  # ИЗМЕНЕНО
     )
 
     description = django_filters.CharFilter(
         lookup_expr='icontains',
-        label='Описание содержит'
+        label='Описание содержит',
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть описания'})  # ИЗМЕНЕНО
     )
 
-    # Фильтры по ForeignKey полям
     stack = django_filters.ModelChoiceFilter(
         queryset=DimTechStack.objects.all(),
-        label='Технологический стек'
+        label='Технологический стек',
+        empty_label='Любой',
+        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
     )
 
     stage = django_filters.ModelChoiceFilter(
         queryset=DimStage.objects.all(),
-        label='Стадия проекта'
+        label='Стадия проекта',
+        empty_label='Любая',
+        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
     )
 
     service = django_filters.ModelChoiceFilter(
         queryset=DimServices.objects.all(),
-        label='Сервис'
+        label='Сервис',
+        empty_label='Любой',
+        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
     )
 
     class Meta:
@@ -105,8 +125,7 @@ class LinksUrlServiceFilter(django_filters.FilterSet):
 
 
 class ServiceUserView(LoginRequiredMixin, FilterView):
-    """Отношение User к Service - правильная реализация FilterView"""
-
+    """Представление для фильтрации сервисов по пользователям и ролям."""
     model = DimServices
     filterset_class = DimServicesFilter
     template_name = 'app_services/services-user.html'
@@ -114,13 +133,12 @@ class ServiceUserView(LoginRequiredMixin, FilterView):
     paginate_by = 20
 
     def get_filterset_kwargs(self, filterset_class):
+        """Обработка GET-параметров для фильтра."""
         kwargs = super().get_filterset_kwargs(filterset_class)
-
-        # Безопасная обработка kwargs['data']
         data = kwargs.get('data')
+
         if data is not None:
-            data = data.copy()  # делаем mutable копию
-            # Удаляем пустые значения
+            data = data.copy()
             for key in list(data.keys()):
                 if data[key] == '':
                     del data[key]
@@ -129,31 +147,29 @@ class ServiceUserView(LoginRequiredMixin, FilterView):
         return kwargs
 
     def get_queryset(self):
-        """Получение queryset с предзагрузкой"""
+        """Получение QuerySet с оптимизированной загрузкой связанных данных."""
         queryset = super().get_queryset()
         return queryset.prefetch_related(
             'type',
             'dimservicesname_set',
             'linkresponsibleperson_set__role',
-            'linkresponsibleperson_set__name'
+            'linkresponsibleperson_set__name__user'
         ).order_by('alias')
 
     def get_context_data(self, **kwargs):
+        """Добавление дополнительной информации в контекст."""
         context = super().get_context_data(**kwargs)
 
-        # Отладочная информация
         context['debug_info'] = {
             'total_count': DimServices.objects.count(),
             'filtered_count': self.object_list.count(),
             'form_data': dict(self.request.GET),
         }
 
-        # Сохраняем параметры фильтрации для пагинации
         get_params = self.request.GET.copy()
         if 'page' in get_params:
             del get_params['page']
 
-        # Очищаем пустые значения для query_string
         for key in list(get_params.keys()):
             if get_params[key] == '':
                 del get_params[key]
