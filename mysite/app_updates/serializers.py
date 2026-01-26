@@ -24,8 +24,8 @@ class DimUpdateMethodSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DimUpdateMethod
-        fields = ['id', 'is_active', 'name', 'schedule', 'url', 'schedule_human']
-        read_only_fields = ['schedule_human', 'url']  # Оба поля — только для чтения
+        fields = ['id', 'is_active', 'name', 'schedule', 'url', 'schedule_human', 'description']
+        read_only_fields = ['schedule_human', 'url']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -90,7 +90,6 @@ class LinkUpdateColSerializer(serializers.ModelSerializer):
                 data['update_method_schedule_human'] = None
         else:
             data['update_method_schedule_human'] = None
-
 
         # Извлечение URL метода обновления
         if instance.type and instance.type.url:

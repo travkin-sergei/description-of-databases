@@ -125,7 +125,10 @@ class RegistrationRequest(BaseClass):
 
 
     class Meta:
-        db_table = f'{db_schema}\".\"registration_request'
+        db_table = f'{db_schema}"."registration_request'
         verbose_name = 'Заявка на регистрацию'
         verbose_name_plural = 'Заявки на регистрацию'
 ```
+## Инструкции по созданию новых моделей.
+1. Всегда добавлять BaseClass, как базовый.
+2. BaseClass описаны в настройках проекта, приложении - _common

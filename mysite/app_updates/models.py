@@ -31,6 +31,10 @@ class DimUpdateMethod(BaseClass):
         DimUrl, on_delete=models.PROTECT, blank=True, null=True,
         verbose_name='Ссылка на источник'
     )
+    description = models.TextField(
+        blank=True, null=True,
+        verbose_name='Описание расписания.'
+    )
 
     def __str__(self):
         return self.name or 'Без названия'

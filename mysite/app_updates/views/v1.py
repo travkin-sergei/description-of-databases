@@ -35,7 +35,7 @@ class DimUpdateMethodViewSet(viewsets.ReadOnlyModelViewSet):  # ЗАМЕНА: и
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = DimUpdateMethodFilter
     search_fields = ['name', 'schedule', 'url__url']
-    ordering_fields = ['name', 'schedule', 'created_at', 'updated_at']
+    ordering_fields = ['name', 'schedule', 'description',]
     ordering = ['name', 'schedule']
 
     @extend_schema(

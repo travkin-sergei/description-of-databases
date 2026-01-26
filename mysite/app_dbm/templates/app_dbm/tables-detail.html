@@ -600,7 +600,7 @@
                                 {% for r in column_relations %}
                                 {% if r.main == col and r.sub %}
                                 <div class="relation-item">
-                                    <a href="{% url 'dbm:tables-detail' pk=r.sub.table.pk %}" class="relation-link">
+                                    <a href="{% url 'app_dbm:tables-detail' pk=r.sub.table.pk %}" class="relation-link">
                                         🔗 {{ r.type.name }}: {{ r.sub.table.name }}.{{ r.sub.columns }}
                                     </a>
                                 </div>
