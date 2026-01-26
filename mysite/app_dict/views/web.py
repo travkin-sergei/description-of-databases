@@ -1,8 +1,13 @@
-from django.http import HttpResponseNotFound
+# app_dict/views/web.py
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, ListView, DetailView
-from ..models import DimCategory, DimDictionary
+from django.contrib import messages
+from django.views.generic import TemplateView, DetailView, UpdateView, ListView, CreateView, DeleteView
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
+
+from ..forms import DictionaryWithSynonymsForm
+from ..models import DimCategory, DimDictionary, LinkDictionaryName
 from ..apps import name
 
 
@@ -44,11 +49,12 @@ class DictionaryView(LoginRequiredMixin, ListView):
         if is_active := params.get('is_active'):
             queryset = queryset.filter(is_active=(is_active == 'true'))
 
-        return queryset
+        return queryset.order_by('name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = DimCategory.objects.filter(is_active=True)
+        context['categories'] = DimCategory.objects.filter(is_active=True).order_by('name')
+        context['title'] = _('Словари')
         return context
 
 
@@ -61,8 +67,49 @@ class DictionaryDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Получаем все синонимы
+        context['synonyms'] = self.object.synonyms.all().order_by('synonym')
         # Дополнительные данные для контекста
         context['related_items'] = DimDictionary.objects.filter(
-            category=self.object.category
-        ).exclude(pk=self.object.pk)[:5]
+            category=self.object.category,
+            is_active=True
+        ).exclude(pk=self.object.pk).order_by('name')[:5]
+        context['title'] = _('Просмотр словаря: %(name)s') % {'name': self.object.name}
+        return context
+
+
+class DictionaryCreateView(LoginRequiredMixin, CreateView):
+    """Создание словаря с синонимами"""
+    model = DimDictionary
+    form_class = DictionaryWithSynonymsForm
+    template_name = f'{name}/dict_form.html'
+
+    def get_success_url(self):
+        messages.success(self.request, _('Словарь успешно создан'))
+        return reverse_lazy(f'{name}:dict')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Создание нового словаря')
+        context['action'] = 'create'
+        context['synonyms'] = []  # Нет синонимов при создании
+        return context
+
+
+class DictionaryUpdateView(LoginRequiredMixin, UpdateView):
+    """Редактирование словаря с синонимами"""
+    model = DimDictionary
+    form_class = DictionaryWithSynonymsForm
+    template_name = f'{name}/dict-form.html'
+
+    def get_success_url(self):
+        messages.success(self.request, _('Словарь успешно обновлен'))
+        return reverse_lazy(f'{name}:dict')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Редактирование словаря')
+        context['action'] = 'update'
+        # Получаем синонимы для текущего словаря
+        context['synonyms'] = self.object.synonyms.all().order_by('synonym')
         return context

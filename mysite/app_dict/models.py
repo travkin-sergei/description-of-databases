@@ -1,7 +1,7 @@
+# app_dict/models.py
 from django.db import models
 from .apps import db_schema
 from _common.models import BaseClass
-
 
 
 class DimCategory(BaseClass):
@@ -19,7 +19,6 @@ class DimCategory(BaseClass):
         ordering = ['name']
 
 
-
 class DimDictionary(BaseClass):
     """Словарь."""
     name = models.CharField(max_length=255)
@@ -35,7 +34,6 @@ class DimDictionary(BaseClass):
         verbose_name = '02 Словарь'
         verbose_name_plural = '02 Словарь'
         ordering = ['name']
-
 
 
 class LinkDictionaryName(BaseClass):
