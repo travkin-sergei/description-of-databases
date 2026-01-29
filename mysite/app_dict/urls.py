@@ -8,7 +8,6 @@ from .views.web import (
     DictionaryDetailView,
     DictionaryCreateView,
     DictionaryUpdateView,
-    DictionaryDeleteView,
 )
 from .apps import name
 

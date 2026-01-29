@@ -159,26 +159,28 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        # Сортировка ссылок сервисов сначала по stack, затем по stage.pk
+        # ============================================
+        # ПРАВИЛЬНАЯ ГРУППИРОВКА: Стек → link_name → список ссылок
+        # ============================================
         links_queryset = (
             self.object.linksurlservice_set
             .select_related('stack', 'stage', 'url')
             .filter(is_active=True)
-            .order_by('stack__name', 'stage__pk', 'link_name')
+            .order_by('stack__name', 'link_name', 'stage__pk')
         )
 
-        # Группировка отсортированных ссылок по технологии
-        grouped_links = defaultdict(list)
+        # Создаем вложенную структуру: {стек: {название_ссылки: [список_ссылок]}}
+        grouped_links = defaultdict(lambda: defaultdict(list))
         for link in links_queryset:
-            key = link.stack.name if link.stack else "Без технологии"
-            grouped_links[key].append(link)
+            stack_name = link.stack.name if link.stack else "Без стека"
+            link_name = link.link_name or "Без названия"
+            grouped_links[stack_name][link_name].append(link)
 
-        # Дополнительная сортировка внутри каждой группы по stage.pk
-        for stack_name in grouped_links:
-            (
-                grouped_links[stack_name]
-                .sort(key=lambda x: (x.stage.pk if x.stage else 0, x.link_name))
-            )
+        # Сортируем стеки по алфавиту И преобразуем вложенные defaultdict в обычные словари
+        grouped_links = {
+            stack: dict(sorted(links.items()))
+            for stack, links in sorted(grouped_links.items())
+        }
 
         # Документы сервиса - фильтруем пустые документы
         service_docs = [
@@ -213,7 +215,7 @@ class ServicesDetailView(LoginRequiredMixin, DetailView):
                 'tables_page_obj': page_obj,
                 'paginator': paginator,
                 'is_paginated': page_obj.has_other_pages(),
-                'grouped_links': dict(sorted(grouped_links.items())),
+                'grouped_links': grouped_links,  # Вложенная структура
                 'service_docs': service_docs,
                 'docs_count': len(service_docs),
                 'as_main': as_main,

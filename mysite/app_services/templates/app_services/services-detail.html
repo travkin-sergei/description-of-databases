@@ -406,6 +406,12 @@
     .role-group {
         margin-bottom: 20px;
     }
+
+    /* Цвета стендов */
+    .stage-badge.bg-dev { background-color: #6c757d; color: white; }
+    .stage-badge.bg-test { background-color: #17a2b8; color: white; }
+    .stage-badge.bg-pp, .stage-badge.bg-preprod { background-color: #ffc107; color: #000; }
+    .stage-badge.bg-prod { background-color: #28a745; color: white; }
 </style>
 
 <div class="service-container">
@@ -473,7 +479,7 @@
                                 aria-selected="false">
                             <i class="fas fa-link me-2"></i>Ссылки
                             <span class="tab-badge">
-                                {% with total=grouped_links.values|length %}{{ total }} групп{% endwith %}
+                                {{ grouped_links|length }} {% if grouped_links|length == 1 %}группа{% elif grouped_links|length in "234" %}группы{% else %}групп{% endif %}
                             </span>
                         </button>
                     </li>
@@ -563,48 +569,48 @@
                         <div class="table-responsive">
                             <table class="table table-hover table-striped align-middle docs-table">
                                 <thead class="table-dark">
-                                    <tr>
-                                        <th width="5%">тип</th>
-                                        <th width="7%">№</th>
-                                        <th width="10%">дата</th>
-                                        <th></th>
-                                        <th>Описание документа</th>
-                                    </tr>
+                                <tr>
+                                    <th width="5%">тип</th>
+                                    <th width="7%">№</th>
+                                    <th width="10%">дата</th>
+                                    <th></th>
+                                    <th>Описание документа</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {% for link_doc in service_docs %}
-                                    <tr>
-                                        <td>
-                                            {% if link_doc.doc.doc_type %}
-                                                {{ link_doc.doc.doc_type.name|default:"Тип не указан" }}
-                                            {% else %}
-                                            —
-                                            {% endif %}
-                                        </td>
-                                        <td class="fw-semibold">
-                                            {{ link_doc.doc.number|default:"—" }}
-                                        </td>
-                                        <td>
-                                            {% if link_doc.doc.date_start %}
-                                            от {{ link_doc.doc.date_start|date:"d.m.Y" }}
-                                            {% else %}
-                                            <span class="text-muted">—</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if link_doc.doc.date_stop %}
-                                            <small class="text-muted">
-                                                Действует до: {{ link_doc.doc.date_stop|date:"d.m.Y" }}
-                                            </small>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="fw-medium mb-1">
-                                                {{ link_doc.doc.description|default:"Без описания"|truncatechars:170 }}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
+                                {% for link_doc in service_docs %}
+                                <tr>
+                                    <td>
+                                        {% if link_doc.doc.doc_type %}
+                                        {{ link_doc.doc.doc_type.name|default:"Тип не указан" }}
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-semibold">
+                                        {{ link_doc.doc.number|default:"—" }}
+                                    </td>
+                                    <td>
+                                        {% if link_doc.doc.date_start %}
+                                        от {{ link_doc.doc.date_start|date:"d.m.Y" }}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if link_doc.doc.date_stop %}
+                                        <small class="text-muted">
+                                            Действует до: {{ link_doc.doc.date_stop|date:"d.m.Y" }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="fw-medium mb-1">
+                                            {{ link_doc.doc.description|default:"Без описания"|truncatechars:170 }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -612,13 +618,9 @@
                     {% endif %}
                     <!-- Вкладка Ссылки -->
                     {% if grouped_links %}
-                    <div class="tab-pane fade"
-                         id="links"
-                         role="tabpanel"
-                         aria-labelledby="links-tab">
-                        <!-- Аккордеон для каждой технологии -->
+                    <div class="tab-pane fade" id="links" role="tabpanel" aria-labelledby="links-tab">
                         <div class="accordion" id="linksAccordion">
-                            {% for stack_name, links in grouped_links.items %}
+                            {% for stack_name, links_by_name in grouped_links.items %}
                             <div class="links-group">
                                 <div class="links-stack-header collapsed"
                                      data-bs-toggle="collapse"
@@ -629,37 +631,56 @@
                                         <div>
                                             <i class="fas fa-code me-2"></i>
                                             {{ stack_name }}
-                                            <span class="badge bg-yellow ms-2" style="background-color: var(--primary-yellow); color: var(--primary-dark);">
-                                                {{ links|length }}
+                                            <span class="badge bg-yellow ms-2"
+                                                  style="background-color: var(--primary-yellow); color: var(--primary-dark);">
+                                                {{ links_by_name|length }} {% if links_by_name|length == 1 %}группа{% elif links_by_name|length in "234" %}группы{% else %}групп{% endif %}
                                             </span>
                                         </div>
                                         <span class="accordion-arrow">▼</span>
                                     </div>
                                 </div>
-                                <div id="collapse{{ forloop.counter }}" class="collapse" data-bs-parent="#linksAccordion">
+                                <div id="collapse{{ forloop.counter }}" class="collapse"
+                                     data-bs-parent="#linksAccordion">
                                     <div class="pt-3">
-                                        {% for link in links %}
+                                        {% for link_name, links_list in links_by_name.items %}
                                         <div class="link-item">
-                                            <span class="stage-badge">
-                                                {% if link.stage %}
-                                                    {{ link.stage.name|default:link.stage.pk|default:"—" }}
-                                                {% else %}
-                                                    —
+                                            <!-- Название ссылки слева -->
+                                            <div class="link-content flex-grow-1">
+                                                <div class="link-name fw-bold">{{ link_name }}</div>
+                                                {% if links_list and links_list.0.description %}
+                                                <p class="link-description mb-0">
+                                                    {{ links_list.0.description }}</p>
                                                 {% endif %}
-                                            </span>
-                                            <div class="link-content">
-                                                {% if link.url %}
-                                                <a href="{{ link.url.url }}"
-                                                   target="_blank"
-                                                   class="link-name text-decoration-none">
-                                                    {{ link.link_name|default:"Ссылка" }}
-                                                </a>
-                                                {% else %}
-                                                <span class="link-name">Ссылка не обнаружена</span>
-                                                {% endif %}
-                                                {% if link.description %}
-                                                <p class="link-description mb-0">{{ link.description }}</p>
-                                                {% endif %}
+                                            </div>
+
+                                            <!-- Все стенд справа в одной строке как ссылки -->
+                                            <div class="d-flex align-items-center gap-2 ms-3">
+                                                {% for link in links_list %}
+                                                <div class="d-flex align-items-center gap-1">
+                                                    {% if link.url %}
+                                                    <a href="{{ link.url.url }}"
+                                                       target="_blank"
+                                                       class="text-decoration-none"
+                                                       title="{{ link.url.url }}">
+                                                        {% if link.stage %}
+                                                        <span class="stage-badge bg-{{ link.stage.name|lower }}">
+                                                            {{ link.stage.name }}
+                                                        </span>
+                                                        {% else %}
+                                                        <span class="stage-badge">—</span>
+                                                        {% endif %}
+                                                    </a>
+                                                    {% else %}
+                                                    {% if link.stage %}
+                                                    <span class="stage-badge bg-{{ link.stage.name|lower }}">
+                                                        {{ link.stage.name }}
+                                                    </span>
+                                                    {% else %}
+                                                    <span class="stage-badge">—</span>
+                                                    {% endif %}
+                                                    {% endif %}
+                                                </div>
+                                                {% endfor %}
                                             </div>
                                         </div>
                                         {% endfor %}
@@ -670,53 +691,70 @@
                         </div>
                     </div>
                     {% endif %}
-                    <!-- Вкладка Контактные лица -->
-                    {% if responsible_persons %}
-                    <div class="tab-pane fade"
-                         id="contacts"
-                         role="tabpanel"
-                         aria-labelledby="contacts-tab">
-                        <!-- Группировка контактных лиц по ролям -->
-                        {% regroup responsible_persons by role as roles_list %}
-                        {% for role_group in roles_list %}
-                        <div class="role-group">
-                            <div class="contacts-group-header">
-                                <i class="fas fa-user-tag me-2"></i>
-                                {{ role_group.grouper.name|default:"Без роли" }}
-                                <span class="badge bg-secondary ms-2">{{ role_group.list|length }}</span>
-                            </div>
-                            <div class="contacts-row">
-                                {% for person in role_group.list %}
-                                <div class="person-card">
-                                    <span class="person-role">{{ role_group.grouper.name|default:"Роль не указана" }}</span>
-                                    {% if person.name %}
-                                    <div class="person-name">
-                                        {% if person.name.url %}
-                                        <a href="{{ person.name.url }}"
-                                           target="_blank"
-                                           class="profile-link">
-                                            {{ person.name.get_full_name|default:person.name.username|default:"Имя не указано" }}
-                                            <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
-                                        </a>
-                                        {% else %}
-                                        {{ person.name.get_full_name|default:person.name.username|default:"Имя не указано" }}
-                                        {% endif %}
-                                    </div>
-                                    {% if person.name.email %}
-                                    <p class="person-email mb-0">
-                                        <i class="fas fa-envelope me-1"></i>{{ person.name.email }}
-                                    </p>
-                                    {% endif %}
-                                    {% else %}
-                                    <div class="person-name text-muted">Пользователь не указан</div>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
-                            </div>
+<!-- Вкладка Контактные лица -->
+{% if responsible_persons %}
+<div class="tab-pane fade" id="contacts" role="tabpanel" aria-labelledby="contacts-tab">
+    <div class="accordion" id="contactsAccordion">
+        {% regroup responsible_persons by role as roles_list %}
+        {% for role_group in roles_list %}
+        <div class="links-group">
+            <div class="links-stack-header collapsed"
+                 data-bs-toggle="collapse"
+                 data-bs-target="#roleCollapse{{ forloop.counter }}"
+                 aria-expanded="false"
+                 aria-controls="roleCollapse{{ forloop.counter }}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-user-tag me-2"></i>
+                        {{ role_group.grouper.name|default:"Без роли" }}
+                        <span class="badge bg-yellow ms-2" style="background-color: var(--primary-yellow); color: var(--primary-dark);">
+                            {{ role_group.list|length }} {% if role_group.list|length == 1 %}человек{% elif role_group.list|length in "234" %}человека{% else %}человек{% endif %}
+                        </span>
+                    </div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+            </div>
+            <div id="roleCollapse{{ forloop.counter }}" class="collapse" data-bs-parent="#contactsAccordion">
+                <div class="pt-3">
+                    <div class="d-flex flex-column gap-2">
+                        {% for person in role_group.list %}
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Номер -->
+                            <span class="text-muted" style="min-width: 20px; text-align: right;">{{ forloop.counter }}.</span>
+
+                            <!-- Имя и ссылка -->
+                            {% if person.name %}
+                                {% if person.name.url %}
+                                <a href="{{ person.name.url }}"
+                                   target="_blank"
+                                   class="text-decoration-none fw-bold"
+                                   style="color: var(--primary-dark);">
+                                    {{ person.name.get_full_name|default:person.name.username|default:"Имя не указано" }}
+                                    <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8em;"></i>
+                                </a>
+                                {% else %}
+                                <span class="fw-bold">{{ person.name.get_full_name|default:person.name.username|default:"Имя не указано" }}</span>
+                                {% endif %}
+
+                                <!-- Email -->
+                                {% if person.name.email %}
+                                <span class="text-muted" style="font-size: 0.85rem;">
+                                    <i class="fas fa-envelope me-1"></i>{{ person.name.email }}
+                                </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-muted">Пользователь не указан</span>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
-                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
                     <!-- Вкладка Подчиненные сервисы -->
                     {% if as_main %}
                     <div class="tab-pane fade"
@@ -793,7 +831,8 @@
                                 <tbody>
                                 {% for table_link in tables_page_obj %}
                                 <tr>
-                                    <td>{{ forloop.counter0|add:tables_page_obj.start_index|default:forloop.counter }}</td>
+                                    <td>{{ forloop.counter0|add:tables_page_obj.start_index|default:forloop.counter }}
+                                    </td>
                                     <td>
                                         {% if table_link.table and table_link.table.id %}
                                         <a href="{% url 'app_dbm:tables-detail' pk=table_link.table.id %}"
