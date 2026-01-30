@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiPara
 from app_url.models import DimUrl
 from ..models import DimUpdateMethod, LinkUpdateCol
 from ..serializers import DimUpdateMethodSerializer, LinkUpdateColSerializer
-from ..filters import DimUpdateMethodFilter, LinkUpdateColFilter
+from ..filters import DimUpdateMethodFilter
 
 
 @extend_schema_view(
@@ -22,7 +22,8 @@ from ..filters import DimUpdateMethodFilter, LinkUpdateColFilter
         responses={200: DimUpdateMethodSerializer}
     )
 )
-class DimUpdateMethodViewSet(viewsets.ReadOnlyModelViewSet):  # ЗАМЕНА: используем ReadOnlyModelViewSet вместо кастомного mixin
+class DimUpdateMethodViewSet(
+    viewsets.ReadOnlyModelViewSet):  # ЗАМЕНА: используем ReadOnlyModelViewSet вместо кастомного mixin
     """
     ViewSet для модели DimUpdateMethod (методы обновления).
 
@@ -35,7 +36,7 @@ class DimUpdateMethodViewSet(viewsets.ReadOnlyModelViewSet):  # ЗАМЕНА: и
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = DimUpdateMethodFilter
     search_fields = ['name', 'schedule', 'url__url']
-    ordering_fields = ['name', 'schedule', 'description',]
+    ordering_fields = ['name', 'schedule', 'description', ]
     ordering = ['name', 'schedule']
 
     @extend_schema(
@@ -179,7 +180,6 @@ class LinkUpdateColViewSet(viewsets.ReadOnlyModelViewSet):  # ЗАМЕНА: ис
     ).all()
     serializer_class = LinkUpdateColSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class = LinkUpdateColFilter
     search_fields = [
         'type__name', 'main__column__name', 'sub__column__name',
         'main__table__name', 'sub__table__name', 'type__url__url'

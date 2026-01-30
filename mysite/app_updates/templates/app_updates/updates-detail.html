@@ -175,7 +175,7 @@
                                 <td>{{ main.table.schema.schema|default:"—" }}</td>
                                 <td>
                                     {% if main.table %}
-                                    <a href="{% url 'dbm:tables-detail' pk=main.table.pk %}">{{ main.table.name }}</a>
+                                    <a href="{% url 'app_dbm:tables-detail' pk=main.table.pk %}">{{ main.table.name }}</a>
                                     {% else %}
                                     —
                                     {% endif %}
@@ -187,7 +187,7 @@
                                 <td>{{ sub.columns|default:"—" }}</td>
                                 <td>
                                     {% if sub.table %}
-                                    <a href="{% url 'dbm:tables-detail' pk=sub.table.pk %}">
+                                    <a href="{% url 'app_dbm:tables-detail' pk=sub.table.pk %}">
                                         {{ sub.table.name }}
                                     </a>
                                     {% else %}
@@ -211,7 +211,7 @@
         <!-- Карточка с кнопкой возврата -->
         <div class="card border-yellow separate-card">
             <div class="card-body text-center card-content-padding">
-                <a href="{% url 'app_updates:updates' %}" class="btn btn-gold">
+                <a href="{% url 'app_updates:updates-list' %}" class="btn btn-gold">
                     <i class="fas fa-arrow-left mr-2"></i>
                     Назад к списку
                 </a>
