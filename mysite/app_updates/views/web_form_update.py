@@ -1,8 +1,8 @@
 # app_updates/views/web_form_update.py
-
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from app_dbm.models import DimDB
 from ..forms import DimUpdateMethodForm, LinkUpdateColFormSet
 
 
@@ -10,16 +10,17 @@ class DimUpdateMethodAddView(View):
     def get(self, request):
         form = DimUpdateMethodForm()
         formset = LinkUpdateColFormSet()
+        databases = DimDB.objects.all()  # ← получаем список баз
         return render(request, 'app_updates/updates-add.html', {
             'form': form,
             'formset': formset,
+            'databases': databases,  # ← передаём в шаблон
             'title': 'Добавить метод обновления',
         })
 
     def post(self, request):
         form = DimUpdateMethodForm(request.POST)
         formset = LinkUpdateColFormSet(request.POST)
-
         if form.is_valid() and formset.is_valid():
             method = form.save()
             formset.instance = method
@@ -27,10 +28,12 @@ class DimUpdateMethodAddView(View):
             messages.success(request, 'Метод обновления успешно добавлен.')
             return redirect('app_updates:updates-list')
         else:
-            # Передаём ОБЕ формы даже при ошибке!
             messages.error(request, 'Исправьте ошибки в форме.')
+            # Важно: при ошибке тоже передавать databases!
+            databases = DimDB.objects.all()
             return render(request, 'app_updates/updates-add.html', {
                 'form': form,
-                'formset': formset,  # ← обязательно!
+                'formset': formset,
+                'databases': databases,
                 'title': 'Добавить метод обновления',
             })

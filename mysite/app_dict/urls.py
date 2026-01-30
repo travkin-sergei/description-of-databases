@@ -25,6 +25,6 @@ urlpatterns = [
     path('about/', AboutView.as_view(), name='about-app'),
     path('', DictionaryView.as_view(), name='dict'),
     path('<int:pk>/', DictionaryDetailView.as_view(), name='dict-detail'),
-    path('/create/', DictionaryCreateView.as_view(), name='dict-create'),
+    path('create/', DictionaryCreateView.as_view(), name='dict-create'),
     path('<int:pk>/edit/', DictionaryUpdateView.as_view(), name='dict-form'),
 ]

@@ -13,6 +13,12 @@
         color: #ffcc00;
         padding: 0.75rem 1rem;
     }
+    .chained-selects {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 4px;
+        margin-top: 8px;
+    }
 </style>
 
 <div class="container py-3">
@@ -23,12 +29,12 @@
         <div class="card-body p-3">
 
             {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show small mb-3 p-2" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close p-0" style="font-size: 0.8rem;" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show small mb-3 p-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close p-0" style="font-size: 0.8rem;" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
             {% endif %}
 
             <form method="post">
@@ -40,96 +46,182 @@
                     <div class="col-md-6">
                         {{ form.name.label_tag }}
                         {{ form.name }}
-                        {% if form.name.errors %}
-                        <div class="text-danger">{{ form.name.errors }}</div>
-                        {% endif %}
+                        {% if form.name.errors %}<div class="text-danger">{{ form.name.errors }}</div>{% endif %}
                     </div>
                     <div class="col-md-6">
                         {{ form.schedule.label_tag }}
                         {{ form.schedule }}
-                        {% if form.schedule.errors %}
-                        <div class="text-danger">{{ form.schedule.errors }}</div>
-                        {% endif %}
+                        {% if form.schedule.errors %}<div class="text-danger">{{ form.schedule.errors }}</div>{% endif %}
                     </div>
                 </div>
                 <div class="mb-3">
                     {{ form.url_input.label_tag }}
                     {{ form.url_input }}
-                    {% if form.url_input.errors %}
-                    <div class="text-danger">{{ form.url_input.errors }}</div>
-                    {% endif %}
+                    {% if form.url_input.errors %}<div class="text-danger">{{ form.url_input.errors }}</div>{% endif %}
                 </div>
                 <div class="mb-3">
                     {{ form.description.label_tag }}
                     {{ form.description }}
-                    {% if form.description.errors %}
-                    <div class="text-danger">{{ form.description.errors }}</div>
-                    {% endif %}
+                    {% if form.description.errors %}<div class="text-danger">{{ form.description.errors }}</div>{% endif %}
                 </div>
 
                 <!-- Formset: Маппинг столбцов -->
                 <h5 class="mt-4 mb-3">Сопоставление столбцов</h5>
                 {% if formset.non_form_errors %}
-                <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+                    <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
                 {% endif %}
-
 
                 <!-- Контейнер для строк -->
                 <div id="formset-container">
                     {% for form in formset %}
-                    <div class="row mb-3 align-items-end formset-row">
-                        {{ form.id }}
-                        {{ form.DELETE }}
-                        <div class="col-md-5">
-                            {{ form.main_id.label_tag }}
-                            {{ form.main_id }}
-                            {% if form.main_id.errors %}
-                            <div class="text-danger">{{ form.main_id.errors }}</div>
-                            {% endif %}
+                        {% with prefix=forloop.counter0 %}
+                        <div class="row mb-3 align-items-end formset-row">
+                            {{ form.id }}
+                            {{ form.DELETE }}
+
+                            <!-- Основной столбец -->
+                            <div class="col-md-6">
+                                <label>Основной столбец</label>
+                                <div class="chained-selects">
+                                    <select class="form-select form-control-dark db-select"
+                                            data-prefix="{{ prefix }}"
+                                            data-type="main"
+                                            data-url-schemas="{% url 'app_updates:get-schemas' %}"
+                                            data-url-tables="{% url 'app_updates:get-tables' %}"
+                                            data-url-columns="{% url 'app_updates:get-columns' %}">
+                                        <option value="">Выберите базу</option>
+                                        {% for db in databases %}
+                                            <option value="{{ db.id }}">{{ db.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select class="form-select form-control-dark schema-select mt-2" disabled>
+                                        <option value="">Сначала выберите базу</option>
+                                    </select>
+                                    <select class="form-select form-control-dark table-select mt-2" disabled>
+                                        <option value="">Сначала выберите схему</option>
+                                    </select>
+                                    <select class="form-select form-control-dark column-select mt-2" disabled>
+                                        <option value="">Сначала выберите таблицу</option>
+                                    </select>
+                                </div>
+                                <!-- Скрытое поле для ID -->
+                                <input type="hidden" name="{{ form.prefix }}-main">
+                            </div>
+
+                            <!-- Доп. столбец -->
+                            <div class="col-md-6">
+                                <label>Доп. столбец (опционально)</label>
+                                <div class="chained-selects">
+                                    <select class="form-select form-control-dark db-select"
+                                            data-prefix="{{ prefix }}"
+                                            data-type="sub"
+                                            data-url-schemas="{% url 'app_updates:get-schemas' %}"
+                                            data-url-tables="{% url 'app_updates:get-tables' %}"
+                                            data-url-columns="{% url 'app_updates:get-columns' %}">
+                                        <option value="">Выберите базу</option>
+                                        {% for db in databases %}
+                                            <option value="{{ db.id }}">{{ db.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <select class="form-select form-control-dark schema-select mt-2" disabled>
+                                        <option value="">Сначала выберите базу</option>
+                                    </select>
+                                    <select class="form-select form-control-dark table-select mt-2" disabled>
+                                        <option value="">Сначала выберите схему</option>
+                                    </select>
+                                    <select class="form-select form-control-dark column-select mt-2" disabled>
+                                        <option value="">Сначала выберите таблицу</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" name="{{ form.prefix }}-sub">
+                            </div>
+
+                            <!-- Удаление -->
+                            <div class="col-md-12 mt-2">
+                                {% if form.DELETE %}
+                                    <label class="form-check-label">
+                                        {{ form.DELETE }} Удалить
+                                    </label>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-5">
-                            {{ form.sub_id.label_tag }}
-                            {{ form.sub_id }}
-                            {% if form.sub_id.errors %}
-                            <div class="text-danger">{{ form.sub_id.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-2">
-                            {% if form.DELETE %}
-                            <label class="form-check-label">
-                                {{ form.DELETE }} Удалить
-                            </label>
-                            {% endif %}
-                        </div>
-                    </div>
+                        {% endwith %}
                     {% endfor %}
                 </div>
+
                 <!-- Скрытый шаблон новой строки -->
                 <div id="empty-form" style="display:none;">
+                    {% with prefix="__prefix__" %}
                     <div class="row mb-3 align-items-end formset-row">
-                        {{ formset.empty_form.id }}
-                        {{ formset.empty_form.DELETE }}
-                        <div class="col-md-5">
-                            {{ formset.empty_form.main_id.label_tag }}
-                            {{ formset.empty_form.main_id }}
+                        <input type="hidden" name="linkupdatecol_set-__prefix__-id">
+                        <div class="col-md-6">
+                            <label>Основной столбец</label>
+                            <div class="chained-selects">
+                                <select class="form-select form-control-dark db-select"
+                                        data-prefix="__prefix__"
+                                        data-type="main"
+                                        data-url-schemas="{% url 'app_updates:get-schemas' %}"
+                                        data-url-tables="{% url 'app_updates:get-tables' %}"
+                                        data-url-columns="{% url 'app_updates:get-columns' %}">
+                                    <option value="">Выберите базу</option>
+                                    {% for db in databases %}
+                                        <option value="{{ db.id }}">{{ db.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select class="form-select form-control-dark schema-select mt-2" disabled>
+                                    <option value="">Сначала выберите базу</option>
+                                </select>
+                                <select class="form-select form-control-dark table-select mt-2" disabled>
+                                    <option value="">Сначала выберите схему</option>
+                                </select>
+                                <select class="form-select form-control-dark column-select mt-2" disabled>
+                                    <option value="">Сначала выберите таблицу</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="linkupdatecol_set-__prefix__-main">
                         </div>
-                        <div class="col-md-5">
-                            {{ formset.empty_form.sub_id.label_tag }}
-                            {{ formset.empty_form.sub_id }}
+                        <div class="col-md-6">
+                            <label>Доп. столбец (опционально)</label>
+                            <div class="chained-selects">
+                                <select class="form-select form-control-dark db-select"
+                                        data-prefix="__prefix__"
+                                        data-type="sub"
+                                        data-url-schemas="{% url 'app_updates:get-schemas' %}"
+                                        data-url-tables="{% url 'app_updates:get-tables' %}"
+                                        data-url-columns="{% url 'app_updates:get-columns' %}">
+                                    <option value="">Выберите базу</option>
+                                    {% for db in databases %}
+                                        <option value="{{ db.id }}">{{ db.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select class="form-select form-control-dark schema-select mt-2" disabled>
+                                    <option value="">Сначала выберите базу</option>
+                                </select>
+                                <select class="form-select form-control-dark table-select mt-2" disabled>
+                                    <option value="">Сначала выберите схему</option>
+                                </select>
+                                <select class="form-select form-control-dark column-select mt-2" disabled>
+                                    <option value="">Сначала выберите таблицу</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="linkupdatecol_set-__prefix__-sub">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-12 mt-2">
                             <label class="form-check-label">
-                                {{ formset.empty_form.DELETE }} Удалить
+                                <input type="checkbox" name="linkupdatecol_set-__prefix__-DELETE"> Удалить
                             </label>
                         </div>
                     </div>
+                    {% endwith %}
                 </div>
+
                 <!-- Кнопка добавления -->
                 <div class="mb-3">
                     <button type="button" id="add-row" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-plus me-1"></i>Добавить ещё
                     </button>
                 </div>
+
                 <div class="d-grid">
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-save me-1"></i>Сохранить метод
@@ -141,23 +233,96 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let formCount = {{ formset.total_form_count }};
-        const container = document.getElementById('formset-container');
-        const addButton = document.getElementById('add-row');
-        const emptyForm = document.getElementById('empty-form').innerHTML;
+document.addEventListener('DOMContentLoaded', function () {
+    function initChainedSelects(dbSelect) {
+        const prefix = dbSelect.dataset.prefix;
+        const type = dbSelect.dataset.type;
+        const urlSchemas = dbSelect.dataset.urlSchemas;
+        const urlTables = dbSelect.dataset.urlTables;
+        const urlColumns = dbSelect.dataset.urlColumns;
 
-        addButton.addEventListener('click', function () {
-            // Заменяем __prefix__ на текущий индекс
-            const newForm = emptyForm.replace(/__prefix__/g, formCount);
-            container.insertAdjacentHTML('beforeend', newForm);
-            formCount++;
-            // Обновляем TOTAL_FORMS в management_form
-            const totalFormsInput = document.querySelector('#id_linkupdatecol_set-TOTAL_FORMS');
-            if (totalFormsInput) {
-                totalFormsInput.value = formCount;
+        const schemaSelect = dbSelect.closest('.chained-selects').querySelector('.schema-select');
+        const tableSelect = dbSelect.closest('.chained-selects').querySelector('.table-select');
+        const columnSelect = dbSelect.closest('.chained-selects').querySelector('.column-select');
+
+        function resetSelect(select, placeholder) {
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            select.disabled = true;
+        }
+
+        function loadOptions(url, params, select, placeholder) {
+            const query = new URLSearchParams(params).toString();
+            fetch(`${url}?${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    resetSelect(select, placeholder);
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.schema || item.name || item.columns;
+                        select.appendChild(option);
+                    });
+                    select.disabled = false;
+                })
+                .catch(err => console.error('Fetch error:', err));
+        }
+
+        dbSelect.addEventListener('change', () => {
+            if (dbSelect.value) {
+                loadOptions(urlSchemas, {db_id: dbSelect.value}, schemaSelect, 'Выберите схему');
+            } else {
+                resetSelect(schemaSelect, 'Сначала выберите базу');
+                resetSelect(tableSelect, 'Сначала выберите схему');
+                resetSelect(columnSelect, 'Сначала выберите таблицу');
             }
         });
+
+        schemaSelect.addEventListener('change', () => {
+            if (schemaSelect.value) {
+                loadOptions(urlTables, {schema_id: schemaSelect.value}, tableSelect, 'Выберите таблицу');
+            } else {
+                resetSelect(tableSelect, 'Сначала выберите схему');
+                resetSelect(columnSelect, 'Сначала выберите таблицу');
+            }
+        });
+
+        tableSelect.addEventListener('change', () => {
+            if (tableSelect.value) {
+                loadOptions(urlColumns, {table_id: tableSelect.value}, columnSelect, 'Выберите столбец');
+            } else {
+                resetSelect(columnSelect, 'Сначала выберите таблицу');
+            }
+        });
+
+        columnSelect.addEventListener('change', () => {
+            // Заполняем скрытое поле
+            const hiddenField = document.querySelector(`input[name="${prefix}-${type}"]`);
+            if (hiddenField) {
+                hiddenField.value = columnSelect.value || '';
+            }
+        });
+    }
+
+    // Инициализация существующих строк
+    document.querySelectorAll('.db-select').forEach(initChainedSelects);
+
+    // Добавление новых строк
+    let formCount = {{ formset.total_form_count }};
+    const container = document.getElementById('formset-container');
+    const addButton = document.getElementById('add-row');
+    const emptyForm = document.getElementById('empty-form').innerHTML;
+
+    addButton.addEventListener('click', function () {
+        const newForm = emptyForm.replace(/__prefix__/g, formCount);
+        container.insertAdjacentHTML('beforeend', newForm);
+        const newRow = container.lastElementChild;
+        newRow.querySelectorAll('.db-select').forEach(initChainedSelects);
+        formCount++;
+        const totalFormsInput = document.querySelector('#id_linkupdatecol_set-TOTAL_FORMS');
+        if (totalFormsInput) {
+            totalFormsInput.value = formCount;
+        }
     });
+});
 </script>
 {% endblock body %}

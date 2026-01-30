@@ -6,51 +6,26 @@ from app_url.models import DimUrl
 from .models import DimUpdateMethod, LinkUpdateCol
 
 
+# app_updates/forms.py
 class LinkUpdateColForm(forms.ModelForm):
-    main_id = forms.CharField(
-        label='ID основного столбца',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345'})
-    )
-    sub_id = forms.CharField(
-        label='ID доп. столбца (опционально)',
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '67890'})
-    )
+    main = forms.IntegerField(widget=forms.HiddenInput())
+    sub = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
     class Meta:
         model = LinkUpdateCol
-        fields = []  # все поля обрабатываются вручную
+        fields = ['main', 'sub']
 
-    def clean_main_id(self):
-        col_id = self.cleaned_data.get('main_id')
-        if not col_id:
-            raise forms.ValidationError('Обязательно укажите ID основного столбца.')
-        try:
-            col_id = int(col_id)
-            if not LinkColumn.objects.filter(pk=col_id).exists():
-                raise forms.ValidationError(f'Столбец с ID {col_id} не найден.')
-        except ValueError:
-            raise forms.ValidationError('ID должен быть целым числом.')
-        return col_id
+    def clean_main(self):
+        main_id = self.cleaned_data['main']
+        if not LinkColumn.objects.filter(pk=main_id).exists():
+            raise forms.ValidationError('Некорректный ID основного столбца.')
+        return main_id
 
-    def clean_sub_id(self):
-        col_id = self.cleaned_data.get('sub_id')
-        if col_id:
-            try:
-                col_id = int(col_id)
-                if not LinkColumn.objects.filter(pk=col_id).exists():
-                    raise forms.ValidationError(f'Столбец с ID {col_id} не найден.')
-            except ValueError:
-                raise forms.ValidationError('ID должен быть целым числом.')
-        return col_id
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        instance.main_id = self.cleaned_data['main_id']
-        instance.sub_id = self.cleaned_data.get('sub_id') or None
-        if commit:
-            instance.save()
-        return instance
+    def clean_sub(self):
+        sub_id = self.cleaned_data.get('sub')
+        if sub_id and not LinkColumn.objects.filter(pk=sub_id).exists():
+            raise forms.ValidationError('Некорректный ID дополнительного столбца.')
+        return sub_id
 
 
 LinkUpdateColFormSet = inlineformset_factory(

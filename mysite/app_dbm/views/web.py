@@ -41,6 +41,36 @@ class AboutView(LoginRequiredMixin, TemplateView):
         return context
 
 
+# =============== AJAX запрос ===============
+class GetSchemasView(View):
+    def get(self, request):
+        db_id = request.GET.get('db_id')
+        if not db_id:
+            return JsonResponse([], safe=False)
+        schemas = LinkSchema.objects.filter(base_id=db_id).values('id', 'schema')
+        return JsonResponse(list(schemas), safe=False)
+
+
+class GetTablesView(View):
+    def get(self, request):
+        schema_id = request.GET.get('schema_id')
+        if not schema_id:
+            return JsonResponse([], safe=False)
+        tables = LinkTable.objects.filter(schema_id=schema_id).values('id', 'name')
+        return JsonResponse(list(tables), safe=False)
+
+
+class GetColumnsView(View):
+    def get(self, request):
+        table_id = request.GET.get('table_id')
+        if not table_id:
+            return JsonResponse([], safe=False)
+        columns = LinkColumn.objects.filter(table_id=table_id).values('id', 'columns')
+        return JsonResponse(list(columns), safe=False)
+
+
+# =============== AJAX запрос ===============
+
 class DatabasesView(LoginRequiredMixin, FilterView):
     """Список баз данных с фильтрацией."""
 
@@ -353,27 +383,6 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
         context['schedules'] = schedules
 
         return context
-
-
-class SchemaAPIView(View):
-    def get(self, request):
-        dim_db_id = request.GET.get('dim_db')
-        schemas = LinkSchema.objects.filter(base_id=dim_db_id).values('id', 'schema')
-        return JsonResponse(list(schemas), safe=False)
-
-
-class TableAPIView(View):
-    def get(self, request):
-        schema_id = request.GET.get('schema')
-        tables = LinkTable.objects.filter(schema_id=schema_id).values('id', 'name')
-        return JsonResponse(list(tables), safe=False)
-
-
-class ColumnAPIView(View):
-    def get(self, request):
-        table_id = request.GET.get('table')
-        columns = LinkColumn.objects.filter(table_id=table_id).values('id', 'columns')
-        return JsonResponse(list(columns), safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')

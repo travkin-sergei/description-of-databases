@@ -11,6 +11,9 @@ from .views.web import (
     TableDetailView,
     ColumnListView,
     ColumnDetailView,
+    GetSchemasView,
+    GetTablesView,
+    GetColumnsView,
 )
 
 # API-представления (DRF)
@@ -62,4 +65,8 @@ urlpatterns = [
     path('columns/', ColumnListView.as_view(), name='columns'),
     path('columns/<int:pk>/', ColumnDetailView.as_view(), name='columns-detail'),
     path('databases/', DatabasesView.as_view(), name='databases'),
+    # Для AJAX
+    path('api/schemas/', GetSchemasView.as_view(), name='get-schemas'),
+    path('api/tables/', GetTablesView.as_view(), name='get-tables'),
+    path('api/columns/', GetColumnsView.as_view(), name='get-columns'),
 ]
