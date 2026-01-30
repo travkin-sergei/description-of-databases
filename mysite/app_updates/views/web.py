@@ -27,21 +27,13 @@ class DimUpdateMethodView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        print("Исходный queryset SQL:", str(queryset.query))
-
         self.filterset = DimUpdateMethodFilter(self.request.GET, queryset=queryset)
         filtered_qs = self.filterset.qs
-        print("Фильтрованный queryset SQL:", str(filtered_qs.query))
-        print("Фильтрованный count:", filtered_qs.count())
 
         return filtered_qs.order_by('name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        print("GET params:", dict(self.request.GET))
-        print("Filtered count:", self.filterset.qs.count())
-        print("All count:", DimUpdateMethod.objects.count())
 
         context['filterset'] = self.filterset
         context['title'] = "Методы обновления"

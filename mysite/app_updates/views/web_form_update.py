@@ -21,7 +21,6 @@ class DimUpdateMethodAddView(View):
         })
 
     def post(self, request):
-        print("POST data:", request.POST)
 
         form = DimUpdateMethodForm(request.POST)
 
@@ -29,18 +28,13 @@ class DimUpdateMethodAddView(View):
             messages.error(request, 'Ошибка в основной форме.')
             return self._render(request, form)
 
-        # 1️⃣ сохраняем DimUpdateMethod
+        # сохраняем DimUpdateMethod
         method = form.save()
-
-        # 2️⃣ formset ТОЛЬКО с instance
         formset = LinkUpdateColFormSet(request.POST, instance=method)
-
         if not formset.is_valid():
-            print("Formset errors:", formset.errors)
             messages.error(request, 'Ошибка в сопоставлении столбцов.')
             return self._render(request, form, formset)
-
-        # 3️⃣ сохраняем LinkUpdateCol
+        # сохраняем LinkUpdateCol
         formset.save()
 
         messages.success(request, 'Метод обновления успешно добавлен.')
