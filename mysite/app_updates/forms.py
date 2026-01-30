@@ -6,32 +6,27 @@ from app_url.models import DimUrl
 from .models import DimUpdateMethod, LinkUpdateCol
 
 
-# app_updates/forms.py
 class LinkUpdateColForm(forms.ModelForm):
-    main = forms.IntegerField(widget=forms.HiddenInput())
-    sub = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    main = forms.ModelChoiceField(
+        queryset=LinkColumn.objects.all(),
+        widget=forms.HiddenInput()
+    )
+    sub = forms.ModelChoiceField(
+        queryset=LinkColumn.objects.all(),
+        widget=forms.HiddenInput(),
+        required=False
+    )
 
     class Meta:
         model = LinkUpdateCol
         fields = ['main', 'sub']
-
-    def clean_main(self):
-        main_id = self.cleaned_data['main']
-        if not LinkColumn.objects.filter(pk=main_id).exists():
-            raise forms.ValidationError('Некорректный ID основного столбца.')
-        return main_id
-
-    def clean_sub(self):
-        sub_id = self.cleaned_data.get('sub')
-        if sub_id and not LinkColumn.objects.filter(pk=sub_id).exists():
-            raise forms.ValidationError('Некорректный ID дополнительного столбца.')
-        return sub_id
 
 
 LinkUpdateColFormSet = inlineformset_factory(
     DimUpdateMethod,
     LinkUpdateCol,
     form=LinkUpdateColForm,
+    fk_name='type',
     extra=3,
     can_delete=True,
     max_num=20,
