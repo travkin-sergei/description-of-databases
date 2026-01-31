@@ -55,7 +55,6 @@
         width: 100%;
     }
 </style>
-
 <div class="container py-3">
     <div class="compact-form-card">
         <div class="card-header">
@@ -168,7 +167,6 @@
                 </div>
 
                 <!-- Formset: Маппинг столбцов -->
-                <h5 class="mt-4 mb-3">Сопоставление столбцов</h5>
                 {% if formset.non_form_errors %}
                 <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
                 {% endif %}
@@ -179,11 +177,8 @@
                     {% with prefix=forloop.counter0 %}
                     <div class="row mb-3 align-items-end formset-row">
                         {{ form.id }}
-                        {{ form.DELETE }}
-
                         <!-- Основной столбец -->
                         <div class="col-md-6">
-                            <label class="form-label">Основной столбец</label>
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark main-column-select"
                                         data-prefix="{{ prefix }}"
@@ -199,7 +194,6 @@
 
                         <!-- Доп. столбец -->
                         <div class="col-md-6">
-                            <label class="form-label">Доп. столбец (опционально)</label>
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark sub-column-select"
                                         data-prefix="{{ prefix }}"
@@ -212,14 +206,6 @@
                             </div>
                         </div>
 
-                        <!-- Удаление -->
-                        <div class="col-md-12 mt-2">
-                            {% if form.DELETE %}
-                            <label class="form-check-label">
-                                {{ form.DELETE }} Удалить
-                            </label>
-                            {% endif %}
-                        </div>
                     </div>
                     {% endwith %}
                     {% endfor %}
@@ -229,11 +215,8 @@
                 <div id="empty-form" style="display:none;">
                     <div class="row mb-3 align-items-end formset-row">
                         {{ formset.empty_form.id }}
-                        {{ formset.empty_form.DELETE }}
-
                         <!-- Основной столбец -->
                         <div class="col-md-6">
-                            <label class="form-label">Основной столбец</label>
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark main-column-select"
                                         data-prefix="__prefix__"
@@ -249,7 +232,6 @@
 
                         <!-- Доп. столбец -->
                         <div class="col-md-6">
-                            <label class="form-label">Доп. столбец (опционально)</label>
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark sub-column-select"
                                         data-prefix="__prefix__"
@@ -260,12 +242,6 @@
                             <div style="display:none;">
                                 {{ formset.empty_form.sub }}
                             </div>
-                        </div>
-
-                        <div class="col-md-12 mt-2">
-                            <label class="form-check-label">
-                                {{ formset.empty_form.DELETE }} Удалить
-                            </label>
                         </div>
                     </div>
                 </div>
