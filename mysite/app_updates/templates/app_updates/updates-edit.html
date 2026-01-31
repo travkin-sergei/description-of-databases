@@ -1,0 +1,702 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hidden-input { display: none; }
+    .column-link-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .column-link-item:hover {
+        background: #e9ecef;
+        border-color: #ced4da;
+    }
+    .column-link-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    .column-display {
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+        color: #212529;
+        background: #fff;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+        word-break: break-all;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+    }
+    .column-display.empty {
+        color: #6c757d;
+        font-style: italic;
+    }
+    .delete-checkbox {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .alert-info {
+        font-size: 0.9rem;
+    }
+    .select-column-btn {
+        margin-top: 5px;
+    }
+    .db-tree-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 10px;
+        background: #fff;
+    }
+    .tree-node {
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 3px;
+    }
+    .tree-node:hover {
+        background: #e9ecef;
+    }
+    .tree-node.selected {
+        background: #d1ecf1;
+        border-left: 3px solid #17a2b8;
+    }
+    .tree-children {
+        margin-left: 20px;
+        display: none;
+    }
+    .tree-children.show {
+        display: block;
+    }
+    .tree-toggle {
+        cursor: pointer;
+        margin-right: 5px;
+        user-select: none;
+    }
+    .loading-spinner {
+        text-align: center;
+        padding: 20px;
+    }
+    .search-box {
+        margin-bottom: 15px;
+    }
+    .column-info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #0d6efd;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Боковая панель навигации -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">Навигация</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'app_updates:updates-list' %}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-list-ul"></i>Список методов
+                        </a>
+                        <a href="{% url 'app_updates:updates-detail' object.pk %}"
+                           class="list-group-item list-group-item-action">
+                            <i class="bi bi-eye"></i>Просмотр
+                        </a>
+                        <a href="{% url 'app_updates:updates-edit' object.pk %}"
+                           class="list-group-item list-group-item-action active">
+                            <i class="bi bi-pencil"></i>Редактировать
+                        </a>
+                        <a href="{% url 'app_updates:updates-delete' object.pk %}"
+                           class="list-group-item list-group-item-action text-danger">
+                            <i class="bi bi-trash"></i>Удалить
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация о методе -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Информация</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">ID:</dt>
+                        <dd class="col-sm-8">{{ object.pk }}</dd>
+
+                        <dt class="col-sm-4">Создан:</dt>
+                        <dd class="col-sm-8">{{ object.created_at|date:"d.m.Y H:i" }}</dd>
+
+                        <dt class="col-sm-4">Обновлён:</dt>
+                        <dd class="col-sm-8">{{ object.updated_at|date:"d.m.Y H:i" }}</dd>
+
+                        <dt class="col-sm-4">Активен:</dt>
+                        <dd class="col-sm-8">
+                            {% if object.is_active %}
+                            <span class="badge bg-success">Да</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Нет</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основная форма -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">{{ title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="updateMethodForm">
+                        {% csrf_token %}
+
+                        <!-- Основная информация -->
+                        <div class="form-section">
+                            <h6 class="mb-3">Основная информация</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Название метода</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="text-danger mt-1">{{ form.name.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted">Например: "Ежедневная синхронизация", "Полная
+                                    перезагрузка"</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Расписание (cron)</label>
+                                {{ form.schedule }}
+                                {% if form.schedule.errors %}
+                                <div class="text-danger mt-1">{{ form.schedule.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted">Например: <code>0 0 * * *</code> для ежедневного выполнения в
+                                    полночь</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ссылка на источник/документацию</label>
+                                {{ form.url_input }}
+                                {% if form.url_input.errors %}
+                                <div class="text-danger mt-1">{{ form.url_input.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted">URL документации или источника данных</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Описание расписания</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="text-danger mt-1">{{ form.description.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted">Подробное описание логики расписания</small>
+                            </div>
+                        </div>
+                        <!-- Связи столбцов -->
+                        <div class="form-section">
+                            {{ formset.management_form }}
+                            <div id="formset-container">
+                                {% for form in formset %}
+                                <div class="column-link-item">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <div class="column-display {% if not form.instance.main %}empty{% endif %}"
+                                                 id="main-display-{{ forloop.counter0 }}">
+                                                {% if form.instance.main %}
+                                                <span class="text-success">{{ form.instance.main.table.schema.base.name }}.{{ form.instance.main.table.schema.schema }}.{{ form.instance.main.table.name }} → <strong>{{ form.instance.main.columns }}</strong></span>
+                                                {% else %}
+                                                Не выбрана
+                                                {% endif %}
+                                            </div>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-primary select-column-btn"
+                                                    data-formset-index="{{ forloop.counter0 }}" data-field="main">
+                                                <i class="bi bi-folder2-open"></i> Выбрать колонку
+                                            </button>
+                                            {{ form.main }}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <div class="column-display {% if not form.instance.sub %}empty{% endif %}"
+                                                 id="sub-display-{{ forloop.counter0 }}">
+                                                {% if form.instance.sub %}
+                                                <span class="text-info">{{ form.instance.sub.table.schema.base.name }}.{{ form.instance.sub.table.schema.schema }}.{{ form.instance.sub.table.name }} → <strong>{{ form.instance.sub.columns }}</strong></span>
+                                                {% else %}
+                                                Не выбрана
+                                                {% endif %}
+                                            </div>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary select-column-btn"
+                                                    data-formset-index="{{ forloop.counter0 }}" data-field="sub">
+                                                <i class="bi bi-folder2-open"></i> Выбрать колонку
+                                            </button>
+                                            {{ form.sub }}
+                                        </div>
+                                    </div>
+
+                                    {% if form.DELETE %}
+                                    <div class="form-check delete-checkbox">
+                                        {{ form.DELETE }}
+                                        <label class="form-check-label text-danger" title="Удалить эту связь">
+                                            <small>Удалить</small>
+                                        </label>
+                                    </div>
+                                    {% endif %}
+
+                                    {{ form.id }}
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="alert alert-info mt-3">
+                                <i class="bi bi-info-circle"></i>
+                                <small>
+                                    Связи определяют, какие столбцы обновляются из каких источников.
+                                    Основная колонка - это целевая колонка, в которую будут записываться данные.
+                                    Дополнительная колонка - это источник данных (если применимо).
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Кнопки действий -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Сохранить изменения
+                            </button>
+                            <a href="{% url 'app_updates:updates-detail' object.pk %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Отмена
+                            </a>
+                            <a href="{% url 'app_updates:updates-list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-list"></i> К списку
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора колонки -->
+    <div class="modal fade" id="selectColumnModal" tabindex="-1" aria-labelledby="selectColumnModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="selectColumnModalLabel">Выбор колонки</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="search-box">
+                        <input type="text" class="form-control" id="searchColumn" placeholder="Поиск колонки...">
+                    </div>
+                    <div class="db-tree-container" id="dbTreeContainer">
+                        <div class="loading-spinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Загрузка...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Загрузка списка колонок...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="column-info-box" id="selectedColumnInfo" style="display: none;">
+                        <strong>Выбрана:</strong> <span id="selectedColumnText"></span>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="confirmColumnSelection" disabled>Выбрать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+    // Глобальные переменные
+    let currentFormsetIndex = null;
+    let currentField = null;
+    let selectedColumnId = null;
+    let selectedColumnPath = null;
+    let allColumns = [];
+    let filteredColumns = [];
+
+    // Загрузка дерева колонок при открытии модального окна
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('updateMethodForm');
+
+        // Обработчик отправки формы
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Сохранение...';
+        });
+
+        // Обработчик кнопок "Выбрать колонку"
+        document.querySelectorAll('.select-column-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentFormsetIndex = this.dataset.formsetIndex;
+                currentField = this.dataset.field;
+
+                // Загружаем дерево колонок
+                loadColumnTree();
+
+                // Показываем модальное окно
+                const modal = new bootstrap.Modal(document.getElementById('selectColumnModal'));
+                modal.show();
+            });
+        });
+    });
+
+    // Загрузка данных о колонках
+    function loadColumnTree() {
+        console.log('Загрузка колонок...');
+
+        fetch('{% url "app_dbm:api-linkcolumn-list" %}')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP error ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Данные получены:', data);
+
+                // Обработка разных форматов ответа API
+                if (Array.isArray(data)) {
+                    allColumns = data;
+                } else if (data.results) {
+                    allColumns = data.results;
+                } else {
+                    console.error('Неожиданный формат данных:', data);
+                    allColumns = [];
+                }
+
+                filteredColumns = [...allColumns];
+                renderColumnTree(filteredColumns);
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки колонок:', error);
+                document.getElementById('dbTreeContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Ошибка загрузки данных: ${error.message}
+                    </div>
+                `;
+            });
+    }
+
+    // Рендеринг дерева колонок
+    function renderColumnTree(columns) {
+        const container = document.getElementById('dbTreeContainer');
+
+        if (!columns || columns.length === 0) {
+            container.innerHTML = '<div class="alert alert-warning">Колонки не найдены</div>';
+            return;
+        }
+
+        // Группируем по базам данных
+        const groupedByDB = {};
+        columns.forEach(col => {
+            // Обработка разных форматов данных
+            let dbName, schemaName, tableName, colName;
+
+            // Формат 1: вложенные объекты
+            if (col.table && col.table.schema && col.table.schema.base) {
+                dbName = col.table.schema.base.name || col.table.schema.base.id;
+                schemaName = col.table.schema.schema || 'unknown';
+                tableName = col.table.name || 'unknown';
+                colName = col.columns || 'unknown';
+            }
+            // Формат 2: плоские поля
+            else if (col.table_name) {
+                dbName = col.db_name || 'unknown';
+                schemaName = col.schema_name || 'unknown';
+                tableName = col.table_name || 'unknown';
+                colName = col.columns || 'unknown';
+            }
+            // Формат 3: строки
+            else if (typeof col === 'string') {
+                dbName = 'unknown';
+                schemaName = 'unknown';
+                tableName = 'unknown';
+                colName = col;
+            }
+            else {
+                console.warn('Неизвестный формат колонки:', col);
+                return;
+            }
+
+            if (!groupedByDB[dbName]) {
+                groupedByDB[dbName] = {};
+            }
+            if (!groupedByDB[dbName][schemaName]) {
+                groupedByDB[dbName][schemaName] = {};
+            }
+            if (!groupedByDB[dbName][schemaName][tableName]) {
+                groupedByDB[dbName][schemaName][tableName] = [];
+            }
+
+            groupedByDB[dbName][schemaName][tableName].push({
+                id: col.id,
+                columns: colName,
+                table: {
+                    name: tableName,
+                    schema: {
+                        schema: schemaName,
+                        base: { name: dbName }
+                    }
+                }
+            });
+        });
+
+        let html = '';
+
+        Object.keys(groupedByDB).sort().forEach(dbName => {
+            html += `<div class="tree-node" data-toggle="db">
+                        <span class="tree-toggle">▶</span>
+                        <strong>${escapeHtml(dbName)}</strong>
+                    </div>
+                    <div class="tree-children">`;
+
+            const schemas = groupedByDB[dbName];
+            Object.keys(schemas).sort().forEach(schemaName => {
+                html += `<div class="tree-node" data-toggle="schema">
+                            <span class="tree-toggle">▶</span>
+                            <strong>${escapeHtml(schemaName)}</strong>
+                        </div>
+                        <div class="tree-children">`;
+
+                const tables = schemas[schemaName];
+                Object.keys(tables).sort().forEach(tableName => {
+                    html += `<div class="tree-node" data-toggle="table">
+                                <span class="tree-toggle">▶</span>
+                                <strong>${escapeHtml(tableName)}</strong>
+                            </div>
+                            <div class="tree-children">`;
+
+                    const cols = tables[tableName];
+                    cols.sort((a, b) => (a.columns || '').localeCompare(b.columns || ''));
+                    cols.forEach(col => {
+                        const fullPath = `${dbName}.${schemaName}.${tableName} → ${col.columns}`;
+                        html += `<div class="tree-node column-item"
+                                    data-id="${col.id}"
+                                    data-path="${escapeHtml(fullPath)}"
+                                    data-db="${escapeHtml(dbName)}"
+                                    data-schema="${escapeHtml(schemaName)}"
+                                    data-table="${escapeHtml(tableName)}"
+                                    data-column="${escapeHtml(col.columns)}">
+                                    └ ${escapeHtml(col.columns)}
+                                </div>`;
+                    });
+
+                    html += `</div>`;
+                });
+
+                html += `</div>`;
+            });
+
+            html += `</div>`;
+        });
+
+        container.innerHTML = html || '<div class="alert alert-warning">Колонки не найдены</div>';
+
+        // Обработчики кликов на переключатели
+        document.querySelectorAll('.tree-toggle').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const parent = this.closest('.tree-node');
+                const children = parent.nextElementSibling;
+                if (children && children.classList.contains('tree-children')) {
+                    children.classList.toggle('show');
+                    this.textContent = children.classList.contains('show') ? '▼' : '▶';
+                }
+            });
+        });
+
+        // Обработчики выбора колонки
+        document.querySelectorAll('.column-item').forEach(el => {
+            el.addEventListener('click', function() {
+                // Снимаем выделение со всех
+                document.querySelectorAll('.column-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+
+                // Выделяем текущую
+                this.classList.add('selected');
+                selectedColumnId = this.dataset.id;
+                selectedColumnPath = this.dataset.path;
+
+                // Обновляем информацию о выбранной колонке
+                document.getElementById('selectedColumnText').textContent = selectedColumnPath;
+                document.getElementById('selectedColumnInfo').style.display = 'block';
+                document.getElementById('confirmColumnSelection').disabled = false;
+
+                console.log('Выбрана колонка:', {
+                    id: selectedColumnId,
+                    path: selectedColumnPath
+                });
+            });
+        });
+
+        // Поиск по колонкам
+        const searchInput = document.getElementById('searchColumn');
+        if (searchInput) {
+            searchInput.value = ''; // Очищаем поле поиска
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+
+                if (searchTerm === '') {
+                    filteredColumns = [...allColumns];
+                    renderColumnTree(filteredColumns);
+                    return;
+                }
+
+                // Фильтруем колонки
+                filteredColumns = allColumns.filter(col => {
+                    // Обработка разных форматов
+                    let searchStr = '';
+
+                    if (col.table && col.table.schema && col.table.schema.base) {
+                        searchStr = `${col.table.schema.base.name || ''} ${col.table.schema.schema || ''} ${col.table.name || ''} ${col.columns || ''}`.toLowerCase();
+                    } else if (col.db_name) {
+                        searchStr = `${col.db_name || ''} ${col.schema_name || ''} ${col.table_name || ''} ${col.columns || ''}`.toLowerCase();
+                    }
+
+                    return searchStr.includes(searchTerm);
+                });
+
+                renderColumnTree(filteredColumns);
+            });
+        }
+
+        // Подтверждение выбора
+        const confirmBtn = document.getElementById('confirmColumnSelection');
+        if (confirmBtn) {
+            // Удаляем старый обработчик если есть
+            confirmBtn.removeEventListener('click', handleColumnSelection);
+            // Добавляем новый
+            confirmBtn.addEventListener('click', handleColumnSelection);
+        }
+    }
+
+    // Обработчик подтверждения выбора колонки
+    function handleColumnSelection() {
+        if (!selectedColumnId || currentFormsetIndex === null || !currentField) {
+            console.error('Недостаточно данных для выбора колонки', {
+                selectedColumnId,
+                currentFormsetIndex,
+                currentField
+            });
+            return;
+        }
+
+        try {
+            // Находим все скрытые поля в нужной форме
+            const formItems = document.querySelectorAll('#formset-container .column-link-item');
+            const targetFormItem = formItems[parseInt(currentFormsetIndex)];
+
+            if (!targetFormItem) {
+                console.error('Форма не найдена по индексу:', currentFormsetIndex);
+                return;
+            }
+
+            // Находим скрытое поле по атрибуту name
+            const hiddenInputs = targetFormItem.querySelectorAll('input[type="hidden"]');
+            let targetInput = null;
+
+            hiddenInputs.forEach(input => {
+                const name = input.name;
+                // Ищем поле, которое заканчивается на '-main' или '-sub'
+                if (name && name.endsWith(`-${currentField}`)) {
+                    targetInput = input;
+                }
+            });
+
+            if (!targetInput) {
+                console.error('Скрытое поле не найдено для поля:', currentField);
+                return;
+            }
+
+            // Обновляем значение скрытого поля
+            targetInput.value = selectedColumnId;
+            console.log('Скрытое поле обновлено:', {
+                field: currentField,
+                index: currentFormsetIndex,
+                value: selectedColumnId,
+                element: targetInput
+            });
+
+            // Обновляем отображение
+            const displayDiv = document.getElementById(`${currentField}-display-${currentFormsetIndex}`);
+            if (displayDiv) {
+                displayDiv.className = 'column-display';
+                displayDiv.innerHTML = `<span class="text-${currentField === 'main' ? 'success' : 'info'}">${escapeHtml(selectedColumnPath)}</span>`;
+            }
+
+            // Закрываем модальное окно
+            const modalEl = document.getElementById('selectColumnModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) {
+                modal.hide();
+            }
+
+            // Сбрасываем состояние
+            setTimeout(() => {
+                selectedColumnId = null;
+                selectedColumnPath = null;
+                document.getElementById('selectedColumnInfo').style.display = 'none';
+                document.getElementById('confirmColumnSelection').disabled = true;
+            }, 300);
+
+            console.log('Выбор колонки успешно завершён');
+
+        } catch (error) {
+            console.error('Ошибка при выборе колонки:', error);
+            alert('Ошибка при выборе колонки: ' + error.message);
+        }
+    }
+
+    // Экранирование HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+</script>
+{% endblock %}

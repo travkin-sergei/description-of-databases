@@ -22,17 +22,6 @@ class LinkUpdateColForm(forms.ModelForm):
         fields = ['main', 'sub']
 
 
-LinkUpdateColFormSet = inlineformset_factory(
-    DimUpdateMethod,
-    LinkUpdateCol,
-    form=LinkUpdateColForm,
-    fk_name='type',
-    extra=3,
-    can_delete=True,
-    max_num=20,
-)
-
-
 class DimUpdateMethodForm(forms.ModelForm):
     url_input = forms.URLField(
         label='Ссылка на источник',
@@ -65,3 +54,14 @@ class DimUpdateMethodForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+LinkUpdateColFormSet = inlineformset_factory(
+    DimUpdateMethod,
+    LinkUpdateCol,
+    form=LinkUpdateColForm,
+    fk_name='type',
+    extra=3,
+    can_delete=True,
+    max_num=60,
+)
