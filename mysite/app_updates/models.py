@@ -18,6 +18,7 @@ class DimUpdateMethod(BaseClass):
     - schedule: расписание выполнения (до 50 символов, может быть пустым).
     - url: внешняя ссылка на источник/документацию (связь с DimUrl).
     """
+    
 
     name = models.CharField(
         max_length=255, blank=True, null=True,

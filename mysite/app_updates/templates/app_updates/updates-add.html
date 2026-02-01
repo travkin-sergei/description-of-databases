@@ -14,71 +14,6 @@
         color: #ffcc00;
         padding: 0.75rem 1rem;
     }
-    .table-selector {
-        background-color: #2a2a2a;
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 20px;
-        border: 1px solid #444;
-    }
-    .main-selector {
-        border-left: 4px solid #ffcc00;
-    }
-    .sub-selector {
-        border-left: 4px solid #6c757d;
-    }
-    .table-selector h6 {
-        color: #ffcc00;
-        margin-bottom: 15px;
-        font-size: 0.95rem;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #555;
-    }
-    .sub-selector h6 {
-        color: #6c757d;
-    }
-    .column-selectors {
-        background-color: #f8f9fa;
-        padding: 12px;
-        border-radius: 4px;
-        margin-top: 8px;
-    }
-    .selector-group {
-        margin-bottom: 15px;
-    }
-    .selector-group label {
-        font-weight: 500;
-        color: #e0e0e0;
-        margin-bottom: 5px;
-        display: block;
-    }
-    .selector-group select {
-        width: 100%;
-    }
-    .hidden-input { display: none; }
-    .column-link-item {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 4px;
-        padding: 15px;
-        margin-bottom: 15px;
-        position: relative;
-    }
-    .column-link-item:hover {
-        background: #e9ecef;
-        border-color: #ced4da;
-    }
-    .column-link-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 5px;
-        font-size: 0.9rem;
-    }
-    .delete-checkbox {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-    }
     .form-section {
         margin-bottom: 2rem;
         padding-bottom: 1.5rem;
@@ -92,338 +27,253 @@
     .alert-info {
         font-size: 0.9rem;
     }
+    .column-link-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .delete-checkbox {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .hidden-column {
+        display: none;
+    }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="compact-form-card card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle"></i> {{ title }}</h4>
+                </div>
+                <div class="card-body">
+
+                    <!-- Сообщения об ошибках -->
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Основная форма -->
+                    <form method="post" id="update-method-form" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Раздел: Основные данные -->
+                        <div class="form-section">
+                            <h5 class="mb-3"><i class="fas fa-info-circle"></i> Основные данные</h5>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.name.id_for_label }}">Название метода *</label>
+                                        {{ form.name }}
+                                        {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.name.errors }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.schedule.id_for_label }}">Расписание (cron)</label>
+                                        {{ form.schedule }}
+                                        {% if form.schedule.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.schedule.errors }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">
+                                            {{ help_text.schedule|default:"Пример: 0 2 * * * для ежедневного запуска в 2:00" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.url_input.id_for_label }}">Ссылка на источник</label>
+                                        {{ form.url_input }}
+                                        {% if form.url_input.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.url_input.errors }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.description.id_for_label }}">Описание</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Раздел: Сопоставление столбцов -->
+                        <div class="form-section">
+                            <h5 class="mb-3"><i class="fas fa-columns"></i> Сопоставление столбцов</h5>
+                            <p class="text-muted mb-4">
+                                {{ help_text.columns|default:"Укажите пары столбцов для обновления данных" }}
+                            </p>
+
+                            <!-- Management form для formset -->
+                            {{ formset.management_form }}
+
+                            <!-- Контейнер для форм -->
+                            <div id="formset-container">
+                                {% for link_form in formset %}
+                                <div class="column-link-item" id="form-{{ forloop.counter0 }}">
+                                    <h6>Сопоставление {{ forloop.counter }}</h6>
+                                    {{ link_form.id }}
+
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label>Основная колонка *</label>
+                                                {{ link_form.main }}
+                                                {% if link_form.main.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ link_form.main.errors }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label>Дополнительная колонка</label>
+                                                {{ link_form.sub }}
+                                                {% if link_form.sub.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ link_form.sub.errors }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label>Удалить</label>
+                                                <div class="delete-checkbox">
+                                                    {{ link_form.DELETE }}
+                                                    <label for="{{ link_form.DELETE.id_for_label }}">Удалить</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Кнопка добавления новой строки -->
+                            <div class="text-center mt-3">
+                                <button type="button" id="add-row" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus"></i> Добавить сопоставление
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Кнопки формы -->
+                        <div class="form-section">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'app_updates:updates-list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Назад к списку
+                                </a>
+                                <div>
+                                    <button type="reset" class="btn btn-outline-secondary mr-2">
+                                        <i class="fas fa-redo"></i> Сбросить
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Сохранить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Пустой шаблон для добавления новых строк -->
+<div id="empty-form" style="display: none;">
+    <div class="column-link-item">
+        <h6>Новое сопоставление</h6>
+        {{ formset.empty_form.id }}
+
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label>Основная колонка *</label>
+                    {{ formset.empty_form.main }}
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label>Дополнительная колонка</label>
+                    {{ formset.empty_form.sub }}
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>Удалить</label>
+                    <div class="delete-checkbox">
+                        {{ formset.empty_form.DELETE }}
+                        <label>Удалить</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const urls = {
-            schemas: "{% url 'app_updates:get-schemas' %}",
-            tables: "{% url 'app_updates:get-tables' %}",
-            columns: "{% url 'app_updates:get-columns' %}",
-            columnDetail: "{% url 'app_updates:get-column-detail' %}"
-        };
-
-        // Выборы для основной таблицы
-        const mainDbSelect = document.getElementById('main-db-select');
-        const mainSchemaSelect = document.getElementById('main-schema-select');
-        const mainTableSelect = document.getElementById('main-table-select');
-
-        // Выборы для дополнительной таблицы
-        const subDbSelect = document.getElementById('sub-db-select');
-        const subSchemaSelect = document.getElementById('sub-schema-select');
-        const subTableSelect = document.getElementById('sub-table-select');
-
-        // Кэш для столбцов
-        const mainColumnsCache = {};
-        const subColumnsCache = {};
-
-        function reset(select, placeholder) {
-            select.innerHTML = `<option value="">${placeholder}</option>`;
-            select.disabled = true;
-        }
-
-        function fill(select, data, placeholder) {
-            select.innerHTML = `<option value="">${placeholder}</option>`;
-            if (data && data.length) {
-                data.forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item.id;
-                    opt.textContent = item.name || item.schema || item.columns;
-                    select.appendChild(opt);
-                });
-            }
-            select.disabled = false;
-        }
-
-        function load(url, params) {
-            return fetch(`${url}?${new URLSearchParams(params)}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Ошибка загрузки');
-                    return response.json();
-                });
-        }
-
-        // Получение деталей колонки (для определения таблицы)
-        function getColumnDetails(columnId) {
-            return fetch(`${urls.columnDetail}?column_id=${columnId}`)
-                .then(response => response.json());
-        }
-
-        // Синхронизация селектов столбцов с кэшем
-        function syncColumnSelects() {
-            const mainTableId = mainTableSelect.value;
-            const subTableId = subTableSelect.value;
-
-            // Обновляем основные столбцы
-            document.querySelectorAll('.main-column-select').forEach(select => {
-                const prefix = select.dataset.prefix;
-                const djangoField = document.querySelector(`input[name="linkupdatecol_set-${prefix}-main"]`);
-
-                if (mainTableId && mainColumnsCache[mainTableId]) {
-                    fill(select, mainColumnsCache[mainTableId], 'Выберите столбец');
-                    // Восстанавливаем сохранённое значение
-                    if (djangoField && djangoField.value) {
-                        select.value = djangoField.value;
-                    }
-                } else {
-                    reset(select, 'Выберите столбец');
-                }
-            });
-
-            // Обновляем дополнительные столбцы
-            document.querySelectorAll('.sub-column-select').forEach(select => {
-                const prefix = select.dataset.prefix;
-                const djangoField = document.querySelector(`input[name="linkupdatecol_set-${prefix}-sub"]`);
-
-                if (subTableId && subColumnsCache[subTableId]) {
-                    fill(select, subColumnsCache[subTableId], 'Выберите столбец');
-                    // Восстанавливаем сохранённое значение
-                    if (djangoField && djangoField.value) {
-                        select.value = djangoField.value;
-                    }
-                } else {
-                    reset(select, 'Выберите столбец');
-                }
-            });
-        }
-
-        // Обработчики для основной таблицы
-        mainDbSelect.addEventListener('change', function() {
-            reset(mainSchemaSelect, 'Сначала выберите базу');
-            reset(mainTableSelect, 'Сначала выберите схему');
-            Object.keys(mainColumnsCache).forEach(key => delete mainColumnsCache[key]);
-            syncColumnSelects();
-
-            if (this.value) {
-                load(urls.schemas, { db_id: this.value })
-                    .then(data => fill(mainSchemaSelect, data, 'Выберите схему'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки схем:', err);
-                        reset(mainSchemaSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        mainSchemaSelect.addEventListener('change', function() {
-            reset(mainTableSelect, 'Сначала выберите схему');
-            Object.keys(mainColumnsCache).forEach(key => delete mainColumnsCache[key]);
-            syncColumnSelects();
-
-            if (this.value) {
-                load(urls.tables, { schema_id: this.value })
-                    .then(data => fill(mainTableSelect, data, 'Выберите таблицу'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки таблиц:', err);
-                        reset(mainTableSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        mainTableSelect.addEventListener('change', function() {
-            syncColumnSelects();
-
-            if (this.value) {
-                if (!mainColumnsCache[this.value]) {
-                    load(urls.columns, { table_id: this.value })
-                        .then(data => {
-                            mainColumnsCache[this.value] = data;
-                            syncColumnSelects();
-                        })
-                        .catch(err => {
-                            console.error('Ошибка загрузки столбцов:', err);
-                            reset(document.querySelector('.main-column-select'), 'Ошибка загрузки');
-                        });
-                } else {
-                    syncColumnSelects();
-                }
-            }
-        });
-
-        // Обработчики для дополнительной таблицы
-        subDbSelect.addEventListener('change', function() {
-            reset(subSchemaSelect, 'Сначала выберите базу');
-            reset(subTableSelect, 'Сначала выберите схему');
-            Object.keys(subColumnsCache).forEach(key => delete subColumnsCache[key]);
-            syncColumnSelects();
-
-            if (this.value) {
-                load(urls.schemas, { db_id: this.value })
-                    .then(data => fill(subSchemaSelect, data, 'Выберите схему'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки схем:', err);
-                        reset(subSchemaSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        subSchemaSelect.addEventListener('change', function() {
-            reset(subTableSelect, 'Сначала выберите схему');
-            Object.keys(subColumnsCache).forEach(key => delete subColumnsCache[key]);
-            syncColumnSelects();
-
-            if (this.value) {
-                load(urls.tables, { schema_id: this.value })
-                    .then(data => fill(subTableSelect, data, 'Выберите таблицу'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки таблиц:', err);
-                        reset(subTableSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        subTableSelect.addEventListener('change', function() {
-            syncColumnSelects();
-
-            if (this.value) {
-                if (!subColumnsCache[this.value]) {
-                    load(urls.columns, { table_id: this.value })
-                        .then(data => {
-                            subColumnsCache[this.value] = data;
-                            syncColumnSelects();
-                        })
-                        .catch(err => {
-                            console.error('Ошибка загрузки столбцов:', err);
-                            reset(document.querySelector('.sub-column-select'), 'Ошибка загрузки');
-                        });
-                } else {
-                    syncColumnSelects();
-                }
-            }
-        });
-
-        // Инициализация обработчиков для селектов столбцов
-        function initColumnSelects() {
-            document.querySelectorAll('.main-column-select, .sub-column-select').forEach(select => {
-                const prefix = select.dataset.prefix;
-                const type = select.dataset.type;
-                const djangoField = document.querySelector(`input[name="linkupdatecol_set-${prefix}-${type}"]`);
-
-                select.addEventListener('change', function() {
-                    if (djangoField) {
-                        djangoField.value = this.value || '';
-                    }
-                });
-
-                if (djangoField && djangoField.value) {
-                    select.value = djangoField.value;
-                }
-            });
-        }
-
-        // === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ ===
-        async function initializeExistingData() {
-            const mainColumnIds = [];
-            const subColumnIds = [];
-
-            // Собираем все выбранные колонки
-            document.querySelectorAll('input[name$="-main"]').forEach(input => {
-                if (input.value) {
-                    mainColumnIds.push(input.value);
-                }
-            });
-
-            document.querySelectorAll('input[name$="-sub"]').forEach(input => {
-                if (input.value) {
-                    subColumnIds.push(input.value);
-                }
-            });
-
-            // Если есть выбранные колонки, загружаем их детали
-            if (mainColumnIds.length > 0 || subColumnIds.length > 0) {
-                try {
-                    // Загружаем детали всех колонок одним запросом
-                    const response = await fetch(`${urls.columnDetail}?column_ids=${mainColumnIds.concat(subColumnIds).join(',')}`);
-                    const columnsData = await response.json();
-
-                    // Группируем по типу (main/sub)
-                    const mainColumnsData = [];
-                    const subColumnsData = [];
-
-                    columnsData.forEach(col => {
-                        if (mainColumnIds.includes(col.id.toString())) {
-                            mainColumnsData.push(col);
-                        }
-                        if (subColumnIds.includes(col.id.toString())) {
-                            subColumnsData.push(col);
-                        }
-                    });
-
-                    // Определяем таблицы для основных колонок
-                    if (mainColumnsData.length > 0) {
-                        const firstMainCol = mainColumnsData[0];
-                        const tableId = firstMainCol.table.id;
-
-                        // Загружаем все столбцы этой таблицы
-                        const columns = await load(urls.columns, { table_id: tableId });
-                        mainColumnsCache[tableId] = columns;
-
-                        // Заполняем селекты таблицы
-                        mainTableSelect.value = tableId;
-                        mainTableSelect.disabled = false;
-
-                        // Загружаем схему таблицы
-                        const schemaResponse = await fetch(`${urls.tables}?schema_id=${firstMainCol.table.schema.id}`);
-                        mainSchemaSelect.value = firstMainCol.table.schema.id;
-                        mainSchemaSelect.disabled = false;
-
-                        // Загружаем базу данных
-                        mainDbSelect.value = firstMainCol.table.schema.base.id;
-                        mainDbSelect.disabled = false;
-                    }
-
-                    // Определяем таблицы для дополнительных колонок
-                    if (subColumnsData.length > 0) {
-                        const firstSubCol = subColumnsData[0];
-                        const tableId = firstSubCol.table.id;
-
-                        const columns = await load(urls.columns, { table_id: tableId });
-                        subColumnsCache[tableId] = columns;
-
-                        subTableSelect.value = tableId;
-                        subTableSelect.disabled = false;
-
-                        subSchemaSelect.value = firstSubCol.table.schema.id;
-                        subSchemaSelect.disabled = false;
-
-                        subDbSelect.value = firstSubCol.table.schema.base.id;
-                        subDbSelect.disabled = false;
-                    }
-
-                } catch (error) {
-                    console.error('Ошибка инициализации данных:', error);
-                }
-            }
-
-            // Инициализируем селекты столбцов
-            initColumnSelects();
-
-            // Вызываем синхронизацию
-            syncColumnSelects();
-        }
-
-        // Запускаем инициализацию
-        initializeExistingData();
-
-        // Добавление новых строк
+    document.addEventListener('DOMContentLoaded', function() {
+        // Простой скрипт для добавления новых строк
         let formCount = {{ formset.total_form_count }};
         const container = document.getElementById('formset-container');
         const addButton = document.getElementById('add-row');
         const emptyForm = document.getElementById('empty-form').innerHTML;
+        const totalFormsInput = document.getElementById('id_linkupdatecol_set-TOTAL_FORMS');
 
         addButton.addEventListener('click', function() {
-            const html = emptyForm.replace(/__prefix__/g, formCount);
-            container.insertAdjacentHTML('beforeend', html);
+            // Заменяем __prefix__ на текущий номер
+            const newFormHtml = emptyForm.replace(/__prefix__/g, formCount);
 
-            initColumnSelects();
-            syncColumnSelects();
+            // Добавляем новую форму в контейнер
+            container.insertAdjacentHTML('beforeend', newFormHtml);
 
+            // Обновляем счетчик форм
             formCount++;
-            document.getElementById('id_linkupdatecol_set-TOTAL_FORMS').value = formCount;
+            totalFormsInput.value = formCount;
+
+            // Прокручиваем к новой форме
+            const newForm = container.lastElementChild;
+            newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
     });
 </script>
-{% endblock %}
-{% endblock %}
-
 {% endblock %}

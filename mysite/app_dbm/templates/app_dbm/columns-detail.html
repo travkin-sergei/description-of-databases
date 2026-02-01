@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Метод обновления: {{ update_method.name }}{% endblock title %}
+{% block title %}Детализация таблицы: {{ tables.name }}{% endblock title %}
 
 {% block body %}
 <style>
@@ -38,6 +38,13 @@
         font-weight: bold;
         padding: 5px 8px;
     }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
     .text-yellow {
         color: #ffcc00;
     }
@@ -46,9 +53,8 @@
         color: #ffcc00;
         border-bottom: 2px solid #ffcc00;
     }
-    .card-top-gold {
-        border: 1px solid #dee2e6;
-        border-top: 3px solid #ffcc00;
+    .border-yellow {
+        border: 1px solid #ffcc00;
     }
     .three-quarters-width {
         width: 75%;
@@ -64,143 +70,159 @@
 <div class="container-fluid bg-white py-3">
     <div class="three-quarters-width">
 
-        <!-- Заголовок метода -->
-        <div class="card card-top-gold mb-4">
+        <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
                 <h4 class="mb-0">
-                    <i class="fas fa-sync-alt mr-2"></i>Метод обновления: {{ update_method.name|default:"Без названия" }}
+                    <i class="fas fa-table mr-2"></i>Детализация таблицы: {{ tables.name }}
                 </h4>
-                {% if update_method.url %}
                 <small>
-                    Источник:
-                    <a href="{{ update_method.url.url }}" target="_blank" class="text-yellow">
-                        {{ update_method.url.name|default:update_method.url.url }}
-                    </a>
+                    Схема: {{ tables.schema.schema }}, База: {{ tables.schema.base.name }}, Тип: {{ tables.type.name }}
                 </small>
-                {% endif %}
             </div>
             <div class="card-body">
-                <p>{{ update_method.description|default:"Описание отсутствует" }}</p>
+                <p>{{ tables.description|default:"Описание отсутствует" }}</p>
             </div>
         </div>
 
-        <!-- Расписание -->
-        <div class="card card-top-gold mb-4">
+        <!-- Столбцы -->
+        <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
-                <h5 class="mb-0"><i class="fas fa-clock mr-2"></i>Расписание выполнения</h5>
-            </div>
-            <div class="card-body">
-                {% if update_method.schedule %}
-                    <p><strong>Cron-выражение:</strong> <code>{{ update_method.schedule }}</code></p>
-                    {% if next_run %}
-                        <p><strong>Следующий запуск:</strong> {{ next_run|date:"Y-m-d H:i:s" }}</p>
-                    {% endif %}
-                    {% if last_run %}
-                        <p><strong>Последний запуск:</strong> {{ last_run|date:"Y-m-d H:i:s" }}</p>
-                    {% endif %}
-                    {% if cron_error %}
-                        <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Ошибка парсинга: {{ cron_error }}</p>
-                    {% endif %}
-                {% else %}
-                    <p class="text-muted">Расписание не задано.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Связанные таблицы -->
-        <div class="card card-top-gold mb-4">
-            <div class="card-header card-header-black">
-                <h5 class="mb-0">
-                    <i class="fas fa-table mr-2"></i>Связанные таблицы
-                    {% if related_links %}
-                        <span class="badge badge-yellow ml-2">{{ related_links|length }}</span>
-                    {% endif %}
-                </h5>
+                <h5 class="mb-0"><i class="fas fa-columns mr-2"></i>Столбцы</h5>
             </div>
             <div class="card-body p-0">
-                {% if related_links %}
                 <table class="table table-black-yellow table-hover mb-0">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Назначение (таблица.столбец)</th>
-                            <th>PK</th>
-                            <th>←→</th>
-                            <th>PK</th>
-                            <th>Источник (таблица.столбец)</th>
+                            <th>Имя столбца</th>
+                            <th>Тип</th>
+                            <th>Дата создания</th>
+                            <th>Активен</th>
+                            <th>Ключевой</th>
+                            <th>Описание</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for link in related_links %}
+                        {% for col in columns %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
-                            <!-- Назначение -->
+                            <td>{{ col.columns }}</td>
+                            <td>{{ col.type }}</td>
+                            <td>{{ col.date_create|date:"Y-m-d H:i" }}</td>
                             <td>
-                                {% if link.main.table %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=link.main.table.pk %}" class="text-decoration-none">
-                                        {{ link.main.table.schema.base.name }}.
-                                        {{ link.main.table.schema.schema }}.
-                                        {{ link.main.table.name }}.{{ link.main.columns }}
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
+                                <span class="badge badge-yellow">
+                                    {% if col.is_active %}ДА{% else %}НЕТ{% endif %}
+                                </span>
                             </td>
-                            <td class="text-center">
-                                {% if link.main.is_key %}
-                                    <span class="badge badge-yellow">PK</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">←→</td>
-                            <td class="text-center">
-                                {% if link.sub and link.sub.is_key %}
-                                    <span class="badge badge-yellow">PK</span>
-                                {% endif %}
-                            </td>
-                            <!-- Источник -->
                             <td>
-                                {% if link.sub and link.sub.table %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=link.sub.table.pk %}" class="text-decoration-none">
-                                        {{ link.sub.table.schema.base.name }}.
-                                        {{ link.sub.table.schema.schema }}.
-                                        {{ link.sub.table.name }}.{{ link.sub.columns }}
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
+                                <span class="badge badge-yellow">
+                                    {% if col.is_key %}ДА{% else %}НЕТ{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ col.description|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Столбцы не найдены</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Связи столбцов -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-link mr-2"></i>Связи столбцов</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if column_relations %}
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Главный столбец</th>
+                            <th>Подчинённый столбец</th>
+                            <th>Тип связи</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rel in column_relations %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ rel.main.columns }}</td>
+                            <td>{{ rel.sub.columns|default:"—" }}</td>
+                            <td>{{ rel.type.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center text-muted py-3">Связи столбцов отсутствуют</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Сервисы -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-cogs mr-2"></i>Связанные сервисы ({{ services_count }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if services_list %}
+                <ul class="list-group list-group-flush">
+                    {% for service in services_list %}
+                    <li class="list-group-item">
+                        {{ service.service.name }}
+                        {% if service.service.description %}
+                        <small class="text-muted"> — {{ service.service.description }}</small>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center text-muted py-3">Сервисы не найдены</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Расписания обновлений -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt mr-2"></i>Расписания обновлений</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if schedules %}
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Имя</th>
+                            <th>Расписание</th>
+                            <th>Активен</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in schedules %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ schedule.name__name }}</td>
+                            <td>{{ schedule.name__schedule|default:"—" }}</td>
+                            <td>
+                                <span class="badge badge-yellow">
+                                    {% if schedule.name__is_active %}ДА{% else %}НЕТ{% endif %}
+                                </span>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
                 {% else %}
-                <p class="text-center text-muted py-3">Связанные таблицы отсутствуют</p>
+                <p class="text-center text-muted py-3">Расписания обновлений не найдены</p>
                 {% endif %}
             </div>
         </div>
-
-        <!-- Действия -->
-        <div class="d-flex justify-content-between mt-4">
-            <a href="{% url 'app_updates:updates-list' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left mr-2"></i>К списку методов
-            </a>
-            <div class="btn-group">
-                {% if perms.app_updates.change_dimupdatemethod %}
-                    <a href="{% url 'app_updates:updates-edit' pk=update_method.pk %}" class="btn btn-gold">
-                        <i class="fas fa-edit mr-2"></i>Редактировать
-                    </a>
-                {% endif %}
-                {% if perms.app_updates.delete_dimupdatemethod %}
-                    <form method="post" action="{% url 'app_updates:updates-delete' pk=update_method.pk %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Удалить метод обновления?')">
-                            <i class="fas fa-trash mr-2"></i>Удалить
-                        </button>
-                    </form>
-                {% endif %}
-            </div>
-        </div>
-
     </div>
 </div>
 {% endblock body %}

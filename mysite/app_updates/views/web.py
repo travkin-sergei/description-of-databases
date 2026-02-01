@@ -2,6 +2,7 @@
 from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, TemplateView
 from django.views.generic.edit import CreateView
@@ -104,6 +105,7 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+# app_updates/views/web.py
 class DimUpdateMethodAddView(PermissionRequiredMixin, LoginRequiredMixin, CreateView):
     """Создание расписания обновления."""
 
@@ -112,31 +114,87 @@ class DimUpdateMethodAddView(PermissionRequiredMixin, LoginRequiredMixin, Create
     form_class = DimUpdateMethodForm
     success_url = reverse_lazy('app_updates:updates-list')
 
-    # Указываем несколько разрешений (оба должны быть у пользователя)
     permission_required = [
-        'app_updates.add_dimupdatemethod',  # Может добавлять методы обновления
-        'app_updates.add_linkupdatecol',  # Может добавлять сопоставления столбцов
+        'app_updates.add_dimupdatemethod',
+        'app_updates.add_linkupdatecol',
     ]
+
+    def get_formset(self, instance=None):
+        """Создание или получение formset."""
+        if self.request.method == 'POST':
+            return LinkUpdateColFormSet(
+                self.request.POST,
+                self.request.FILES,
+                instance=instance
+            )
+        return LinkUpdateColFormSet(instance=instance)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Получаем formset с правильным instance
+        formset = self.get_formset(instance=self.object)
+
+        # Добавляем все необходимые данные в контекст
         context.update({
-            'formset': LinkUpdateColFormSet(),
-            'databases': DimDB.objects.all(),
+            'formset': formset,
+            'databases': DimDB.objects.all().only('id', 'name'),
             'title': 'Добавить метод обновления',
+            'help_text': {
+                'schedule': 'Формат cron: минутa час день месяц день_недели',
+                'columns': 'Выберите основную и дополнительную колонки для обновления'
+            }
         })
+
+        # Для отладки - логируем количество форм
+        logger.debug(f"Formset created with {formset.total_form_count} forms")
+
         return context
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        formset = LinkUpdateColFormSet(self.request.POST, instance=self.object)
+        """Обработка валидной формы."""
+        try:
+            # Сохраняем основной объект без коммита
+            self.object = form.save(commit=False)
+            self.object.save()  # Теперь сохраняем
 
-        if formset.is_valid():
-            formset.save()
-            messages.success(self.request, 'Метод обновления успешно добавлен.')
-            return response
-        else:
-            messages.error(self.request, 'Ошибка в сопоставлении столбцов.')
-            return self.render_to_response(
-                self.get_context_data(form=form, formset=formset)
+            # Создаем formset с instance
+            formset = self.get_formset(instance=self.object)
+
+            if formset.is_valid():
+                formset.save()
+                messages.success(
+                    self.request,
+                    f'Метод обновления "{self.object.name}" успешно создан.'
+                )
+                return HttpResponseRedirect(self.get_success_url())
+            else:
+                # Если formset невалиден, показываем ошибки
+                for error in formset.non_form_errors():
+                    messages.error(self.request, error)
+                for form_in_formset in formset:
+                    for field, errors in form_in_formset.errors.items():
+                        for error in errors:
+                            messages.error(self.request, f"Строка {form_in_formset.prefix}: {error}")
+                return self.render_to_response(
+                    self.get_context_data(form=form, formset=formset)
+                )
+
+        except Exception as e:
+            logger.error(f"Ошибка при создании метода обновления: {e}")
+            messages.error(
+                self.request,
+                f'Произошла ошибка при сохранении: {str(e)}'
             )
+            return self.render_to_response(
+                self.get_context_data(form=form, formset=self.get_formset())
+            )
+
+    def post(self, request, *args, **kwargs):
+        """Обработка POST запроса."""
+        form = self.get_form()
+
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
