@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{{ title }}{% endblock title %}
-
 {% block body %}
 <style>
     /* === ОСНОВНЫЕ СТИЛИ === */
@@ -447,9 +446,21 @@
                 <div class="table-header-compact">
                     <div class="table-basic-info">
                         <div class="table-title-row">
-<span class="meta-badge" style="background-color: #ffcc00; color: #1a1a1a; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 5px;">{{ tables.schema.base.name|upper }}</span>
-<span class="meta-badge" style="background-color: #ffcc00; color: #1a1a1a; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 5px;">{{ tables.schema.schema|upper }}</span>
-<span class="meta-badge" style="background-color: #ffcc00; color: #1a1a1a; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 5px;">{{ tables.name|upper }}</span>
+                            <span class="meta-badge"
+                                  style="background-color: #ffcc00; color: #1a1a1a;
+                                  font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block;
+                                   margin-right: 5px;">{{ tables.schema.base.name|upper }}
+                            </span>
+                            <span class="meta-badge"
+                                  style="background-color: #ffcc00; color: #1a1a1a;
+                                  font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block;
+                                  margin-right: 5px;">{{ tables.schema.schema|upper }}
+                            </span>
+                            <span class="meta-badge"
+                                  style="background-color: #ffcc00; color: #1a1a1a;
+                                  font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block;
+                                   margin-right: 5px;">{{ tables.name|upper }}
+                            </span>
                             <span class="meta-badge">{{ tables.type }}</span>
                         </div>
                         {% if tables.description %}
