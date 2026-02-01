@@ -1,0 +1,179 @@
+<!-- templates/404.html -->
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Ошибка 404 — Страница не найдена{% endblock %}
+{% block body %}
+<div class="error-container">
+    <div class="error-page">
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Страница не найдена</h2>
+        <p class="error-description">Запрошенная страница не существует или была перемещена.</p>
+        <a href="/" class="btn-gold error-link">Вернуться на главную</a>
+    </div>
+</div>
+
+<style>
+    .error-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+        text-align: center;
+        background-color: white;
+    }
+
+    .error-page {
+        max-width: 600px;
+        width: 100%;
+        padding: 2rem;
+        border: 2px solid #ffcc00;
+        border-radius: 10px;
+        background-color: white;
+    }
+
+    .error-code {
+        font-size: 8rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1;
+        color: #e74c3c;
+    }
+
+    .error-title {
+        font-size: 2rem;
+        margin: 1rem 0;
+        color: #333;
+    }
+
+    .error-description {
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .error-link {
+        display: inline-block;
+        padding: 12px 30px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        border: none;
+    }
+
+    /* Стили для желтой кнопки с черным текстом */
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a !important;
+        border: none;
+        font-weight: bold;
+    }
+
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-gold:active,
+    .btn-gold:focus {
+        background-color: #ff4444 !important; /* Красный цвет при активации */
+        color: white !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 68, 68, 0.5) !important;
+    }
+
+    /* Сохраняем другие стили для таблиц */
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+
+    .badge-yellow {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
+    }
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00;
+    }
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+    .filter-row {
+        background-color: #f8f9fa;
+    }
+    .filter-row td {
+        padding: 0.5rem;
+    }
+
+    /* Медиа-запросы для мобильных устройств */
+    @media (max-width: 768px) {
+        .error-code {
+            font-size: 6rem;
+        }
+        .error-title {
+            font-size: 1.8rem;
+        }
+        .error-description {
+            font-size: 1.1rem;
+        }
+        .error-page {
+            padding: 1.5rem;
+            border-width: 1px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .error-code {
+            font-size: 4rem;
+        }
+        .error-title {
+            font-size: 1.5rem;
+        }
+        .error-description {
+            font-size: 1rem;
+        }
+        .error-link {
+            padding: 10px 25px;
+            font-size: 1rem;
+        }
+    }
+</style>
+{% endblock %}
