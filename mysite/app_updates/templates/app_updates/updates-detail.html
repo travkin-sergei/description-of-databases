@@ -1,221 +1,253 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ title }}{% endblock title %}
+{% block title %}{{ update_method.name }} - Метод обновления{% endblock title %}
 
 {% block body %}
 <style>
-    .table-black-yellow {
-        background-color: white;
-        color: #333;
-        width: 100%;
-        margin: 0;
-    }
-    .table-black-yellow thead th {
-        border-bottom: 2px solid #ffcc00;
+    .table-custom thead {
         background-color: #1a1a1a;
         color: #ffcc00;
     }
-    .table-black-yellow tbody tr:hover {
-        background-color: #fff9e6 !important;
+
+    .table-custom thead th {
+        border-bottom: 2px solid #ffcc00;
     }
-    .table-black-yellow tbody tr:nth-child(odd) {
-        background-color: white;
-    }
-    .table-black-yellow tbody tr:nth-child(even) {
+
+    .table-custom tbody tr:nth-child(even) {
         background-color: #fffae6;
     }
-    .btn-gold {
+
+    .table-custom tbody tr:hover {
+        background-color: #fff9e6;
+    }
+
+    .badge-active {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        font-weight: 600;
+    }
+
+    .badge-inactive {
+        background-color: #6c757d;
+        color: white;
+        font-weight: 600;
+    }
+
+    .btn-yellow {
         background-color: #ffcc00;
         color: #1a1a1a;
         border: none;
-        font-weight: bold;
+        font-weight: 600;
     }
-    .btn-gold:hover {
+
+    .btn-yellow:hover {
         background-color: #e6b800;
         color: #1a1a1a;
     }
-    .badge-yellow {
+
+    .btn-outline-yellow {
+        border-color: #ffcc00;
+        color: #1a1a1a;
+    }
+
+    .btn-outline-yellow:hover {
         background-color: #ffcc00;
         color: #1a1a1a;
-        font-weight: bold;
-        padding: 5px 8px;
     }
-    .card-header-black {
+
+    .card-header-custom {
         background-color: #1a1a1a;
         color: #ffcc00;
         border-bottom: 2px solid #ffcc00;
     }
-    .border-yellow {
-        border: 1px solid #ffcc00;
+
+    .card-custom {
+        border: 1px solid #dee2e6;
+        border-top: 3px solid #ffcc00;
     }
-    .three-quarters-width {
-        width: 90%;
-        margin: 0 auto;
-        padding: 0;
+
+    .badge-destination {
+        background-color: rgba(0, 123, 255, 0.1);
+        color: #0069d9;
+        font-weight: 600;
     }
-    @media (max-width: 992px) {
-        .three-quarters-width {
-            width: 100%;
-            padding: 0 10px;
-        }
+
+    .badge-source {
+        background-color: rgba(255, 204, 0, 0.1);
+        color: #b38f00;
+        font-weight: 600;
     }
-    .detail-card {
-        margin-bottom: 20px;
+
+    .text-yellow {
+        color: #ffcc00;
     }
-    .related-links-table {
-        margin-top: 20px;
-        width: 100%;
-    }
-    .tables-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    .table-wrapper {
-        flex: 1 1 calc(50% - 20px);
-        min-width: 300px;
-        margin: 0;
-        padding: 0;
-    }
-    .relation-title {
-        text-align: center;
-        margin-bottom: 15px;
-        font-weight: bold;
+
+    a {
         color: #1a1a1a;
     }
-    .container-fluid {
-        padding-left: 0;
-        padding-right: 0;
-    }
-    /* Новые стили для разделенных карточек */
-    .separate-card {
-        margin-bottom: 25px;
-        border-radius: 5px;
-        overflow: hidden;
-    }
-    .card-content-padding {
-        padding: 20px;
+
+    a:hover {
+        color: #ffcc00;
     }
 </style>
-<div class="container-fluid bg-white py-3">
-    <div class="three-quarters-width">
-        <!-- Карточка с основной информацией -->
-        <div class="card border-yellow separate-card">
-            <div class="card-header card-header-black">
-                <h5 class="mb-0">
-                    <i class="fas fa-server mr-2"></i>Метод обновления: {{ update_method.name }}
-                </h5>
-            </div>
-            <div class="card-body card-content-padding">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p>
-                            <strong>Название:</strong>
-                            {% if update_method.url %}
-                            <a href="{{ update_method.url }}" target="_blank"><strong>{{ update_method.name }}</strong></a>
-                            {% else %}
-                            {{ update_method.name }}
-                            {% endif %}
-                        </p>
-                        <p><strong>Расписание:</strong> {{ update_method.schedule|default:"Не указано" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Статус:</strong>
-                            <span class="badge badge-yellow">
-                                {% if update_method.is_active %}Активен{% else %}Неактивен{% endif %}
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Карточка со связанными столбцами -->
-        {% if related_links %}
-        <div class="card border-yellow separate-card">
-            <div class="card-header card-header-black">
-                <h5 class="mb-0">
-                    <i class="fas fa-link mr-2"></i>Связанные столбцы
-                </h5>
-            </div>
-            <div class="card-body card-content-padding">
-                <div class="tables-container">
-                    <div class="table-wrapper">
-                        <table class="table table-black-yellow table-hover">
-                            <thead>
-                            <tr>
-                                <th colspan="6" class="text-center">Заполняемая таблица</th>
-                                <th></th>
-                                <th colspan="6" class="text-center">Источник</th>
-                            </tr>
-                            <tr>
-                                <th width="5%" class="text-center">№</th>
-                                <th>База</th>
-                                <th>Схема</th>
-                                <th>Таблица</th>
-                                <th>Столбец</th>
-                                <th>PK</th>
-                                <th></th>
-                                <th>PK</th>
-                                <th>Столбец</th>
-                                <th>Таблица</th>
-                                <th>Схема</th>
-                                <th>База</th>
-                                <th width="5%" class="text-center">№</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for link in related_links %}
-                            <tr>
-                                <th class="text-center">{{ forloop.counter }}</th>
-                                {% with main=link.main sub=link.sub %}
-                                <td>{{ main.table.schema.base.name|default:"—" }}</td>
-                                <td>{{ main.table.schema.schema|default:"—" }}</td>
-                                <td>
-                                    {% if main.table %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=main.table.pk %}">{{ main.table.name }}</a>
-                                    {% else %}
-                                    —
-                                    {% endif %}
-                                </td>
-                                <td>{{ main.columns|default:"—" }}</td>
-                                <td>{{ main.pk|default:"—" }}</td>
-                                <td>|</td>
-                                <td>{{ sub.pk|default:"—" }}</td>
-                                <td>{{ sub.columns|default:"—" }}</td>
-                                <td>
-                                    {% if sub.table %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=sub.table.pk %}">
-                                        {{ sub.table.name }}
-                                    </a>
-                                    {% else %}
-                                    —
-                                    {% endif %}
-                                </td>
-                                <td>{{ sub.table.schema.schema|default:"—" }}</td>
-                                <td>{{ sub.table.schema.base.name|default:"—" }}</td>
-                                {% endwith %}
-                                <th class="text-center">{{ forloop.counter }}</th>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
 
-        <!-- Карточка с кнопкой возврата -->
-        <div class="card border-yellow separate-card">
-            <div class="card-body text-center card-content-padding">
-                <a href="{% url 'app_updates:updates-list' %}" class="btn btn-gold">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Назад к списку
-                </a>
+<div class="container py-4">
+    <!-- Заголовок и основная информация -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">
+                <i class="fas fa-sync-alt text-yellow mr-2"></i>
+                {{ update_method.name }}
+            </h1>
+        </div>
+        <a href="{% url 'app_updates:updates-list' %}" class="btn btn-outline-yellow">
+            <i class="fas fa-arrow-left mr-2"></i>Назад
+        </a>
+    </div>
+
+    <!-- Детали метода обновления -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card card-custom">
+                <div class="card-header card-header-custom py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle mr-2"></i>Описание {{ update_method.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if update_method.description %}
+                    <p class="card-text">{{ update_method.description|linebreaks }}</p>
+                    {% else %}
+                    <p class="text-muted font-italic">Описание отсутствует</p>
+                    {% endif %}
+                </div>
             </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-custom h-100">
+                <div class="card-header card-header-custom py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs mr-2"></i>Расписание
+                    </h5>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <h1 class="text-center mb-0">{{ update_method.schedule }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Связанные таблицы -->
+    {% if related_links %}
+    <div class="card card-custom mb-4">
+        <div class="card-header card-header-custom py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-table mr-2"></i>
+                    Связанные таблицы
+                </h5>
+                <span class="badge badge-active">{{ related_links|length }}</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-custom table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th width="5%" class="text-center">#</th>
+                        <th>Таблица</th>
+                        <th>Столбец</th>
+                        <th width="8%" class="text-center">PK</th>
+                        <th width="8%" class="text-center">PK</th>
+                        <th>Столбец</th>
+                        <th>Таблица</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for link in related_links %}
+                    <tr>
+                        <td class="text-center text-muted">{{ forloop.counter }}</td>
+                        <!-- Назначение -->
+                        <td>
+                            {% if link.main.table %}
+                            <a href="{% url 'app_dbm:tables-detail' pk=link.main.table.pk %}"
+                               class="text-decoration-none">
+                                {{ link.main.table.schema.base.name|default:"—" }}.
+                                {{ link.main.table.schema.schema|default:"—" }}.
+                                {{ link.main.table.name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <code class="bg-light">{{ link.main.columns|default:"—" }}</code>
+                        </td>
+                        <td class="text-center">
+                            {% if link.main.pk %}
+                            <span class="badge bg-success">{{ link.main.pk }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <!-- Источник -->
+                        <td class="text-center">
+                            {% if link.sub.pk %}
+                            <span class="badge bg-success">{{ link.sub.pk }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <code class="bg-light">{{ link.sub.columns|default:"—" }}</code>
+                        </td>
+                        <td>
+                            {% if link.sub.table %}
+                            <a href="{% url 'app_dbm:tables-detail' pk=link.sub.table.pk %}"
+                               class="text-decoration-none">
+                                {{ link.sub.table.schema.base.name|default:"—" }}.
+                                {{ link.sub.table.schema.schema|default:"—" }}.
+                                {{ link.sub.table.name }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card card-custom mb-4">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-unlink fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Нет связанных таблиц</h5>
+            <p class="text-muted">Для этого метода обновления не настроены связи</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Действия -->
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'app_updates:updates-list' %}" class="btn btn-outline-yellow">
+            <i class="fas fa-arrow-left mr-2"></i>К списку методов
+        </a>
+
+        <div class="btn-group">
+            {% if perms.app_updates.change_updatemethod %}
+            <button class="btn btn-yellow">
+                <i class="fas fa-edit mr-2"></i>Редактировать
+            </button>
+            {% endif %}
+
+            {% if perms.app_updates.delete_updatemethod %}
+            <button class="btn btn-outline-danger">
+                <i class="fas fa-trash mr-2"></i>Удалить
+            </button>
+            {% endif %}
         </div>
     </div>
 </div>
