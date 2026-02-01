@@ -1,9 +1,8 @@
 # app_dbm/urls.py
-
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-# Веб-представления (HTML)
+# HTML
 from .views.web import (
     AboutView,
     DatabasesView,
@@ -14,9 +13,20 @@ from .views.web import (
     GetSchemasView,
     GetTablesView,
     GetColumnsView,
+    # Автокомплит представления
+    LinkColumnAutocomplete,
+    LinkTableAutocomplete,
+    LinkDBAutocomplete,
+    LinkSchemaAutocomplete,
+    DimDBAutocomplete,
+    DimStageAutocomplete,
+    DimTableNameTypeAutocomplete,
+    DimTableTypeAutocomplete,
+    DimColumnNameAutocomplete,
+    DimTypeLinkAutocomplete,
 )
 
-# API-представления (DRF)
+# API DRF
 from .views.v1 import (
     DimStageViewSet,
     DimDBViewSet,
@@ -47,14 +57,27 @@ router.register(r'total-data', TotalDataViewSet, basename='total-data')
 
 # === URL Patterns ===
 urlpatterns = [
-
-    # DRF AP
+    # DRF API
     path('api/v1/', include(router.urls)),
-    # Для AJAX
+
+    # Автокомплит для админки
+    path('autocomplete/linkcolumn/', LinkColumnAutocomplete.as_view(), name='linkcolumn-autocomplete'),
+    path('autocomplete/linktable/', LinkTableAutocomplete.as_view(), name='linktable-autocomplete'),
+    path('autocomplete/linkdb/', LinkDBAutocomplete.as_view(), name='linkdb-autocomplete'),
+    path('autocomplete/linkschema/', LinkSchemaAutocomplete.as_view(), name='linkschema-autocomplete'),
+    path('autocomplete/dimdb/', DimDBAutocomplete.as_view(), name='dimdb-autocomplete'),
+    path('autocomplete/dimstage/', DimStageAutocomplete.as_view(), name='dimstage-autocomplete'),
+    path('autocomplete/dimtablename/', DimTableNameTypeAutocomplete.as_view(), name='dimtablename-autocomplete'),
+    path('autocomplete/dimtabletype/', DimTableTypeAutocomplete.as_view(), name='dimtabletype-autocomplete'),
+    path('autocomplete/dimcolumnname/', DimColumnNameAutocomplete.as_view(), name='dimcolumnname-autocomplete'),
+    path('autocomplete/dimtypelink/', DimTypeLinkAutocomplete.as_view(), name='dimtypelink-autocomplete'),
+
+    # AJAX
     path('api/schemas/', GetSchemasView.as_view(), name='get-schemas'),
     path('api/tables/', GetTablesView.as_view(), name='get-tables'),
     path('api/columns/', GetColumnsView.as_view(), name='get-columns'),
-    # HTML)
+
+    # HTML
     path('about/', AboutView.as_view(), name='about-app'),
     path('', TablesView.as_view(), name='tables'),
     path('tables/<int:pk>/', TableDetailView.as_view(), name='tables-detail'),
