@@ -447,21 +447,10 @@
                 <div class="table-header-compact">
                     <div class="table-basic-info">
                         <div class="table-title-row">
-                            <span class="meta-badge">
-                                <span class="badge-icon">🗄</span>
-                                <span class="badge-text">{{ tables.schema.base.name|upper }}</span>
-                            </span>
-                            <span class="meta-badge">
-                                <span class="badge-icon">📁</span>
-                                <span class="badge-text">{{ tables.schema.schema|upper }}</span>
-                            </span>
-                            <h1 class="table-name-main">{{ tables.name|upper }}</h1>
-                            <div class="table-meta-badges">
-                                <span class="meta-badge">
-                                    <span class="badge-icon"></span>
-                                    <span class="badge-text">{{ tables.type }}</span>
-                                </span>
-                            </div>
+<span class="meta-badge" style="background-color: #ffcc00; color: #1a1a1a; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 5px;">{{ tables.schema.base.name|upper }}</span>
+<span class="meta-badge" style="background-color: #ffcc00; color: #1a1a1a; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 5px;">{{ tables.schema.schema|upper }}</span>
+<span class="meta-badge" style="background-color: #ffcc00; color: #1a1a1a; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 5px;">{{ tables.name|upper }}</span>
+                            <span class="meta-badge">{{ tables.type }}</span>
                         </div>
                         {% if tables.description %}
                         <div class="table-description-line" title="{{ tables.description }}">
