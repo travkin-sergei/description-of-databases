@@ -20,69 +20,68 @@ $(document).ready(function() {
             success: function(data) {
                 targetSelect.empty().append('<option value="">---------</option>');
                 $.each(data, function(i, item) {
+                    // Универсальное определение отображаемого текста
+                    const displayText = item.name || item.schema_name || item.table_name || item.column_name || item.id;
                     targetSelect.append($('<option>', {
                         value: item.id,
-                        text: item.name || item.schema || item.columns
+                        text: displayText
                     }));
                 });
+            },
+            error: function(xhr, status, error) {
+                console.error('Ошибка загрузки данных:', error);
+                targetSelect.empty().append('<option value="">Ошибка загрузки</option>');
             }
         });
     }
 
-    // Основная база (main)
+    // ========== ОСНОВНАЯ КОЛОНКА (main) ==========
     $('#id_main_base').change(function() {
-        loadDependentData(
-            '/admin/app_dbm/api/schemas-by-db/',
-            'db_id',
-            $(this).val(),
-            $('#id_main_schema')
-        );
-        // Сброс зависимых полей
-        $('#id_main_table').empty().append('<option value="">---------</option>');
-        $('#id_main_column').empty().append('<option value="">---------</option>');
+        loadDependentData('/api/schemas/', 'db_id', $(this).val(), $('#id_main_schema'));
+        $('#id_main_table, #id_main_column').empty().append('<option value="">---------</option>');
         $('#id_main').val('');
     });
 
     $('#id_main_schema').change(function() {
-        loadDependentData(
-            '/admin/app_dbm/api/tables-by-schema/',
-            'schema_id',
-            $(this).val(),
-            $('#id_main_table')
-        );
+        loadDependentData('/api/tables/', 'schema_id', $(this).val(), $('#id_main_table'));
         $('#id_main_column').empty().append('<option value="">---------</option>');
         $('#id_main').val('');
     });
 
     $('#id_main_table').change(function() {
-        loadDependentData(
-            '/admin/app_dbm/api/columns-by-table/',
-            'table_id',
-            $(this).val(),
-            $('#id_main_column')
-        );
+        loadDependentData('/api/columns/', 'table_id', $(this).val(), $('#id_main_column'));
         $('#id_main').val('');
     });
 
-    // При выборе колонки заполняем скрытое поле
     $('#id_main_column').change(function() {
-        $('#id_main').val($(this).val());
+        $('#id_main').val($(this).val() || '');
     });
 
-    // Аналогично для зависимой базы (sub)
+    // ========== ЗАВИСИМАЯ КОЛОНКА (sub) ==========
     $('#id_sub_base').change(function() {
-        loadDependentData(
-            '/admin/app_dbm/api/schemas-by-db/',
-            'db_id',
-            $(this).val(),
-            $('#id_sub_schema')
-        );
-        $('#id_sub_table').empty().append('<option value="">---------</option>');
+        loadDependentData('/api/schemas/', 'db_id', $(this).val(), $('#id_sub_schema'));
+        $('#id_sub_table, #id_sub_column').empty().append('<option value="">---------</option>');
+        $('#id_sub').val('');
+    });
+
+    $('#id_sub_schema').change(function() {
+        loadDependentData('/api/tables/', 'schema_id', $(this).val(), $('#id_sub_table'));
         $('#id_sub_column').empty().append('<option value="">---------</option>');
         $('#id_sub').val('');
     });
 
-    // ... аналогичные обработчики для sub_schema, sub_table, sub_column
+    $('#id_sub_table').change(function() {
+        loadDependentData('/api/columns/', 'table_id', $(this).val(), $('#id_sub_column'));
+        $('#id_sub').val('');
+    });
+
+    $('#id_sub_column').change(function() {
+        $('#id_sub').val($(this).val() || '');
+    });
+
+    // Инициализация: если есть сохранённые значения (при редактировании)
+    if ($('#id_main_column').val()) $('#id_main').val($('#id_main_column').val());
+    if ($('#id_sub_column').val()) $('#id_sub').val($('#id_sub_column').val());
 });
 </script>
 {% endblock %}
@@ -130,13 +129,43 @@ $(document).ready(function() {
 
         <div class="fieldBox">
             <h3>Зависимая колонка (опционально)</h3>
-            <!-- Аналогичная структура для sub -->
+            <div>
+                <label for="id_sub_base">База данных:</label>
+                <select id="id_sub_base" name="sub_base" class="form-control">
+                    <option value="">---------</option>
+                    {% for db in dbs %}
+                    <option value="{{ db.id }}">{{ db.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="id_sub_schema">Схема:</label>
+                <select id="id_sub_schema" name="sub_schema" class="form-control">
+                    <option value="">---------</option>
+                </select>
+            </div>
+            <div>
+                <label for="id_sub_table">Таблица:</label>
+                <select id="id_sub_table" name="sub_table" class="form-control">
+                    <option value="">---------</option>
+                </select>
+            </div>
+            <div>
+                <label for="id_sub_column">Колонка:</label>
+                <select id="id_sub_column" name="sub_column" class="form-control">
+                    <option value="">---------</option>
+                </select>
+            </div>
         </div>
     </div>
 
+    <!-- Скрытые поля для хранения выбранных колонок -->
     {{ form.main }}
     {{ form.sub }}
 
-    <input type="submit" value="Сохранить">
+    <div class="submit-row">
+        <input type="submit" value="Сохранить" class="default">
+        <a href="{% url 'admin:app_dbm_linkcolumncolumn_changelist' %}" class="button cancel-link">Отмена</a>
+    </div>
 </form>
 {% endblock %}

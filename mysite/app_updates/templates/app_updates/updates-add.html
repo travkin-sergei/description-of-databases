@@ -483,17 +483,23 @@
         const container = document.getElementById('formset-container');
         const addButton = document.getElementById('add-row');
         const emptyForm = document.getElementById('empty-form').innerHTML;
+        const totalFormsInput = document.getElementById('id_linkupdatecol_set-TOTAL_FORMS');
 
         addButton.addEventListener('click', function() {
-            const html = emptyForm.replace(/__prefix__/g, formCount);
-            container.insertAdjacentHTML('beforeend', html);
+            // Заменяем __prefix__ на текущий номер
+            const newFormHtml = emptyForm.replace(/__prefix__/g, formCount);
 
-            initColumnSelects();
-            syncColumnSelects();
+            // Добавляем новую форму в контейнер
+            container.insertAdjacentHTML('beforeend', newFormHtml);
 
+            // Обновляем счетчик форм
             formCount++;
-            document.getElementById('id_linkupdatecol_set-TOTAL_FORMS').value = formCount;
+            totalFormsInput.value = formCount;
+
+            // Прокручиваем к новой форме
+            const newForm = container.lastElementChild;
+            newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
     });
 </script>
-{% endblock body %}
+{% endblock %}
