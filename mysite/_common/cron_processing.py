@@ -192,6 +192,6 @@ def get_next_cron_time(cron_expr: str) -> datetime:
     parser = UniversalCronParser()
     return parser.get_next_execution(cron_expr)
 
-
-sss = get_next_cron_time("0 0 22 ? * SUN")
-print(sss)
+#
+# sss = get_next_cron_time("0 0 0 * * * *")
+# print(sss)

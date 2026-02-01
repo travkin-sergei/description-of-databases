@@ -1,13 +1,20 @@
 # app_updates/views/web.py
+from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, TemplateView
 from django.views.generic.edit import CreateView
+
+from _common.cron_processing import UniversalCronParser
 from app_dbm.models import DimDB, LinkColumn
+
 from ..forms import DimUpdateMethodForm, LinkUpdateColFormSet
 from ..models import DimUpdateMethod, LinkUpdateCol
 from ..filters import DimUpdateMethodFilter
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AboutView(LoginRequiredMixin, TemplateView):
@@ -43,6 +50,7 @@ class DimUpdateMethodView(LoginRequiredMixin, ListView):
         context['title'] = "Методы обновления"
         # Сохраняем параметры фильтрации для пагинации
         get_params = self.request.GET.copy()
+
         if 'page' in get_params:
             del get_params['page']
         if get_params:
@@ -59,6 +67,8 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        obj = self.object
+
         # Исправленный select_related - используем только существующие поля
         context['related_links'] = LinkUpdateCol.objects.filter(
             type=self.object
@@ -73,10 +83,20 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
             'sub__table__schema',  # если sub не null
             'sub__table__schema__base'  # если sub не null
         )
-        context['title'] = f"Метод обновления: {self.object.name}"
-
+        context['title'] = f"Метод обновления: {obj.name}"
+        context['next_run'] = None
+        context['last_run'] = None
+        if obj.schedule:
+            try:
+                now = datetime.now()
+                context['next_run'] = UniversalCronParser().get_next_execution(str(obj.schedule))
+                context['last_run'] = UniversalCronParser().get_next_execution(str(obj.schedule))
+            except Exception as e:
+                logger.error(f"Ошибка парсинга cron '{obj.schedule}': {e}")
+                context['cron_error'] = str(e)
         # Сохраняем параметры фильтрации для пагинации
         get_params = self.request.GET.copy()
+
         if 'page' in get_params:
             del get_params['page']
         if get_params:
