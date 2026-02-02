@@ -160,7 +160,7 @@ class LinkServicesTable(BaseClass):
         verbose_name_plural = '09 Таблицы сервиса.'
 
 
-class DimTechStack(BaseClass):
+class DimStack(BaseClass):
     name = models.CharField(max_length=255)  # Исправлено: добавлен max_length
     description = models.TextField(blank=True, null=True)
 
@@ -168,7 +168,7 @@ class DimTechStack(BaseClass):
         return f'{self.name}'
 
     class Meta:
-        db_table = f'{db_schema}"."link_tech_stack'
+        db_table = f'{db_schema}"."dim_stack'
         unique_together = [
             ['name', ]
         ]
@@ -183,7 +183,7 @@ class LinksUrlService(BaseClass):
     service = models.ForeignKey(DimServices, on_delete=models.PROTECT, blank=True, null=True)
     link_name = models.CharField(max_length=255)
     stage = models.ForeignKey(DimStage, on_delete=models.PROTECT, blank=True, null=True)
-    stack = models.ForeignKey(DimTechStack, on_delete=models.PROTECT, blank=True, null=True)
+    stack = models.ForeignKey(DimStack, on_delete=models.PROTECT, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):

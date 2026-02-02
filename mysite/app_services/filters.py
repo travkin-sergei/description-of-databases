@@ -11,7 +11,7 @@ from .models import (
     DimServices,
     DimServicesTypes,
     DimRoles,
-    DimTechStack,
+    DimStack,
     LinksUrlService,
 )
 
@@ -22,7 +22,7 @@ class DimServicesFilter(django_filters.FilterSet):
         field_name='alias',
         lookup_expr='icontains',
         label='Сервис (псевдоним содержит)',
-        widget=forms.TextInput(attrs={'placeholder': 'Введите часть псевдонима'})  # ИЗМЕНЕНО
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть псевдонима'})
     )
 
     type = django_filters.ModelChoiceFilter(
@@ -30,18 +30,19 @@ class DimServicesFilter(django_filters.FilterSet):
         field_name='type',
         label='Тип сервиса',
         empty_label='Любой',
-        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     user = django_filters.CharFilter(
         method='filter_by_user_name',
         label='Пользователь (логин содержит)',
-        widget=forms.TextInput(attrs={'placeholder': 'Введите часть логина'})  # ИЗМЕНЕНО
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть логина'})
     )
 
+    # ✅ Исправлено: используем метод вместо field_name
     role = django_filters.ModelChoiceFilter(
         queryset=DimRoles.objects.all(),
-        field_name='role',  # или то поле, по которому фильтруете
+        method='filter_by_role',  # ← ИСПРАВЛЕНО
         label='Роль',
         empty_label='Любая',
         widget=forms.Select(attrs={'class': 'form-control'})
@@ -58,7 +59,7 @@ class DimServicesFilter(django_filters.FilterSet):
 
         value = value.strip()
         profile_ids = DimProfile.objects.filter(
-            user__username__icontains=value
+            username__icontains=value
         ).values_list('id', flat=True)
 
         if not profile_ids:
@@ -72,6 +73,7 @@ class DimServicesFilter(django_filters.FilterSet):
         """Фильтр по роли ответственного."""
         if not value:
             return queryset
+        # ✅ Исправлено: фильтруем через связь linkresponsibleperson
         return queryset.filter(
             linkresponsibleperson__role=value
         ).distinct()
@@ -83,40 +85,40 @@ class LinksUrlServiceFilter(django_filters.FilterSet):
         field_name='url__url',
         lookup_expr='icontains',
         label='URL содержит',
-        widget=forms.TextInput(attrs={'placeholder': 'Введите часть URL'})  # ИЗМЕНЕНО
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть URL'})
     )
 
     link_name = django_filters.CharFilter(
         lookup_expr='icontains',
         label='Название ссылки содержит',
-        widget=forms.TextInput(attrs={'placeholder': 'Введите часть названия'})  # ИЗМЕНЕНО
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть названия'})
     )
 
     description = django_filters.CharFilter(
         lookup_expr='icontains',
         label='Описание содержит',
-        widget=forms.TextInput(attrs={'placeholder': 'Введите часть описания'})  # ИЗМЕНЕНО
+        widget=forms.TextInput(attrs={'placeholder': 'Введите часть описания'})
     )
 
     stack = django_filters.ModelChoiceFilter(
-        queryset=DimTechStack.objects.all(),
+        queryset=DimStack.objects.all(),
         label='Технологический стек',
         empty_label='Любой',
-        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     stage = django_filters.ModelChoiceFilter(
         queryset=DimStage.objects.all(),
         label='Стадия проекта',
         empty_label='Любая',
-        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     service = django_filters.ModelChoiceFilter(
         queryset=DimServices.objects.all(),
         label='Сервис',
         empty_label='Любой',
-        widget=forms.Select(attrs={'class': 'form-control'})  # ИЗМЕНЕНО
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
 
     class Meta:
@@ -149,11 +151,12 @@ class ServiceUserView(LoginRequiredMixin, FilterView):
     def get_queryset(self):
         """Получение QuerySet с оптимизированной загрузкой связанных данных."""
         queryset = super().get_queryset()
+        # ✅ Исправлено: убрано '__user'
         return queryset.prefetch_related(
             'type',
             'dimservicesname_set',
             'linkresponsibleperson_set__role',
-            'linkresponsibleperson_set__name__user'
+            'linkresponsibleperson_set__name'
         ).order_by('alias')
 
     def get_context_data(self, **kwargs):

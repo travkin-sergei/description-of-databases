@@ -333,7 +333,6 @@ class LinkColumnColumn(BaseClass):
 
     class Meta:
         db_table = f'{db_schema}"."link_columns_columns'
-        unique_together = [['main', 'sub', 'type']]
         verbose_name = '13 Связи столбцов.'
         verbose_name_plural = '13 Связи столбцов.'
         ordering = ['main']

@@ -6,7 +6,7 @@ from django.contrib import admin
 from .models import (
     DimServicesTypes, DimServices, DimServicesName,
     DimRoles, LinkResponsiblePerson, LinkServicesTable,
-    DimTechStack, LinksUrlService, LinkServicesServices,
+    DimStack, LinksUrlService, LinkServicesServices,
     DimServicesNameType, LinkDoc
 )
 
@@ -154,8 +154,8 @@ class LinkServicesTableAdmin(admin.ModelAdmin):
     autocomplete_fields = ('service', 'table')
 
 
-@admin.register(DimTechStack)
-class DimTechStackAdmin(admin.ModelAdmin):
+@admin.register(DimStack)
+class DimStackAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'description')
     search_fields = ('name', 'description')
     ordering = ('name',)

@@ -271,11 +271,13 @@ class TableDetailView(LoginRequiredMixin, DetailView):
         context['services_count'] = services.count()
 
         context['alt_table_names'] = LinkTableName.objects.filter(table=table)
-
+        #  Запрос обновлений данных
         context['update_columns'] = (
             LinkUpdateCol.objects
             .filter(main__in=columns)
-            .select_related('type', 'main', 'sub')
+            .select_related('type', 'main')
+            .order_by('type_id', 'main_id')  # Обязательно для distinct с полями, без этого не работает
+            .distinct('type_id', 'main_id')
         )
 
         return context

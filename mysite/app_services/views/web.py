@@ -17,7 +17,7 @@ from ..models import (
     DimServicesName,
     DimServicesTypes,
     DimRoles,
-    DimTechStack,
+    DimStack,
     LinksUrlService,
     LinkServicesServices,
     LinkResponsiblePerson,
@@ -66,7 +66,7 @@ class LinksUrlServiceListView(ListView):
             context['query_string'] = get_params.urlencode()
 
         # Добавляем querysets для фильтров
-        context['tech_stacks'] = DimTechStack.objects.all()
+        context['tech_stacks'] = DimStack.objects.all()
         context['stages'] = DimStage.objects.all()
         context['services'] = DimServices.objects.all()
 

@@ -7,7 +7,7 @@ from .models import (
     LinkResponsiblePerson,
     DimRoles,
     LinksUrlService,
-    DimTechStack,
+    DimStack,
     LinkDoc,
 )
 
@@ -104,11 +104,11 @@ class LinksUrlServiceSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 
-class DimTechStackSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели DimTechStack (технологический стек)."""
+class DimStackSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели DimStack (технологический стек)."""
 
     class Meta:
-        model = DimTechStack
+        model = DimStack
         fields = ['id', 'name', 'description']
         read_only_fields = ['created_at', 'updated_at']
 

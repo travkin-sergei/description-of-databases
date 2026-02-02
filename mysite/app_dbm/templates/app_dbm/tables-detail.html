@@ -610,11 +610,14 @@
                                 {% for upd in update_columns %}
                                 {% if upd.main_id == col.id %}
                                 <div class="relation-item">
-                                    {% if upd.sub %}
-                                    <a href="{% url 'app_updates:updates-detail' pk=upd.type.pk %}"
-                                       class="relation-link">
-                                        🔄 update: {{ upd.type }}
+                                    {% if upd.type %}
+                                    <span class="text-muted">🔄</span>
+                                    {% url 'app_updates:updates-detail' pk=upd.type.pk as update_url %}
+                                    {% if update_url %}
+                                    <a href="{{ update_url }}" class="relation-link">
+                                        update: {{ upd.type }}
                                     </a>
+                                    {% endif %}
                                     {% endif %}
                                 </div>
                                 {% endif %}

@@ -15,7 +15,7 @@ from .views.v1 import (
     DimRolesViewSet,
     LinkResponsiblePersonViewSet,
     LinksUrlServiceViewSet,
-    DimTechStackViewSet,
+    DimStackViewSet,
     LinkDocViewSet,
 )
 from .apps import name
@@ -32,7 +32,7 @@ router.register(r'services-names', DimServicesNameViewSet, basename='services-na
 router.register(r'roles', DimRolesViewSet, basename='roles')
 router.register(r'responsible-persons', LinkResponsiblePersonViewSet, basename='responsible-persons')
 router.register(r'url-services', LinksUrlServiceViewSet, basename='url-services')
-router.register(r'tech-stack', DimTechStackViewSet, basename='tech-stack')
+router.register(r'stack', DimStackViewSet, basename='stack')
 router.register(r'service-docs', LinkDocViewSet, basename='service-docs')
 
 # Основные URL-маршруты

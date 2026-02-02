@@ -270,20 +270,18 @@
             columns: "{% url 'app_updates:get-columns' %}"
         };
 
-        // Выборы для основной таблицы
         const mainDbSelect = document.getElementById('main-db-select');
         const mainSchemaSelect = document.getElementById('main-schema-select');
         const mainTableSelect = document.getElementById('main-table-select');
 
-        // Выборы для дополнительной таблицы
         const subDbSelect = document.getElementById('sub-db-select');
         const subSchemaSelect = document.getElementById('sub-schema-select');
         const subTableSelect = document.getElementById('sub-table-select');
 
-        // Кэш для столбцов
         const mainColumnsCache = {};
         const subColumnsCache = {};
 
+        // === Вспомогательные функции ===
         function reset(select, placeholder) {
             select.innerHTML = `<option value="">${placeholder}</option>`;
             select.disabled = true;
@@ -295,217 +293,190 @@
                 data.forEach(item => {
                     const opt = document.createElement('option');
                     opt.value = item.id;
-                    opt.textContent = item.name || item.schema || item.columns;
+                    opt.textContent = item.name || item.schema || item.table || item.columns;
                     select.appendChild(opt);
                 });
             }
             select.disabled = false;
         }
 
-        function load(url, params) {
-            return fetch(`${url}?${new URLSearchParams(params)}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Ошибка загрузки');
-                    return response.json();
-                });
+        async function load(url, params) {
+            const response = await fetch(`${url}?${new URLSearchParams(params)}`);
+            if (!response.ok) throw new Error('Ошибка загрузки');
+            return await response.json();
         }
 
-        // Синхронизация селектов столбцов с кэшем
-        function syncColumnSelects() {
+        // === Обновление селектов столбцов ===
+        function updateColumnSelects() {
             const mainTableId = mainTableSelect.value;
             const subTableId = subTableSelect.value;
 
-            // Обновляем основные столбцы
+            // Обновляем все main-column-select
             document.querySelectorAll('.main-column-select').forEach(select => {
                 const prefix = select.dataset.prefix;
-                const djangoField = document.querySelector(`input[name="linkupdatecol_set-${prefix}-main"]`);
-
+                const hiddenInput = document.querySelector(`input[name="linkupdatecol_set-${prefix}-main"]`);
                 if (mainTableId && mainColumnsCache[mainTableId]) {
                     fill(select, mainColumnsCache[mainTableId], 'Выберите столбец');
-                    // Восстанавливаем сохранённое значение
-                    if (djangoField && djangoField.value) {
-                        select.value = djangoField.value;
-                    }
+                    if (hiddenInput && hiddenInput.value) select.value = hiddenInput.value;
                 } else {
                     reset(select, 'Выберите столбец');
                 }
             });
 
-            // Обновляем дополнительные столбцы
+            // Обновляем все sub-column-select
             document.querySelectorAll('.sub-column-select').forEach(select => {
                 const prefix = select.dataset.prefix;
-                const djangoField = document.querySelector(`input[name="linkupdatecol_set-${prefix}-sub"]`);
-
+                const hiddenInput = document.querySelector(`input[name="linkupdatecol_set-${prefix}-sub"]`);
                 if (subTableId && subColumnsCache[subTableId]) {
                     fill(select, subColumnsCache[subTableId], 'Выберите столбец');
-                    // Восстанавливаем сохранённое значение
-                    if (djangoField && djangoField.value) {
-                        select.value = djangoField.value;
-                    }
+                    if (hiddenInput && hiddenInput.value) select.value = hiddenInput.value;
                 } else {
                     reset(select, 'Выберите столбец');
                 }
             });
         }
 
-        // Обработчики для основной таблицы
-        mainDbSelect.addEventListener('change', function() {
+        // === Обработчики для MAIN ===
+        mainDbSelect.addEventListener('change', async () => {
             reset(mainSchemaSelect, 'Сначала выберите базу');
             reset(mainTableSelect, 'Сначала выберите схему');
-            // Очищаем кэш столбцов при смене базы
-            Object.keys(mainColumnsCache).forEach(key => delete mainColumnsCache[key]);
-            syncColumnSelects();
+            Object.keys(mainColumnsCache).forEach(k => delete mainColumnsCache[k]);
+            updateColumnSelects();
 
-            if (this.value) {
-                load(urls.schemas, { db_id: this.value })
-                    .then(data => fill(mainSchemaSelect, data, 'Выберите схему'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки схем:', err);
-                        reset(mainSchemaSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        mainSchemaSelect.addEventListener('change', function() {
-            reset(mainTableSelect, 'Сначала выберите схему');
-            // Очищаем кэш столбцов при смене схемы
-            Object.keys(mainColumnsCache).forEach(key => delete mainColumnsCache[key]);
-            syncColumnSelects();
-
-            if (this.value) {
-                load(urls.tables, { schema_id: this.value })
-                    .then(data => fill(mainTableSelect, data, 'Выберите таблицу'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки таблиц:', err);
-                        reset(mainTableSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        mainTableSelect.addEventListener('change', function() {
-            syncColumnSelects();
-
-            if (this.value) {
-                // Загружаем столбцы только если их нет в кэше
-                if (!mainColumnsCache[this.value]) {
-                    load(urls.columns, { table_id: this.value })
-                        .then(data => {
-                            mainColumnsCache[this.value] = data;
-                            syncColumnSelects();
-                        })
-                        .catch(err => {
-                            console.error('Ошибка загрузки столбцов:', err);
-                            reset(document.querySelector('.main-column-select'), 'Ошибка загрузки');
-                        });
-                } else {
-                    syncColumnSelects();
+            if (mainDbSelect.value) {
+                try {
+                    const schemas = await load(urls.schemas, { db_id: mainDbSelect.value });
+                    fill(mainSchemaSelect, schemas, 'Выберите схему');
+                } catch (e) {
+                    console.error('Ошибка загрузки схем:', e);
+                    reset(mainSchemaSelect, 'Ошибка загрузки');
                 }
             }
         });
 
-        // Обработчики для дополнительной таблицы
-        subDbSelect.addEventListener('change', function() {
+        mainSchemaSelect.addEventListener('change', async () => {
+            reset(mainTableSelect, 'Сначала выберите схему');
+            Object.keys(mainColumnsCache).forEach(k => delete mainColumnsCache[k]);
+            updateColumnSelects();
+
+            if (mainSchemaSelect.value) {
+                try {
+                    const tables = await load(urls.tables, { schema_id: mainSchemaSelect.value });
+                    fill(mainTableSelect, tables, 'Выберите таблицу');
+                } catch (e) {
+                    console.error('Ошибка загрузки таблиц:', e);
+                    reset(mainTableSelect, 'Ошибка загрузки');
+                }
+            }
+        });
+
+        mainTableSelect.addEventListener('change', async () => {
+            updateColumnSelects();
+            if (mainTableSelect.value && !mainColumnsCache[mainTableSelect.value]) {
+                try {
+                    const columns = await load(urls.columns, { table_id: mainTableSelect.value });
+                    mainColumnsCache[mainTableSelect.value] = columns;
+                    updateColumnSelects();
+                } catch (e) {
+                    console.error('Ошибка загрузки столбцов:', e);
+                    document.querySelectorAll('.main-column-select').forEach(s => reset(s, 'Ошибка'));
+                }
+            }
+        });
+
+        // === Обработчики для SUB ===
+        subDbSelect.addEventListener('change', async () => {
             reset(subSchemaSelect, 'Сначала выберите базу');
             reset(subTableSelect, 'Сначала выберите схему');
-            Object.keys(subColumnsCache).forEach(key => delete subColumnsCache[key]);
-            syncColumnSelects();
+            Object.keys(subColumnsCache).forEach(k => delete subColumnsCache[k]);
+            updateColumnSelects();
 
-            if (this.value) {
-                load(urls.schemas, { db_id: this.value })
-                    .then(data => fill(subSchemaSelect, data, 'Выберите схему'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки схем:', err);
-                        reset(subSchemaSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        subSchemaSelect.addEventListener('change', function() {
-            reset(subTableSelect, 'Сначала выберите схему');
-            Object.keys(subColumnsCache).forEach(key => delete subColumnsCache[key]);
-            syncColumnSelects();
-
-            if (this.value) {
-                load(urls.tables, { schema_id: this.value })
-                    .then(data => fill(subTableSelect, data, 'Выберите таблицу'))
-                    .catch(err => {
-                        console.error('Ошибка загрузки таблиц:', err);
-                        reset(subTableSelect, 'Ошибка загрузки');
-                    });
-            }
-        });
-
-        subTableSelect.addEventListener('change', function() {
-            syncColumnSelects();
-
-            if (this.value) {
-                if (!subColumnsCache[this.value]) {
-                    load(urls.columns, { table_id: this.value })
-                        .then(data => {
-                            subColumnsCache[this.value] = data;
-                            syncColumnSelects();
-                        })
-                        .catch(err => {
-                            console.error('Ошибка загрузки столбцов:', err);
-                            reset(document.querySelector('.sub-column-select'), 'Ошибка загрузки');
-                        });
-                } else {
-                    syncColumnSelects();
+            if (subDbSelect.value) {
+                try {
+                    const schemas = await load(urls.schemas, { db_id: subDbSelect.value });
+                    fill(subSchemaSelect, schemas, 'Выберите схему');
+                } catch (e) {
+                    console.error('Ошибка загрузки схем (sub):', e);
+                    reset(subSchemaSelect, 'Ошибка загрузки');
                 }
             }
         });
 
-        // Инициализация обработчиков для селектов столбцов
-        function initColumnSelects() {
+        subSchemaSelect.addEventListener('change', async () => {
+            reset(subTableSelect, 'Сначала выберите схему');
+            Object.keys(subColumnsCache).forEach(k => delete subColumnsCache[k]);
+            updateColumnSelects();
+
+            if (subSchemaSelect.value) {
+                try {
+                    const tables = await load(urls.tables, { schema_id: subSchemaSelect.value });
+                    fill(subTableSelect, tables, 'Выберите таблицу');
+                } catch (e) {
+                    console.error('Ошибка загрузки таблиц (sub):', e);
+                    reset(subTableSelect, 'Ошибка загрузки');
+                }
+            }
+        });
+
+        subTableSelect.addEventListener('change', async () => {
+            updateColumnSelects();
+            if (subTableSelect.value && !subColumnsCache[subTableSelect.value]) {
+                try {
+                    const columns = await load(urls.columns, { table_id: subTableSelect.value });
+                    subColumnsCache[subTableSelect.value] = columns;
+                    updateColumnSelects();
+                } catch (e) {
+                    console.error('Ошибка загрузки столбцов (sub):', e);
+                    document.querySelectorAll('.sub-column-select').forEach(s => reset(s, 'Ошибка'));
+                }
+            }
+        });
+
+        // === Синхронизация скрытых полей при изменении селектов ===
+        function bindColumnSelectEvents() {
             document.querySelectorAll('.main-column-select, .sub-column-select').forEach(select => {
                 const prefix = select.dataset.prefix;
-                const type = select.dataset.type;
-                const djangoField = document.querySelector(`input[name="linkupdatecol_set-${prefix}-${type}"]`);
+                const type = select.dataset.type; // 'main' или 'sub'
+                const hiddenInput = document.querySelector(`input[name="linkupdatecol_set-${prefix}-${type}"]`);
 
-                // Синхронизируем при изменении
-                select.addEventListener('change', function() {
-                    if (djangoField) {
-                        djangoField.value = this.value || '';
-                    }
-                });
+                if (hiddenInput) {
+                    // Устанавливаем начальное значение
+                    if (hiddenInput.value) select.value = hiddenInput.value;
 
-                // Инициализируем значение при загрузке
-                if (djangoField && djangoField.value) {
-                    select.value = djangoField.value;
+                    // Синхронизируем при изменении
+                    select.addEventListener('change', () => {
+                        hiddenInput.value = select.value || '';
+                    });
                 }
             });
         }
 
-        // Инициализируем существующие селекты
-        initColumnSelects();
+        // Инициализация существующих строк
+        bindColumnSelectEvents();
 
-        // Добавление новых строк
+        // === Добавление новых строк ===
         let formCount = {{ formset.total_form_count }};
         const container = document.getElementById('formset-container');
         const addButton = document.getElementById('add-row');
-        const emptyForm = document.getElementById('empty-form').innerHTML;
         const totalFormsInput = document.getElementById('id_linkupdatecol_set-TOTAL_FORMS');
+        const emptyFormHtml = document.getElementById('empty-form').innerHTML;
 
-        addButton.addEventListener('click', function() {
-            // Заменяем __prefix__ на текущий номер
-            const newFormHtml = emptyForm.replace(/__prefix__/g, formCount);
+        addButton.addEventListener('click', function () {
+            const newHtml = emptyFormHtml.replace(/__prefix__/g, formCount);
+            container.insertAdjacentHTML('beforeend', newHtml);
 
-            // Добавляем новую форму в контейнер
-            container.insertAdjacentHTML('beforeend', newFormHtml);
+            // Обновляем селекты (если таблицы уже выбраны)
+            updateColumnSelects();
 
-            // Синхронизируем новые селекты с кэшем
-            syncColumnSelects();
+            // Привязываем события к новым селектам
+            bindColumnSelectEvents();
 
-            // Инициализируем обработчики для новых селектов
-            initColumnSelects();
-
-            // Обновляем счетчик форм
+            // Обновляем счётчик
             formCount++;
             totalFormsInput.value = formCount;
 
-            // Прокручиваем к новой форме
-            const newForm = container.lastElementChild;
-            newForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Прокрутка
+            container.lastElementChild.scrollIntoView({ behavior: 'smooth' });
         });
     });
 </script>

@@ -10,7 +10,7 @@ from ..models import (
     LinkResponsiblePerson,
     DimRoles,
     LinksUrlService,
-    DimTechStack,
+    DimStack,
     LinkDoc,
 )
 from ..serializers import (
@@ -20,7 +20,7 @@ from ..serializers import (
     LinkResponsiblePersonSerializer,
     DimRolesSerializer,
     LinksUrlServiceSerializer,
-    DimTechStackSerializer,
+    DimStackSerializer,
     LinkDocSerializer,
 )
 from ..filters import (
@@ -136,13 +136,13 @@ class LinksUrlServiceViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(tags=['app_services'])
-class DimTechStackViewSet(viewsets.ModelViewSet):
+class DimStackViewSet(viewsets.ModelViewSet):
     """
-    ViewSet для модели DimTechStack (технологический стек).
+    ViewSet для модели DimStack (технологический стек).
     Доступ: аутентифицированные пользователи.
     """
-    queryset = DimTechStack.objects.all()
-    serializer_class = DimTechStackSerializer
+    queryset = DimStack.objects.all()
+    serializer_class = DimStackSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description']
