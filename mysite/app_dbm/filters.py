@@ -1,10 +1,10 @@
 # app_dbm/filters.py
 import django_filters
 from django_filters import CharFilter, ModelChoiceFilter
+from django import forms
 from django.db.models import Q
-
 from .models import (
-    LinkDB, DimStage, LinkTable, LinkColumn
+    DimStage, LinkDB, LinkSchema, LinkTable, LinkColumn
 )
 
 
@@ -29,6 +29,34 @@ class LinkDBFilter(django_filters.FilterSet):
     class Meta:
         model = LinkDB
         fields = ['db_name', 'alias', 'host', 'port', 'stage', 'is_active']
+
+
+class LinkSchemaFilter(django_filters.FilterSet):
+    """
+    Фильтр для модели LinkSchema.
+    """
+    base = django_filters.CharFilter(
+        field_name='base__name',
+        lookup_expr='icontains',
+        label='База данных',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-dark',
+            'placeholder': 'База данных...'
+        })
+    )
+    schema = django_filters.CharFilter(
+        field_name='schema',
+        lookup_expr='icontains',
+        label='Схема',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control form-control-dark',
+            'placeholder': 'Схема...'
+        })
+    )
+
+    class Meta:
+        model = LinkSchema
+        fields = ['base', 'schema']
 
 
 class LinkTableFilter(django_filters.FilterSet):

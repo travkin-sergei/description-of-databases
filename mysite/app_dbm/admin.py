@@ -37,6 +37,7 @@ def format_full_path(obj, color='#1890ff'):
 
 
 # ================== ИНЛАЙНЫ ==================
+# ================== ИНЛАЙНЫ ==================
 class LinkColumnInline(admin.TabularInline):
     """Инлайн для столбцов таблицы"""
     model = LinkColumn
@@ -49,6 +50,23 @@ class LinkColumnInline(admin.TabularInline):
         """Оптимизация запросов для инлайна"""
         return super().get_queryset(request).select_related(
             'table__schema__base'
+        )
+
+
+class LinkTableNameInline(admin.TabularInline):
+    """Инлайн для альтернативных названий таблицы"""
+    model = LinkTableName
+    extra = 0
+    fields = ('name', 'type', 'is_publish')  # Убрал 'description' — такого поля нет в модели
+    show_change_link = True
+    autocomplete_fields = ['type']
+    verbose_name = 'Альтернативное название'
+    verbose_name_plural = 'Альтернативные названия'
+
+    def get_queryset(self, request):
+        """Оптимизация запросов для инлайна"""
+        return super().get_queryset(request).select_related(
+            'type'
         )
 
 
@@ -137,7 +155,7 @@ class LinkTableAdmin(BaseAdmin):
     search_fields = ('name__istartswith', 'schema__schema__istartswith')
     autocomplete_fields = ['schema', 'type']
     list_select_related = ('schema__base', 'type')
-    inlines = [LinkColumnInline]
+    inlines = [LinkTableNameInline, LinkColumnInline]  # Добавлен LinkTableNameInline
     ordering = ['name']
 
     def schema_display(self, obj):
@@ -149,7 +167,6 @@ class LinkTableAdmin(BaseAdmin):
         return super().get_queryset(request).select_related(
             'schema__base', 'type'
         )
-
 
 @admin.register(LinkTableName)
 class LinkTableNameAdmin(BaseAdmin):

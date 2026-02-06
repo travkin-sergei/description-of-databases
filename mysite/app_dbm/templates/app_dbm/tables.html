@@ -117,10 +117,14 @@
         <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-server mr-2"></i>Поиск таблиц</h5>
+                    <h5 class="mb-0">
+                        <i class="fas fa-server mr-2"></i>
+                        Поиск таблиц
+                    </h5>
                     {% if form_submitted %}
                     <span class="badge bg-warning text-dark">
-                        <i class="fas fa-search me-1"></i>Поиск выполнен
+                        <i class="fas fa-search me-1"></i>
+                        Поиск выполнен
                     </span>
                     {% endif %}
                 </div>
@@ -168,10 +172,10 @@
                                 <select name="is_active" class="form-control form-control-dark">
                                     <option value="">Статус</option>
                                     <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>
-                                        Активные
+                                    Активные
                                     </option>
                                     <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
-                                        Неактивные
+                                    Неактивные
                                     </option>
                                 </select>
                             </td>
@@ -180,14 +184,15 @@
                                     <select name="is_metadata" class="form-control form-control-dark mr-2">
                                         <option value="">Метаданные</option>
                                         <option value="true" {% if request.GET.is_metadata == 'true' %}selected{% endif %}>
-                                            С метаданными
+                                        С метаданными
                                         </option>
                                         <option value="false" {% if request.GET.is_metadata == 'false' %}selected{% endif %}>
-                                            Без метаданных
+                                        Без метаданных
                                         </option>
                                     </select>
                                     <button type="submit" class="btn btn-gold">
-                                        <i class="fas fa-search mr-1"></i>Поиск
+                                        <i class="fas fa-search mr-1"></i>
+                                        Поиск
                                     </button>
                                 </div>
                             </td>
@@ -195,94 +200,99 @@
                         </thead>
                         <tbody>
                         {% if tables %}
-                            {% for elem in tables %}
-                            <tr>
-                                <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
-                                <td>
-                                    {% if elem.pk %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
-                                        {{ elem.schema.base.name|default_if_none:"—" }}
-                                    </a>
-                                    {% else %}
+                        {% for elem in tables %}
+                        <tr>
+                            <th class="text-center">{{ page_obj.start_index|add:forloop.counter0 }}</th>
+                            <td>
+                                {% if elem.pk %}
+                                <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}"
+                                   class="text-decoration-none text-dark">
                                     {{ elem.schema.base.name|default_if_none:"—" }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if elem.pk %}
-                                   <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark">
-                                        {{ elem.schema.schema|default_if_none:"—" }}
-                                    </a>
-                                    {% else %}
+                                </a>
+                                {% else %}
+                                {{ elem.schema.base.name|default_if_none:"—" }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if elem.pk %}
+                                <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}"
+                                   class="text-decoration-none text-dark">
                                     {{ elem.schema.schema|default_if_none:"—" }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if elem.pk %}
-                                    <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}" class="text-decoration-none text-dark fw-bold">
-                                        {{ elem.name|default_if_none:"—" }}
-                                    </a>
-                                    {% else %}
-                                    <span class="fw-bold">{{ elem.name|default_if_none:"—" }}</span>
-                                    {% endif %}
-                                    {% if elem.alt_name %}
-                                    <span class="float-end text-muted small">
+                                </a>
+                                {% else %}
+                                {{ elem.schema.schema|default_if_none:"—" }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if elem.pk %}
+                                <a href="{% url 'app_dbm:tables-detail' pk=elem.pk %}"
+                                   class="text-decoration-none text-dark fw-bold">
+                                    {{ elem.name|default_if_none:"—" }}
+                                </a>
+                                {% else %}
+                                <span class="fw-bold">{{ elem.name|default_if_none:"—" }}</span>
+                                {% endif %}
+                                {% if elem.alt_name %}
+                                <span class="float-end text-muted small">
                                         <i class="fas fa-tag me-1"></i>{{ elem.alt_name }}
                                         <small class="ms-2">({{ elem.type.name|default:"без типа" }})</small>
                                     </span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
                                     <span class="badge badge-yellow">
                                         {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
                                     </span>
-                                </td>
-                                <td class="text-center">
+                            </td>
+                            <td class="text-center">
                                     <span class="badge badge-yellow">
                                         {% if elem.is_metadata %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
                                     </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
                         {% else %}
-                            <!-- Сообщение когда нет данных -->
-                            <tr>
-                                <td colspan="6" class="text-center py-4">
-                                    <div class="text-muted">
-                                        <i class="fas fa-search fa-2x mb-3 text-warning"></i>
-                                        <h5 class="mb-3">Поиск таблиц</h5>
-                                        <p class="mb-3">Введите параметры поиска и нажмите кнопку "Поиск"</p>
+                        <!-- Сообщение когда нет данных -->
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="fas fa-search fa-2x mb-3 text-warning"></i>
+                                    <h5 class="mb-3">Поиск таблиц</h5>
+                                    <p class="mb-3">Введите параметры поиска и нажмите кнопку "Поиск"</p>
 
-                                        {% if form_submitted %}
-                                        <!-- Сообщение когда поиск выполнен, но ничего не найдено -->
-                                        <div class="alert alert-warning mt-3" style="max-width: 500px; margin: 0 auto;">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-exclamation-circle fa-2x me-3"></i>
-                                                <div>
-                                                    <h6 class="mb-1">Ничего не найдено</h6>
-                                                    <p class="mb-0 small">По вашему запросу не найдено ни одной таблицы.<br>
+                                    {% if form_submitted %}
+                                    <!-- Сообщение когда поиск выполнен, но ничего не найдено -->
+                                    <div class="alert alert-warning mt-3" style="max-width: 500px; margin: 0 auto;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                                            <div>
+                                                <h6 class="mb-1">Ничего не найдено</h6>
+                                                <p class="mb-0 small">По вашему запросу не найдено ни одной таблицы.<br>
                                                     Попробуйте изменить параметры поиска.</p>
-                                                </div>
                                             </div>
                                         </div>
-                                        {% else %}
-                                        <!-- Советы по поиску -->
-                                        <div class="alert alert-info mt-3" style="max-width: 500px; margin: 0 auto;">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-lightbulb fa-2x me-3"></i>
-                                                <div>
-                                                    <h6 class="mb-1">Советы по поиску:</h6>
-                                                    <ul class="mb-0 small">
-                                                        <li>Используйте частичные названия (например: "user" для поиска "user_profile")</li>
-                                                        <li>Поиск по базе данных или схеме</li>
-                                                        <li>Фильтруйте по активности или наличию метаданных</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
                                     </div>
-                                </td>
-                            </tr>
+                                    {% else %}
+                                    <!-- Советы по поиску -->
+                                    <div class="alert alert-info mt-3" style="max-width: 500px; margin: 0 auto;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-lightbulb fa-2x me-3"></i>
+                                            <div>
+                                                <h6 class="mb-1">Советы по поиску:</h6>
+                                                <ul class="mb-0 small">
+                                                    <li>Используйте частичные названия (например: "user" для поиска
+                                                        "user_profile")
+                                                    </li>
+                                                    <li>Поиск по базе данных или схеме</li>
+                                                    <li>Фильтруйте по активности или наличию метаданных</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
                         {% endif %}
                         </tbody>
                     </table>
@@ -291,22 +301,22 @@
         </div>
         <!-- Пагинация снизу -->
         {% if tables %}
-            {% include 'inc/_paginator.html' %}
-            <!-- Дополнительное предупреждение если есть следующая страница и ограничение -->
-            {% if is_limited and page_obj.has_next %}
-            <div class="alert alert-warning mt-3">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-exclamation-circle fa-2x me-3"></i>
-                    <div>
-                        <h6 class="mb-1"><strong>Внимание!</strong></h6>
-                        <p class="mb-0">
-                            Из-за ограничения в 1000 записей не все страницы могут быть доступны.<br>
-                            Уточните параметры поиска для получения полных результатов.
-                        </p>
-                    </div>
+        {% include 'inc/_paginator.html' %}
+        <!-- Дополнительное предупреждение если есть следующая страница и ограничение -->
+        {% if is_limited and page_obj.has_next %}
+        <div class="alert alert-warning mt-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                <div>
+                    <h6 class="mb-1"><strong>Внимание!</strong></h6>
+                    <p class="mb-0">
+                        Из-за ограничения в 1000 записей не все страницы могут быть доступны.<br>
+                        Уточните параметры поиска для получения полных результатов.
+                    </p>
                 </div>
             </div>
-            {% endif %}
+        </div>
+        {% endif %}
         {% endif %}
     </div>
 </div>

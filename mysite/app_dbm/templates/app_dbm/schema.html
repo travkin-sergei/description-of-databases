@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Схемы{% endblock title %}
+{% block body %}
+
+<style>
+    /* Базовые стили таблицы */
+    .table-black-yellow {
+        background-color: white;
+        color: #333;
+    }
+    .table-black-yellow thead th {
+        border-bottom: 2px solid #ffcc00;
+        background-color: #1a1a1a;
+        color: #ffcc00;
+    }
+    .table-black-yellow tbody tr:hover {
+        background-color: #fff9e6 !important;
+    }
+    .table-black-yellow tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+    .table-black-yellow tbody tr:nth-child(even) {
+        background-color: #fffae6;
+    }
+    .table-black-yellow tbody td {
+        vertical-align: middle;
+    }
+
+    /* Стили кнопок */
+    .btn-gold {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        border: none;
+        font-weight: bold;
+        padding: 8px 16px;
+    }
+    .btn-gold:hover {
+        background-color: #e6b800;
+        color: #1a1a1a;
+    }
+    .btn-gold i {
+        margin-right: 5px;
+    }
+    .btn-outline-yellow {
+        border: 1px solid #ffcc00;
+        color: #ffcc00;
+        padding: 8px 12px;
+    }
+    .btn-outline-yellow:hover {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+    }
+
+    /* Стили форм */
+    .form-control-dark {
+        border: 1px solid #ffcc00;
+    }
+    .form-control-dark:focus {
+        border-color: #ffcc00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
+    }
+
+    /* Стили заголовков и карточек */
+    .card-header-black {
+        background-color: #1a1a1a;
+        color: #ffcc00;
+        border-bottom: 2px solid #ffcc00;
+    }
+    .border-yellow {
+        border: 1px solid #ffcc00 !important;
+    }
+
+    /* Контейнер */
+    .three-quarters-width {
+        width: 75%;
+        margin: 0 auto;
+    }
+    @media (max-width: 992px) {
+        .three-quarters-width {
+            width: 95%;
+        }
+    }
+
+    /* Предупреждения */
+    .limit-warning {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        border: 2px solid #ffcc00;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #856404;
+    }
+    .limit-count {
+        font-weight: bold;
+        color: #1a1a1a;
+        background-color: #ffcc00;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin: 0 5px;
+    }
+
+    /* Стили ссылок */
+    .link-database,
+    .link-schema {
+        color: #1a1a1a;
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+    .link-database:hover,
+    .link-schema:hover {
+        background-color: #ffcc00;
+        color: #1a1a1a;
+        text-decoration: none;
+    }
+    .link-database i,
+    .link-schema i {
+        color: #ffcc00;
+        margin-right: 5px;
+    }
+    .link-database:hover i,
+    .link-schema:hover i {
+        color: #1a1a1a;
+    }
+</style>
+<div class="container-fluid bg-white py-3">
+    <div class="three-quarters-width">
+        <!-- Фильтр по базе данных -->
+        {% if selected_base %}
+        <div class="alert alert-info border-yellow mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-filter text-yellow me-2"></i>
+                    <strong>Фильтр:</strong> Схемы базы данных
+                    <span class="badge bg-dark text-yellow ms-2">{{ selected_base.name }}</span>
+                    {% if selected_base.alias %}
+                    <small class="text-muted">({{ selected_base.alias }})</small>
+                    {% endif %}
+                </div>
+                <a href="{% url 'app_dbm:schema' %}" class="btn btn-sm btn-outline-dark border-yellow text-yellow">
+                    <i class="fas fa-times me-1"></i>Сбросить
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Ограничение записей -->
+        {% if is_limited %}
+        <div class="limit-warning mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Показаны первые <span class="limit-count">{{ limited_count }}</span> из
+            <span class="limit-count">{{ total_count }}</span> найденных схем.
+            Уточните параметры поиска.
+        </div>
+        {% endif %}
+        <!-- Пагинация (верхняя) -->
+        {% if schemas %}
+        {% include 'inc/_paginator.html' %}
+        {% endif %}
+        <!-- Таблица схем -->
+        <div class="card border-yellow mb-4">
+            <div class="card-header card-header-black">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>
+                        {% if selected_base %}
+                        Схемы базы "{{ selected_base.name }}"
+                        {% else %}
+                        Список схем
+                        {% endif %}
+                    </h5>
+                    {% if has_filter_params %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="fas fa-filter me-1"></i>
+                        Фильтр применён
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <form method="GET" action="{{ request.path }}">
+                    <table class="table table-black-yellow table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th width="5%" class="text-center">#</th>
+                            <th width="45%">База данных</th>
+                            <th width="50%">Схема</th>
+                        </tr>
+                        <tr class="bg-light">
+                            <td></td>
+                            <td>
+                                <input type="text"
+                                       name="base"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск по базе..."
+                                       value="{{ request.GET.base|default:'' }}"
+                                       autocomplete="off">
+                                {% if selected_base %}
+                                <input type="hidden" name="base" value="{{ selected_base.name }}">
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <input type="text"
+                                           name="schema"
+                                           class="form-control form-control-dark"
+                                           placeholder="Поиск по схеме..."
+                                           value="{{ request.GET.schema|default:'' }}"
+                                           autocomplete="off">
+                                    <button type="submit" class="btn btn-gold">
+                                        <i class="fas fa-search"></i>Поиск
+                                    </button>
+                                    {% if has_filter_params or selected_base %}
+                                    <a href="{% url 'app_dbm:schema' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>Отмена
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% if schemas %}
+                        {% for schema in schemas %}
+                        <tr>
+                            <td class="text-center align-middle">
+                                {{ page_obj.start_index|add:forloop.counter0 }}
+                            </td>
+                            <td class="align-middle">
+                                {% if schema.base %}
+                                <a href="{% url 'app_dbm:databases' %}"
+                                   class="link-database"
+                                   title="Перейти к базе {{ schema.base.name }}">
+                                    <i class="fas fa-server"></i>{{ schema.base.name }}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle">
+                                <a href="{% url 'app_dbm:tables' %}?table_catalog={{ schema.base.name }}&schema={{ schema.schema }}&is_metadata=false"
+                                   class="link-schema"
+                                   title="Показать таблицы схемы {{ schema.schema }}">
+                                    <i class="fas fa-table"></i>{{ schema.schema }}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-database fa-3x mb-3 text-yellow"></i>
+                                    <h5 class="mb-3">
+                                        {% if selected_base %}
+                                        Схемы не найдены для базы "{{ selected_base.name }}"
+                                        {% else %}
+                                        Схемы не найдены
+                                        {% endif %}
+                                    </h5>
+                                    {% if has_filter_params %}
+                                    <div class="alert alert-warning border-yellow mt-3"
+                                         style="max-width: 500px; margin: 0 auto;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-exclamation-circle fa-2x me-3 text-yellow"></i>
+                                            <div>
+                                                <h6 class="mb-1">Ничего не найдено</h6>
+                                                <p class="mb-0 small">
+                                                    {% if selected_base %}
+                                                    Для выбранной базы данных не найдено ни одной схемы.
+                                                    {% else %}
+                                                    По вашему запросу не найдено ни одной схемы.
+                                                    {% endif %}
+                                                    Попробуйте изменить параметры поиска.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-info border-yellow mt-3"
+                                         style="max-width: 500px; margin: 0 auto;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-lightbulb fa-2x me-3 text-yellow"></i>
+                                            <div>
+                                                <h6 class="mb-1">Советы по поиску:</h6>
+                                                <ul class="mb-0 small">
+                                                    <li>Используйте частичные названия (например: "public")</li>
+                                                    <li>Поиск по имени базы данных</li>
+                                                    <li>Схемы регистрозависимы в некоторых СУБД</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+
+        <!-- Пагинация (нижняя) -->
+        {% if schemas %}
+        {% include 'inc/_paginator.html' %}
+
+        <!-- Предупреждение о пагинации при ограничении -->
+        {% if is_limited and page_obj.has_next %}
+        <div class="alert alert-warning border-yellow mt-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle fa-2x me-3 text-yellow"></i>
+                <div>
+                    <h6 class="mb-1"><strong>Внимание!</strong></h6>
+                    <p class="mb-0">
+                        Из-за ограничения в {{ paginator.max_limit }} записей не все страницы доступны.
+                        Уточните параметры поиска для получения полных результатов.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock body %}

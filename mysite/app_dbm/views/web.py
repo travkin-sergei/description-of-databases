@@ -18,8 +18,7 @@ from ..models import (
     DimColumnName, DimTableType, DimTableNameType, DimStage, DimDB,
 )
 from ..filters import (
-    LinkDBFilter,
-    LinkTableFilter, LinkColumnFilter,
+    LinkDBFilter, LinkSchemaFilter, LinkTableFilter, LinkColumnFilter,
 )
 
 
@@ -193,6 +192,42 @@ class DatabasesView(LoginRequiredMixin, FilterView, PaginationContextMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context.update(self.get_pagination_context(context, self.filterset))
+        return context
+
+
+class LinkSchemaView(LoginRequiredMixin, FilterView, PaginationContextMixin):
+    """Список схем с фильтрацией."""
+
+    model = LinkSchema
+    filterset_class = LinkSchemaFilter
+    template_name = 'app_dbm/schema.html'
+    context_object_name = 'schemas'
+    paginator_class = SafePaginator
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = LinkSchema.objects.select_related('base').order_by('base__name', 'schema')
+
+        # Фильтрация по base_id из URL параметра
+        base_id = self.request.GET.get('base_id')
+        if base_id:
+            queryset = queryset.filter(base_id=base_id)
+
+        self.filterset = self.filterset_class(self.request.GET, queryset=queryset)
+        return self.filterset.qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Добавляем информацию о выбранной базе данных
+        base_id = self.request.GET.get('base_id')
+        if base_id:
+            try:
+                context['selected_base'] = LinkDB.objects.get(pk=base_id)
+            except LinkDB.DoesNotExist:
+                context['selected_base'] = None
+
         context.update(self.get_pagination_context(context, self.filterset))
         return context
 
