@@ -77,7 +77,7 @@ urlpatterns = [
     path('api/columns/', GetColumnsView.as_view(), name='get-columns'),
     # HTML
     path('about/', AboutView.as_view(), name='about-app'),
-    path('databases/', DatabasesView.as_view(), name='databases'),
+    path('', DatabasesView.as_view(), name='databases'),
     path('schema/', LinkSchemaView.as_view(), name='schema'),
     path('tables/', TablesView.as_view(), name='tables'),
     path('tables/<int:pk>/', TableDetailView.as_view(), name='tables-detail'),

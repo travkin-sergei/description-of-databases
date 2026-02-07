@@ -41,8 +41,8 @@ urlpatterns = [
     path('api/', include(router.urls)),
     # Веб-маршруты (HTML-представления)
     path('about-app/', AboutView.as_view(), name='about-app'),
-    path('services/', ServicesView.as_view(), name='services'),
-    path('services/<int:pk>/', ServicesDetailView.as_view(), name='services-detail'),
-    path('services-user/', ServiceUserView.as_view(), name='services-user'),
+    path('', ServicesView.as_view(), name='services'),
+    path('<int:pk>/', ServicesDetailView.as_view(), name='services-detail'),
+    path('user/', ServiceUserView.as_view(), name='services-user'),
     path('link/', LinksUrlServiceListView.as_view(), name='dim-link'),
 ]

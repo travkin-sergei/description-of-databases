@@ -16,15 +16,16 @@ urlpatterns = [
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     # Веб-часть приложений
-    path('', include('app_dbm.urls')),  # Корень — таблицы
+    path('', include('app_services.urls')),  # Сервисы
+    path('db', include('app_dbm.urls')),  # Базы данных
+    path('link/', include('app_url.urls')),  # Ссылки
     path('accounts/', include('app_auth.urls')),  # Веб-авторизация
-    path('doc/', include('app_doc.urls')),
-    path('dictionary/', include('app_dict.urls')),
-    path('services/', include('app_services.urls')),
-    path('request/', include('app_request.urls')),
-    path('updates/', include('app_updates.urls')),
-    path('query/', include('app_query_path.urls')),
-    path('link/', include('app_url.urls')),
+    path('doc/', include('app_doc.urls')),  # Документы
+    path('dictionary/', include('app_dict.urls')),  # Словарь
+    path('request/', include('app_request.urls')),  # Запросы
+    path('updates/', include('app_updates.urls')),  # Обновления
+    path('query/', include('app_query_path.urls')),  # Запросы
+
 ]
 
 # Обработчик 404
