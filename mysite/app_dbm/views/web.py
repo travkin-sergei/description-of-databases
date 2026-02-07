@@ -173,6 +173,66 @@ class GetColumnsView(View):
         return JsonResponse(list(columns), safe=False)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class LinkColumnColumnCreateView(View):
+    """Класс-обработчик для создания связи столбцов через AJAX."""
+
+    def post(self, request, *args, **kwargs):
+        try:
+            main_id = request.POST.get('main_column')
+            sub_id = request.POST.get('sub_column')
+            type_id = request.POST.get('type')
+            is_active = request.POST.get('is_active') == 'on'
+
+            if not main_id or not type_id:
+                return JsonResponse({
+                    "error": "Поля 'main_column' и 'type' обязательны"
+                }, status=400)
+
+            main_id = int(main_id)
+            type_id = int(type_id)
+            sub_id = int(sub_id) if sub_id else None
+
+            try:
+                main_col = LinkColumn.objects.get(pk=main_id)
+                type_obj = DimTypeLink.objects.get(pk=type_id)
+                sub_col = LinkColumn.objects.get(pk=sub_id) if sub_id else None
+            except LinkColumn.DoesNotExist:
+                return JsonResponse({
+                    "error": f"Столбец с ID={main_id} не найден"
+                }, status=400)
+            except DimTypeLink.DoesNotExist:
+                return JsonResponse({
+                    "error": f"Тип связи с ID={type_id} не найден"
+                }, status=400)
+
+            obj = LinkColumnColumn.objects.create(
+                main_id=main_id,
+                sub_id=sub_id,
+                type_id=type_id,
+                is_active=is_active
+            )
+
+            return JsonResponse({
+                "success": True,
+                "id": obj.id,
+                "main": str(obj.main),
+                "sub": str(obj.sub) if obj.sub else None,
+                "message": f"✅ Связь #{obj.id} успешно создана"
+            })
+
+        except ValueError as e:
+            return JsonResponse({
+                "error": f"Некорректный числовой идентификатор: {e}"
+            }, status=400)
+
+        except Exception as e:
+            return JsonResponse({
+                "error": str(e),
+                "details": "См. логи сервера для деталей"
+            }, status=500)
+
+
 # ================== ОСНОВНЫЕ ПРЕДСТАВЛЕНИЯ ==================
 class DatabasesView(LoginRequiredMixin, FilterView, PaginationContextMixin):
     """Список баз данных с фильтрацией."""
@@ -371,159 +431,6 @@ class ColumnDetailView(LoginRequiredMixin, DetailView):
         context['schedules'] = []
 
         return context
-
-
-# ================== AJAX ОБРАБОТЧИКИ ==================
-@method_decorator(csrf_exempt, name='dispatch')
-class LinkColumnColumnCreateView(View):
-    """Класс-обработчик для создания связи столбцов через AJAX."""
-
-    def post(self, request, *args, **kwargs):
-        try:
-            main_id = request.POST.get('main_column')
-            sub_id = request.POST.get('sub_column')
-            type_id = request.POST.get('type')
-            is_active = request.POST.get('is_active') == 'on'
-
-            if not main_id or not type_id:
-                return JsonResponse({
-                    "error": "Поля 'main_column' и 'type' обязательны"
-                }, status=400)
-
-            main_id = int(main_id)
-            type_id = int(type_id)
-            sub_id = int(sub_id) if sub_id else None
-
-            try:
-                main_col = LinkColumn.objects.get(pk=main_id)
-                type_obj = DimTypeLink.objects.get(pk=type_id)
-                sub_col = LinkColumn.objects.get(pk=sub_id) if sub_id else None
-            except LinkColumn.DoesNotExist:
-                return JsonResponse({
-                    "error": f"Столбец с ID={main_id} не найден"
-                }, status=400)
-            except DimTypeLink.DoesNotExist:
-                return JsonResponse({
-                    "error": f"Тип связи с ID={type_id} не найден"
-                }, status=400)
-
-            obj = LinkColumnColumn.objects.create(
-                main_id=main_id,
-                sub_id=sub_id,
-                type_id=type_id,
-                is_active=is_active
-            )
-
-            return JsonResponse({
-                "success": True,
-                "id": obj.id,
-                "main": str(obj.main),
-                "sub": str(obj.sub) if obj.sub else None,
-                "message": f"✅ Связь #{obj.id} успешно создана"
-            })
-
-        except ValueError as e:
-            return JsonResponse({
-                "error": f"Некорректный числовой идентификатор: {e}"
-            }, status=400)
-
-        except Exception as e:
-            return JsonResponse({
-                "error": str(e),
-                "details": "См. логи сервера для деталей"
-            }, status=500)
-
-
-# ================== АВТОКОМПЛИТ ПРЕДСТАВЛЕНИЯ ==================
-class LinkColumnAutocomplete(ListView, AutocompleteMixin):
-    """Автокомплит для столбцов"""
-    model = LinkColumn
-    search_fields = ['columns', 'table__name', 'table__schema__schema', 'table__schema__base__name']
-    display_fields = ['id', 'columns']
-
-    def get_queryset(self):
-        return super().get_queryset().select_related(
-            'table__schema__base'
-        ).order_by('columns')
-
-    def get_display_text(self, obj):
-        try:
-            return f"{obj.table.schema.base.name}.{obj.table.schema.schema}.{obj.table.name}.{obj.columns}"
-        except AttributeError:
-            return obj.columns or str(obj)
-
-
-class LinkTableAutocomplete(ListView, AutocompleteMixin):
-    """Автокомплит для таблиц"""
-    model = LinkTable
-    search_fields = ['name', 'schema__schema', 'schema__base__name']
-    display_fields = ['id', 'name']
-
-    def get_queryset(self):
-        return super().get_queryset().select_related(
-            'schema__base'
-        ).order_by('name')
-
-    def get_display_text(self, obj):
-        try:
-            return f"{obj.schema.base.name}.{obj.schema.schema}.{obj.name}"
-        except AttributeError:
-            return obj.name or str(obj)
-
-
-class LinkDBAutocomplete(ListView, AutocompleteMixin):
-    """Автокомплит для баз данных"""
-    model = LinkDB
-    search_fields = ['name', 'alias', 'stage__name']
-    display_fields = ['id', 'name', 'alias']
-
-    def get_queryset(self):
-        return super().get_queryset().select_related('stage').order_by('alias')
-
-    def get_display_text(self, obj):
-        return f"{obj.alias} ({obj.name})"
-
-
-class LinkSchemaAutocomplete(ListView, AutocompleteMixin):
-    """Автокомплит для схем"""
-    model = LinkSchema
-    search_fields = ['schema', 'base__name']
-    display_fields = ['id', 'schema']
-
-    def get_queryset(self):
-        return super().get_queryset().select_related('base').order_by('schema')
-
-    def get_display_text(self, obj):
-        try:
-            return f"{obj.base.name}.{obj.schema}"
-        except AttributeError:
-            return obj.schema or str(obj)
-
-
-class DimDBAutocomplete(ListView, AutocompleteMixin):
-    """Автокомплит для типов баз данных"""
-    model = DimDB
-    search_fields = ['name', 'version']
-    display_fields = ['id', 'name', 'version']
-
-    def get_queryset(self):
-        return super().get_queryset().order_by('name')
-
-    def get_display_text(self, obj):
-        return f"{obj.name} {obj.version}" if obj.version else obj.name
-
-
-class DimStageAutocomplete(ListView, AutocompleteMixin):
-    """Автокомплит для стендов"""
-    model = DimStage
-    search_fields = ['name']
-    display_fields = ['id', 'name']
-
-    def get_queryset(self):
-        return super().get_queryset().order_by('name')
-
-    def get_display_text(self, obj):
-        return obj.name
 
 
 class DimTableNameTypeAutocomplete(ListView, AutocompleteMixin):
