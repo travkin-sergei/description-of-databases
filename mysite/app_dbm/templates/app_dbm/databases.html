@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock title %}
 {% block body %}
-
 <style>
-    /* Базовые стили таблицы */
     .table-black-yellow {
         background-color: white;
         color: #333;
@@ -12,7 +10,6 @@
         border-bottom: 2px solid #ffcc00;
         background-color: #1a1a1a;
         color: #ffcc00;
-        font-weight: bold;
     }
     .table-black-yellow tbody tr:hover {
         background-color: #fff9e6 !important;
@@ -21,38 +18,24 @@
         background-color: white;
     }
     .table-black-yellow tbody tr:nth-child(even) {
-        background-color: #fffae6;
+        background-color: #fffae6; /* Светло-желтый фон для четных строк */
     }
-    .table-black-yellow tbody td {
-        vertical-align: middle;
-    }
-
-    /* Стили кнопок */
     .btn-gold {
         background-color: #ffcc00;
         color: #1a1a1a;
         border: none;
         font-weight: bold;
-        padding: 8px 16px;
     }
     .btn-gold:hover {
         background-color: #e6b800;
         color: #1a1a1a;
     }
-    .btn-gold i {
-        margin-right: 5px;
-    }
-    .btn-outline-yellow {
-        border: 1px solid #ffcc00;
-        color: #ffcc00;
-        padding: 6px 12px;
-    }
-    .btn-outline-yellow:hover {
+    .badge-yellow {
         background-color: #ffcc00;
         color: #1a1a1a;
+        font-weight: bold;
+        padding: 5px 8px;
     }
-
-    /* Стили форм */
     .form-control-dark {
         border: 1px solid #ffcc00;
     }
@@ -60,18 +43,17 @@
         border-color: #ffcc00;
         box-shadow: 0 0 0 0.2rem rgba(255, 204, 0, 0.25);
     }
-
-    /* Стили заголовков и карточек */
+    .text-yellow {
+        color: #ffcc00;
+    }
     .card-header-black {
         background-color: #1a1a1a;
         color: #ffcc00;
         border-bottom: 2px solid #ffcc00;
     }
     .border-yellow {
-        border: 1px solid #ffcc00 !important;
+        border: 1px solid #ffcc00;
     }
-
-    /* Контейнер */
     .three-quarters-width {
         width: 75%;
         margin: 0 auto;
@@ -81,209 +63,138 @@
             width: 95%;
         }
     }
-
-    /* Стили ссылок навигации */
-    .link-nav {
-        background-color: #1a1a1a;
-        color: #ffcc00;
-        border: 1px solid #ffcc00;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        text-decoration: none;
-        display: inline-block;
-        font-weight: bold;
-        transition: all 0.2s ease;
-    }
-    .link-nav:hover {
-        background-color: #ffcc00;
-        color: #1a1a1a;
-        text-decoration: none;
-    }
-    .link-nav i {
-        margin-right: 4px;
-    }
-
-    /* Стили бейджей */
-    .badge-yes {
-        background-color: #28a745;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-    }
-    .badge-no {
-        background-color: #dc3545;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-    }
 </style>
-
 <div class="container-fluid bg-white py-3">
     <div class="three-quarters-width">
-        <!-- Пагинация (верхняя) -->
-        {% if databases %}
         {% include 'inc/_paginator.html' %}
-        {% endif %}
-
-        <!-- Таблица баз данных -->
         <div class="card border-yellow mb-4">
             <div class="card-header card-header-black">
                 <h5 class="mb-0">
-                    <i class="fas fa-server me-2"></i>
-                    Список групп баз данных
+                    <i class="fas fa-server mr-2"></i>
+                    Список груп баз данных
                 </h5>
             </div>
             <div class="card-body p-0">
-                <form method="GET" class="w-100">
-                    <table class="table table-black-yellow table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th width="5%" class="text-center">#</th>
-                                <th width="20%">Базы данных</th>
-                                <th width="20%">Псевдоним</th>
-                                {% if user.is_staff or user.is_superuser %}
-                                <th width="15%">Хост</th>
-                                <th width="10%">Порт</th>
-                                {% endif %}
-                                <th width="15%">Среда</th>
-                                <th width="10%" class="text-center">Статус</th>
-                                <th width="5%" class="text-center">Схемы</th>
-                            </tr>
-                            <tr class="bg-light">
-                                <td></td>
-                                <td>
-                                    <input type="text"
-                                           name="db_name"
-                                           class="form-control form-control-dark"
-                                           placeholder="Поиск по названию..."
-                                           value="{{ request.GET.db_name|default:'' }}">
-                                </td>
-                                <td>
-                                    <input type="text"
-                                           name="alias"
-                                           class="form-control form-control-dark"
-                                           placeholder="Поиск по псевдониму..."
-                                           value="{{ request.GET.alias|default:'' }}">
-                                </td>
-                                {% if user.is_staff or user.is_superuser %}
-                                <td>
-                                    <input type="text"
-                                           name="host"
-                                           class="form-control form-control-dark"
-                                           placeholder="Поиск по хосту..."
-                                           value="{{ request.GET.host|default:'' }}">
-                                </td>
-                                <td></td>
-                                {% endif %}
-                                <td>
-                                    <select name="stage" class="form-control form-control-dark">
-                                        <option value="">Все среды</option>
-                                        {% for stage in filter.form.stage.field.queryset %}
-                                        <option value="{{ stage.id }}"
-                                                {% if request.GET.stage|stringformat:"s" == stage.id|stringformat:"s" %}
-                                                selected
-                                                {% endif %}>
-                                            {{ stage.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <select name="is_active" class="form-control form-control-dark">
-                                            <option value="">Все</option>
-                                            <option value="true"
-                                                    {% if request.GET.is_active == 'true' %}selected{% endif %}>
-                                                Активные
-                                            </option>
-                                            <option value="false"
-                                                    {% if request.GET.is_active == 'false' %}selected{% endif %}>
-                                                Неактивные
-                                            </option>
-                                        </select>
-                                        <button type="submit" class="btn btn-gold">
-                                            <i class="fas fa-search"></i>Найти
-                                        </button>
-                                        {% if request.GET %}
-                                        <a href="{{ request.path }}" class="btn btn-outline-secondary">
-                                            <i class="fas fa-times"></i>
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td></td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if databases %}
-                            {% for elem in databases %}
-                            <tr>
-                                <td class="text-center align-middle">
-                                    {{ page_obj.start_index|add:forloop.counter0 }}
-                                </td>
-                                <td class="align-middle">
-                                    {{ elem.name|default_if_none:'Не указано' }}
-                                </td>
-                                <td class="align-middle">
-                                    {{ elem.alias|default_if_none:'Не указано' }}
-                                </td>
-                                {% if user.is_staff or user.is_superuser %}
-                                <td class="align-middle">
-                                    {{ elem.host|default_if_none:'Не указано' }}
-                                </td>
-                                <td class="align-middle">
-                                    {{ elem.port|default_if_none:'Не указано' }}
-                                </td>
-                                {% endif %}
-                                <td class="align-middle">
-                                    {{ elem.stage|default_if_none:'Не указано' }}
-                                </td>
-                                <td class="text-center align-middle">
-                                    <span class="badge {% if elem.is_active %}badge-yes{% else %}badge-no{% endif %}">
-                                        {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
-                                    </span>
-                                </td>
-                                <td class="text-center align-middle">
-                                    <a href="{% url 'app_dbm:schema' %}?base={{ elem.name }}"
-                                       class="link-nav"
-                                       title="Показать схемы базы {{ elem.name }}">
-                                        <i class="fas fa-database"></i>Схема
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            {% else %}
-                            <tr>
-                                <td colspan="{% if user.is_staff or user.is_superuser %}8{% else %}6{% endif %}" class="text-center py-5">
-                                    <div class="text-muted">
-                                        <i class="fas fa-server fa-3x mb-3 text-warning"></i>
-                                        <h5 class="mb-3">
-                                            {% if request.GET %}
-                                            По вашему запросу ничего не найдено
-                                            {% else %}
-                                            Нет доступных баз данных
-                                            {% endif %}
-                                        </h5>
-                                        {% if request.GET %}
-                                        <div class="alert alert-warning d-inline-block mt-3">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            Измените параметры поиска
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
+                <table class="table table-black-yellow table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th scope="col" width="5%" class="text-center">№</th>
+                        <th scope="col">Базы данных</th>
+                        <th scope="col">Псевдоним</th>
+                        {% if user.is_staff or user.is_superuser %}
+                        <th scope="col">Хост</th>
+                        <th scope="col">Порт</th>
+                        {% endif %}
+                        <th scope="col">Среда</th>
+                        <th scope="col" width="20%">Статус</th>
+                    </tr>
+                    <tr style="background-color: #f8f9fa;">
+                        <form method="GET" class="w-100">
+                            <td></td>
+                            <td>
+                                <input type="text"
+                                       name="db_name"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск по названию..."
+                                       value="{{ filter.form.db_name.value|default_if_none:'' }}">
+
+                            </td>
+                            <td>Псевдоним</td>
+                            {% if user.is_staff or user.is_superuser %}
+                            <td>
+                                <input type="text"
+                                       name="host"
+                                       class="form-control form-control-dark"
+                                       placeholder="Поиск по хосту..."
+                                       value="{{ filter.form.host.value|default_if_none:'' }}">
+                            </td>
+                            <td>Порт</td>
                             {% endif %}
-                        </tbody>
-                    </table>
-                </form>
+                            <td>
+                                <select name="stage" class="form-control form-control-dark">
+                                    <option value="">{{ filter.form.stage.field.empty_label }}</option>
+                                    {% for stage in filter.form.stage.field.queryset %}
+                                    <option value="{{ stage.id }}"
+                                            {% if filter.form.stage.value|stringformat:"s" == stage.id|stringformat:"s" %}
+                                    selected
+                                    {% endif %}>
+                                    {{ stage.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <select name="is_active" class="form-control form-control-dark mr-2">
+                                        <option value="">Все статусы</option>
+                                        <option value="true"
+                                                {% if request.GET.is_active == 'true' %}selected{% endif %}>
+                                        Активные
+                                        </option>
+                                        <option value="false"
+                                                {% if request.GET.is_active == 'false' %}selected{% endif %}>
+                                        Неактивные
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-gold">
+                                        <i class="fas fa-search mr-1"></i>Найти
+                                    </button>
+                                </div>
+                            </td>
+                        </form>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for elem in databases %}
+                    <tr>
+                        <th scope="row" class="text-center">
+                            {{ page_obj.start_index|add:forloop.counter0 }}
+                        </th>
+                        <td>
+                            <a href="#"
+                               class="text-dark font-weight-bold">
+                                <i class="fas fa-cog text-yellow mr-2"></i>
+                            </a> {{ elem.name|default_if_none:'Не указано' }}
+                        </td>
+                        <td>
+                            <a href="#" class="text-dark font-weight-bold">
+                                <i class="fas fa-cog text-yellow mr-2"></i>
+                            </a>{{ elem.alias|default_if_none:'Не указано' }}
+                        </td>
+                        {% if user.is_staff or user.is_superuser %}
+                        <td>
+                            <a href="#" class="text-dark font-weight-bold">
+                                <i class="fas fa-cog text-yellow mr-2"></i>
+
+                            </a>{{ elem.host|default_if_none:'Не указано' }}
+                        </td>
+                        <td>
+                            <a href="#" class="text-dark font-weight-bold">
+                                <i class="fas fa-cog text-yellow mr-2"></i>
+                            </a>{{ elem.port|default_if_none:'Не указано' }}
+                        </td>
+                        {% endif %}
+                        <td>
+                            <a href="#" class="text-dark font-weight-bold">
+                                <i class="fas fa-cog text-yellow mr-2"></i>
+                            </a>{{ elem.stage|default_if_none:'Не указано' }}
+                        </td>
+                        <td>
+                            <span class="badge badge-yellow">
+                                {% if elem.is_active %}АКТИВЕН{% else %}НЕАКТИВЕН{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">Нет доступных баз данных</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-        <!-- Пагинация (нижняя) -->
-        {% if databases %}
         {% include 'inc/_paginator.html' %}
-        {% endif %}
     </div>
 </div>
 {% endblock %}

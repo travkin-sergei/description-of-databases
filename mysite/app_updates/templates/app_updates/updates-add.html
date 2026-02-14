@@ -54,60 +54,6 @@
     .selector-group select {
         width: 100%;
     }
-
-    /* Стили для нумерации в центре */
-    .row-number-center {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        padding: 0 10px;
-    }
-    .row-number-badge {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #ffcc00 0%, #ff9900 100%);
-        color: #1a1a1a;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 1.1rem;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-        position: relative;
-        z-index: 10;
-    }
-    .row-number-badge::after {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #ffcc00 0%, #ff9900 100%);
-        opacity: 0.3;
-        z-index: -1;
-        animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 0.3; }
-        50% { transform: scale(1.1); opacity: 0.5; }
-    }
-    .formset-row {
-        position: relative;
-    }
-    .formset-row::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        height: 2px;
-        background: linear-gradient(to right, transparent 45%, rgba(255,204,0,0.5) 50%, transparent 55%);
-        z-index: 1;
-    }
 </style>
 <div class="container py-3">
     <div class="compact-form-card">
@@ -229,11 +175,10 @@
                 <div id="formset-container">
                     {% for form in formset %}
                     {% with prefix=forloop.counter0 %}
-                    <div class="row mb-4 align-items-center formset-row">
+                    <div class="row mb-3 align-items-end formset-row">
                         {{ form.id }}
-
-                        <!-- Левая колонка: Основной столбец -->
-                        <div class="col-md-5">
+                        <!-- Основной столбец -->
+                        <div class="col-md-6">
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark main-column-select"
                                         data-prefix="{{ prefix }}"
@@ -247,13 +192,8 @@
                             </div>
                         </div>
 
-                        <!-- Центр: Нумерация -->
-                        <div class="col-md-2 row-number-center">
-                            <div class="row-number-badge">{{ forloop.counter }}</div>
-                        </div>
-
-                        <!-- Правая колонка: Доп. столбец -->
-                        <div class="col-md-5">
+                        <!-- Доп. столбец -->
+                        <div class="col-md-6">
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark sub-column-select"
                                         data-prefix="{{ prefix }}"
@@ -273,11 +213,10 @@
 
                 <!-- Скрытый шаблон новой строки -->
                 <div id="empty-form" style="display:none;">
-                    <div class="row mb-4 align-items-center formset-row">
+                    <div class="row mb-3 align-items-end formset-row">
                         {{ formset.empty_form.id }}
-
-                        <!-- Левая колонка -->
-                        <div class="col-md-5">
+                        <!-- Основной столбец -->
+                        <div class="col-md-6">
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark main-column-select"
                                         data-prefix="__prefix__"
@@ -291,13 +230,8 @@
                             </div>
                         </div>
 
-                        <!-- Центр: Нумерация -->
-                        <div class="col-md-2 row-number-center">
-                            <div class="row-number-badge">NEW</div>
-                        </div>
-
-                        <!-- Правая колонка -->
-                        <div class="col-md-5">
+                        <!-- Доп. столбец -->
+                        <div class="col-md-6">
                             <div class="column-selectors">
                                 <select class="form-select form-control-dark sub-column-select"
                                         data-prefix="__prefix__"
@@ -410,17 +344,6 @@
                     }
                 } else {
                     reset(select, 'Выберите столбец');
-                }
-            });
-        }
-
-        // Обновление нумерации строк
-        function updateRowNumbers() {
-            const rows = document.querySelectorAll('#formset-container .formset-row');
-            rows.forEach((row, index) => {
-                const badge = row.querySelector('.row-number-badge');
-                if (badge) {
-                    badge.textContent = index + 1;
                 }
             });
         }
@@ -553,9 +476,8 @@
             });
         }
 
-        // Инициализируем существующие селекты и нумерацию
+        // Инициализируем существующие селекты
         initColumnSelects();
-        updateRowNumbers();
 
         // Добавление новых строк
         let formCount = {{ formset.total_form_count }};
@@ -576,9 +498,6 @@
 
             // Инициализируем обработчики для новых селектов
             initColumnSelects();
-
-            // Обновляем нумерацию
-            updateRowNumbers();
 
             // Обновляем счетчик форм
             formCount++;

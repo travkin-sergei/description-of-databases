@@ -24,42 +24,40 @@ class LinkUpdateColForm(forms.ModelForm):
         model = LinkUpdateCol
         fields = ['main', 'sub']
 
+    # app_updates/models.py
     def clean(self):
-        cleaned_data = super().clean()
-        main = cleaned_data.get('main')
-        sub = cleaned_data.get('sub')
-
+        """
+        Валидация на уровне модели:
+        1. Хотя бы одно из полей main/sub должно быть заполнено
+        2. Проверка уникальности комбинации (для админки и форм)
+        """
         # Проверка 1: хотя бы одно поле должно быть заполнено
-        if not main and not sub:
-            raise forms.ValidationError({
+        if not self.main and not self.sub:
+            raise ValidationError({
                 'main': 'Должно быть заполнено хотя бы одно из полей: "Основная колонка" или "Дополнительная колонка".',
                 'sub': 'Должно быть заполнено хотя бы одно из полей: "Основная колонка" или "Дополнительная колонка".'
             })
 
         # Проверка 2: уникальность комбинации
-        type_instance = cleaned_data.get('type')  # или self.instance.type, если форма привязана к инстансу
-        if type_instance and type_instance.pk:
+        # Пропускаем проверку уникальности, если type еще не сохранен
+        if self.type and self.type.pk:
             from django.db.models import Q
-            qs = LinkUpdateCol.objects.filter(type=type_instance)
+            qs = LinkUpdateCol.objects.filter(type=self.type)
 
-            if main and sub:
-                qs = qs.filter(main=main, sub=sub)
-            elif main:
-                qs = qs.filter(main=main, sub__isnull=True)
-            elif sub:
-                qs = qs.filter(main__isnull=True, sub=sub)
-            else:
-                qs = qs.none()  # не должно случиться из-за проверки выше
+            if self.main and self.sub:
+                qs = qs.filter(main=self.main, sub=self.sub)
+            elif self.main:
+                qs = qs.filter(main=self.main, sub__isnull=True)
+            elif self.sub:
+                qs = qs.filter(main__isnull=True, sub=self.sub)
 
-            if self.instance and self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
 
             if qs.exists():
-                raise forms.ValidationError(
+                raise ValidationError(
                     'Комбинация "Метод обновления", "Основная колонка" и "Дополнительная колонка" должна быть уникальной.'
                 )
-
-        return cleaned_data
 
 
 class DimUpdateMethodForm(forms.ModelForm):

@@ -14,7 +14,12 @@ from .views.web import (
     GetTablesView,
     GetColumnsView,
     # Автокомплит представления
-    LinkSchemaView,
+    LinkColumnAutocomplete,
+    LinkTableAutocomplete,
+    LinkDBAutocomplete,
+    LinkSchemaAutocomplete,
+    DimDBAutocomplete,
+    DimStageAutocomplete,
     DimTableNameTypeAutocomplete,
     DimTableTypeAutocomplete,
     DimColumnNameAutocomplete,
@@ -54,16 +59,29 @@ router.register(r'total-data', TotalDataViewSet, basename='total-data')
 urlpatterns = [
     # DRF API
     path('api/v1/', include(router.urls)),
+
+    # Автокомплит для админки
+    path('autocomplete/linkcolumn/', LinkColumnAutocomplete.as_view(), name='linkcolumn-autocomplete'),
+    path('autocomplete/linktable/', LinkTableAutocomplete.as_view(), name='linktable-autocomplete'),
+    path('autocomplete/linkdb/', LinkDBAutocomplete.as_view(), name='linkdb-autocomplete'),
+    path('autocomplete/linkschema/', LinkSchemaAutocomplete.as_view(), name='linkschema-autocomplete'),
+    path('autocomplete/dimdb/', DimDBAutocomplete.as_view(), name='dimdb-autocomplete'),
+    path('autocomplete/dimstage/', DimStageAutocomplete.as_view(), name='dimstage-autocomplete'),
+    path('autocomplete/dimtablename/', DimTableNameTypeAutocomplete.as_view(), name='dimtablename-autocomplete'),
+    path('autocomplete/dimtabletype/', DimTableTypeAutocomplete.as_view(), name='dimtabletype-autocomplete'),
+    path('autocomplete/dimcolumnname/', DimColumnNameAutocomplete.as_view(), name='dimcolumnname-autocomplete'),
+    path('autocomplete/dimtypelink/', DimTypeLinkAutocomplete.as_view(), name='dimtypelink-autocomplete'),
+
     # AJAX
     path('api/schemas/', GetSchemasView.as_view(), name='get-schemas'),
     path('api/tables/', GetTablesView.as_view(), name='get-tables'),
     path('api/columns/', GetColumnsView.as_view(), name='get-columns'),
+
     # HTML
     path('about/', AboutView.as_view(), name='about-app'),
-    path('', DatabasesView.as_view(), name='databases'),
-    path('schema/', LinkSchemaView.as_view(), name='schema'),
-    path('tables/', TablesView.as_view(), name='tables'),
+    path('', TablesView.as_view(), name='tables'),
     path('tables/<int:pk>/', TableDetailView.as_view(), name='tables-detail'),
     path('columns/', ColumnListView.as_view(), name='columns'),
     path('columns/<int:pk>/', ColumnDetailView.as_view(), name='columns-detail'),
+    path('databases/', DatabasesView.as_view(), name='databases'),
 ]

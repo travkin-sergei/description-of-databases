@@ -1,8 +1,6 @@
 # app_services/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
-from .views.graph import ServiceGraphView, ServiceGraphDataView
 from .views.web import (
     AboutView,
     ServicesView,
@@ -39,15 +37,12 @@ router.register(r'service-docs', LinkDocViewSet, basename='service-docs')
 
 # Основные URL-маршруты
 urlpatterns = [
-    # API
+    # API-маршруты (подключаются через роутер DRF)
     path('api/', include(router.urls)),
-    # WEB
+    # Веб-маршруты (HTML-представления)
     path('about-app/', AboutView.as_view(), name='about-app'),
-    path('', ServicesView.as_view(), name='services'),
-    path('<int:pk>/', ServicesDetailView.as_view(), name='services-detail'),
-    path('user/', ServiceUserView.as_view(), name='services-user'),
+    path('services/', ServicesView.as_view(), name='services'),
+    path('services/<int:pk>/', ServicesDetailView.as_view(), name='services-detail'),
+    path('services-user/', ServiceUserView.as_view(), name='services-user'),
     path('link/', LinksUrlServiceListView.as_view(), name='dim-link'),
-    # Graph
-    path('graph/<int:pk>/', ServiceGraphView.as_view(), name='service-graph'),
-    path('api/graph/<int:pk>/', ServiceGraphDataView.as_view(), name='service-graph-data'),
 ]

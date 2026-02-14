@@ -104,8 +104,8 @@ class DimUpdateMethodDetailView(LoginRequiredMixin, DetailView):
             context['query_string'] = get_params.urlencode()
         return context
 
-# app_updates/views/web.py
 
+# app_updates/views/web.py
 class DimUpdateMethodAddView(PermissionRequiredMixin, LoginRequiredMixin, CreateView):
     """Создание расписания обновления."""
 
@@ -132,12 +132,10 @@ class DimUpdateMethodAddView(PermissionRequiredMixin, LoginRequiredMixin, Create
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Используем self.object только если он уже существует (например, после неудачного POST),
-        # но в CreateView он по умолчанию отсутствует до form_valid.
-        # Поэтому передаём None при создании.
-        instance = getattr(self, 'object', None)
-        formset = self.get_formset(instance=instance)
+        # Получаем formset с правильным instance
+        formset = self.get_formset(instance=self.object)
 
+        # Добавляем все необходимые данные в контекст
         context.update({
             'formset': formset,
             'databases': DimDB.objects.all().only('id', 'name'),
@@ -148,18 +146,21 @@ class DimUpdateMethodAddView(PermissionRequiredMixin, LoginRequiredMixin, Create
             }
         })
 
+        # Для отладки - логируем количество форм
         logger.debug(f"Formset created with {formset.total_form_count} forms")
+
         return context
 
     def form_valid(self, form):
         try:
             # Сохраняем основной объект
-            self.object = form.save()
+            self.object = form.save()  # commit=True по умолчанию
 
-            # Создаём formset с привязкой к сохранённому объекту
+            # Создаем formset с instance
             formset = self.get_formset(instance=self.object)
 
             if formset.is_valid():
+                # Явно сохраняем formset
                 formset.save()
                 messages.success(
                     self.request,
@@ -167,34 +168,41 @@ class DimUpdateMethodAddView(PermissionRequiredMixin, LoginRequiredMixin, Create
                 )
                 return HttpResponseRedirect(self.get_success_url())
             else:
-                # Возвращаем форму и formset с ошибками
+                # Обработка ошибок formset
+                for error in formset.non_form_errors():
+                    messages.error(self.request, error)
+                for form_in_formset in formset:
+                    for field, errors in form_in_formset.errors.items():
+                        for error in errors:
+                            messages.error(self.request, f"Строка {form_in_formset.prefix}: {error}")
                 return self.render_to_response(
                     self.get_context_data(form=form, formset=formset)
                 )
 
         except Exception as e:
-            logger.error(f"Ошибка при создании метода обновления: {e}", exc_info=True)
+            logger.error(f"Ошибка при создании метода обновления: {e}")
             messages.error(
                 self.request,
                 f'Произошла ошибка при сохранении: {str(e)}'
             )
-            # Передаём текущие form и formset (с ошибками) обратно
-            formset = self.get_formset(instance=getattr(self, 'object', None))
             return self.render_to_response(
-                self.get_context_data(form=form, formset=formset)
+                self.get_context_data(form=form, formset=self.get_formset())
             )
 
-    def form_invalid(self, form):
-        """Вызывается, когда основная форма недействительна."""
-        messages.error(self.request, "Форма содержит ошибки. Проверьте введённые данные.")
-        formset = self.get_formset(instance=None)
-        return self.render_to_response(
-            self.get_context_data(form=form, formset=formset)
-        )
+        except Exception as e:
+            logger.error(f"Ошибка при создании метода обновления: {e}")
+            messages.error(
+                self.request,
+                f'Произошла ошибка при сохранении: {str(e)}'
+            )
+            return self.render_to_response(
+                self.get_context_data(form=form, formset=self.get_formset())
+            )
 
     def post(self, request, *args, **kwargs):
-        """Обработка POST-запроса."""
+        """Обработка POST запроса."""
         form = self.get_form()
+
         if form.is_valid():
             return self.form_valid(form)
         else:
